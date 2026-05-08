@@ -1,6 +1,9 @@
 {
-  "buildCommand": "cd towit-customer && npm run build",
-  "installCommand": "cd towit-customer && npm install",
-  "devCommand": "cd towit-customer && npm run dev",
-  "outputDirectory": "towit-customer/.next/static"
+  "projects": {
+    "default": {
+      "rootDirectory": "towit-customer",
+      "buildCommand": "npm run build",
+      "outputDirectory": ".next"
+    }
+  }
 }
