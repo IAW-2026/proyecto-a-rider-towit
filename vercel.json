@@ -1,5 +1,6 @@
 {
-  "buildCommand": "cd towit-customer && npm run build",
-  "devCommand": "cd towit-customer && npm run dev",
-  "outputDirectory": "towit-customer/.next"
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "rootDirectory": "towit-customer"
 }
