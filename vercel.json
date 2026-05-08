@@ -1,9 +1,5 @@
 {
-  "projects": {
-    "default": {
-      "rootDirectory": "towit-customer",
-      "buildCommand": "npm run build",
-      "outputDirectory": ".next"
-    }
-  }
+  "buildCommand": "cd towit-customer && npm run build",
+  "devCommand": "cd towit-customer && npm run dev",
+  "outputDirectory": "towit-customer/.next"
 }
