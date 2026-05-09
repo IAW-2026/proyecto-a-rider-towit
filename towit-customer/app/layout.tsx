@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Towit - Ride Sharing",
   description: "Your favorite ride sharing app",
+  icons: {
+    icon: "/images/logo/2.svg",
+  },
 };
 
 export default function RootLayout({
