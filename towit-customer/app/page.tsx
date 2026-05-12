@@ -17,7 +17,7 @@ export default async function Page() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
-            <div className="text-2xl md:text-3xl font-bold text-yellow-300">
+            <div className="text-2xl md:text-3xl font-bold text-yellow-200">
               TowIt
             </div>
           </div>
@@ -39,7 +39,7 @@ export default async function Page() {
       {/* Contenido Principal */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row flex-1 w-full">
         {/* Lado Izquierdo - Contenido */}
-        <div className="w-full md:w-1/2 flex-1 flex flex-col justify-center items-left px-6 md:px-12 py-12 md:py-0 bg-white">
+        <div className="w-full md:w-1/2 flex-1 flex flex-col justify-center items-center md:items-start px-6 md:px-12 py-12 md:py-0 bg-white">
           <div className="max-w-sm w-full text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 md:mb-4">Bienvenido a TowIt<br/></h1>
             <p className="text-lg md:text-xl font-bold text-gray-800 mb-8 md:mb-2"> La forma más sencilla de solicitar un remolque</p>
@@ -62,9 +62,9 @@ export default async function Page() {
         {/* Lado Derecho - Imagen (Solo en Desktop/Tablet) */}
         <div className="hidden md:flex w-full md:w-1/2 bg-white items-center justify-center pr-6 md:pr-12">
           <img
-            src="/images/hero/towit-hero.png"
+            src="/images/hero/hero-gif.gif"
             alt="Towit Ride"
-            className="w-full h-full object-cover"
+            className="w-full  object-cover"
           />
         </div>
       </div>
