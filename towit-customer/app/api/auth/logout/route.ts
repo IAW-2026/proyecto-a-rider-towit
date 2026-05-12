@@ -2,9 +2,9 @@ import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 
 export async function GET() {
-  const { session } = await auth()
+  const { userId } = await auth()
   
-  if (session) {
+  if (userId) {
     await auth().signOut(() => redirect("/"))
   }
   
