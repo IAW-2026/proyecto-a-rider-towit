@@ -1,29 +1,11 @@
-import { UserButton } from "@clerk/nextjs"
-import { currentUser } from "@clerk/nextjs/server"
-import Link from "next/link"
+import Navbar from "@/components/layout/Navbar";
+import Link from "next/link";
 
 export default async function CostumerHome() {
-  const user = await currentUser()
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* Barra Superior */}
-      <nav className="bg-black shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
-          <Link href="/costumer/home" className="flex items-center gap-2 cursor-pointer">
-            <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
-            <div className="text-2xl md:text-3xl font-bold text-yellow-200">
-              TowIt
-            </div>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="hidden sm:inline text-yellow-300 font-medium">
-              Bienvenido, {user?.firstName}
-            </span>
-            <UserButton />
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Contenido Principal */}
       <main className="flex-1">
@@ -44,9 +26,11 @@ export default async function CostumerHome() {
               <p className="text-gray-600 mb-6">
                 Inicia una nueva solicitud de grúa. Te conectaremos con el conductor más cercano en minutos.
               </p>
-              <button className="w-full px-6 py-3 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition text-lg duration-200 cursor-pointer">
-                Pedir Grúa Ahora
-              </button>
+              <Link href="/costumer/request-ride" className="w-full block">
+                <button className="w-full px-6 py-3 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition text-lg duration-200 cursor-pointer">
+                  Pedir Grúa Ahora
+                </button>
+              </Link>
             </div>
             
             {/* Card: Mis Viajes */}

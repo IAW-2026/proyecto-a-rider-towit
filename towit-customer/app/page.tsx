@@ -2,6 +2,8 @@ import Link from "next/link"
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 
+import Navbar from "@/components/layout/Navbar";
+
 export default async function Page() {
   const user = await currentUser()
   
@@ -12,29 +14,7 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* Barra Superior */}
-      <nav className="bg-black shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
-            <div className="text-2xl md:text-3xl font-bold text-yellow-200">
-              TowIt
-            </div>
-          </div>
-          <div className="hidden md:flex gap-4">
-            <Link href="/auth/sign-in">
-              <button className="px-6 py-2 text-yellow-300 font-semibold hover:text-yellow-200 transition cursor-pointer">
-                Iniciar Sesión
-              </button>
-            </Link>
-            <Link href="/auth/sign-up">
-              <button className="px-6 py-2 bg-yellow-300 text-black font-semibold rounded-lg hover:bg-yellow-200 transition cursor-pointer">
-                Crear Cuenta
-              </button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Contenido Principal */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row flex-1 w-full">
