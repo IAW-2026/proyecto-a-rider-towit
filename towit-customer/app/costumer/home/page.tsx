@@ -19,7 +19,7 @@ export default async function CostumerHome() {
             </p>
           </header>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Card: Solicitar Viaje */}
             <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 hover:border-yellow-300 hover:bg-yellow-50 transition-all duration-300 shadow-sm">
               <h3 className="text-2xl font-bold text-gray-800 mb-3">Solicitar un Remolque</h3>
@@ -42,6 +42,19 @@ export default async function CostumerHome() {
               <button className="w-full px-6 py-3 border-2 border-black text-black font-bold rounded-lg hover:bg-gray-200 transition text-lg duration-200 cursor-pointer">
                 Ver Historial
               </button>
+            </div>
+
+            {/* Card: Mis Vehículos */}
+            <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 hover:border-yellow-300 hover:bg-yellow-50 transition-all duration-300 shadow-sm">
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Mis Vehículos</h3>
+              <p className="text-gray-600 mb-6">
+                Agrega los datos de tu vehículo para agilizar el pedido de tu remolque. Gestiona altas, bajas y modificaciones permanentemente.
+              </p>
+              <Link href="/costumer/vehicles" className="w-full block">
+                <button className="w-full px-6 py-3 border-2 border-black text-black font-bold rounded-lg hover:bg-gray-200 transition text-lg duration-200 cursor-pointer">
+                  Gestionar Vehículos
+                </button>
+              </Link>
             </div>
           </div>
         </div>
