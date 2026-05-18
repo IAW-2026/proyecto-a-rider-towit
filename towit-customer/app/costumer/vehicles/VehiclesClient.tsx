@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { addVehicleAction, deleteVehicleAction } from "./actions";
 
 interface Vehicle {
   id: string;
@@ -10,46 +11,34 @@ interface Vehicle {
   weight: number;
 }
 
-export default function VehiclesClient() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+export default function VehiclesClient({ initialVehicles = [] }: { initialVehicles?: Vehicle[] }) {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = async (formData: FormData) => {
     setLoading(true);
     setError("");
     
-    // Simulate a network request
-    setTimeout(() => {
-      const brand = formData.get("brand")?.toString();
-      const model = formData.get("model")?.toString();
-      const year = Number(formData.get("year"));
-      const weight = Number(formData.get("weight"));
+    const result = await addVehicleAction(formData);
 
-      if (!brand || !model || !year) {
-        setError("Por favor, completa los campos requeridos.");
-        setLoading(false);
-        return;
-      }
-
-      const newVehicle: Vehicle = {
-        id: Date.now().toString(),
-        brand,
-        model,
-        year,
-        weight: weight || 0,
-      };
-
-      setVehicles((prev) => [...prev, newVehicle]);
-      setShowForm(false);
+    if (result?.error) {
+      setError(result.error);
       setLoading(false);
-    }, 500);
+      return;
+    }
+
+    // Server action triggerea revalidatePath, por ende actualiza prop 'initialVehicles'
+    setShowForm(false);
+    setLoading(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("¿Estás seguro de que deseas eliminar este vehículo?")) {
-      setVehicles((prev) => prev.filter((v) => v.id !== id));
+      const result = await deleteVehicleAction(Number(id));
+      if (result?.error) {
+        alert(result.error);
+      }
     }
   };
 
@@ -147,14 +136,14 @@ export default function VehiclesClient() {
         </div>
       )}
 
-      {!showForm && vehicles.length === 0 ? (
+      {!showForm && initialVehicles.length === 0 ? (
         <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 text-center text-gray-600 py-16">
           <p className="text-lg mb-4">Aún no tienes vehículos registrados.</p>
           <p>Haz clic en "Agregar Vehículo" para registrar tu primer unidad.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vehicles.map((vehicle) => (
+          {!showForm && initialVehicles.map((vehicle) => (
             <div key={vehicle.id} className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
               <div className="mb-4">
                 <h3 className="text-xl font-bold text-gray-900">
