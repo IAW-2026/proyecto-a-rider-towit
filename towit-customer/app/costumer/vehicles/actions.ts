@@ -44,16 +44,17 @@ export async function addVehicleAction(formData: FormData) {
     const currentCustomer = await getOrCreateCustomer();
 
     // Insertar el vehículo referenciando al customerId
-    await db.insert(vehicle).values({
+    const newVehicle = await db.insert(vehicle).values({
       customerId: currentCustomer.customerId,
       brand,
       model,
       year,
       weight: weight ? weight.toString() : null, // el esquema espera un string/decimal o number
-    });
+    }).returning();
 
     revalidatePath("/costumer/vehicles");
-    return { success: true };
+    revalidatePath("/costumer/request-ride");
+    return { success: true, vehicle: newVehicle[0] };
   } catch (error) {
     console.error("Error al guardar el vehículo:", error);
     return { error: "Hubo un error al guardar el vehículo. Inténtalo de nuevo." };
