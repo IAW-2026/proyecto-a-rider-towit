@@ -19,6 +19,33 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c; 
 }
 
+// Funciones Helper para enrutamiento animado
+async function fetchOsrmRoute(start: [number, number], end: [number, number]) {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.routes && data.routes.length > 0) {
+      return data.routes[0].geometry.coordinates.map(
+        (coord: [number, number]) => [coord[1], coord[0]] as [number, number]
+      );
+    }
+  } catch (e) {
+    console.error("OSRM error:", e);
+  }
+  return [start, end]; 
+}
+
+function subsampleRoute(route: [number, number][], maxPoints: number) {
+  if (route.length <= maxPoints) return route;
+  const sampled: [number, number][] = [];
+  for (let i = 0; i < maxPoints; i++) {
+    const index = Math.floor((i / (maxPoints - 1)) * (route.length - 1));
+    sampled.push(route[index]);
+  }
+  return sampled;
+}
+
 interface Vehicle {
   id: string;
   brand: string;
@@ -41,8 +68,11 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   // Estado para errores de validación
   const [formErrors, setFormErrors] = useState<{ origin?: string; destination?: string; vehicle?: string }>({});
   
-  // Estado para la creación del viaje
+  // Estado para la creación y simulación del viaje
   const [isRequesting, setIsRequesting] = useState(false);
+  const [tripState, setTripState] = useState<'idle' | 'searching' | 'found' | 'in_progress' | 'completed'>('idle');
+  const [towLocation, setTowLocation] = useState<[number, number] | null>(null);
+  const [eta, setEta] = useState<number | null>(null);
 
   // Calcular precio estimado basado en origen, destino y tipo de grúa
   let estimatedDistance = 0;
@@ -96,11 +126,62 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
     if (result.error) {
       alert(result.error);
+      setIsRequesting(false);
       return;
     }
 
-    alert("¡Grúa solicitada exitosamente! Tu viaje ahora está en estado Pendiente.");
-    // Aquí puedes redirigir al usuario a una pantalla de "Esperando grúa" o "Mis viajes"
+    // Comenzar el flujo Mockeado de simulación (estilo Uber)
+    setTripState('searching');
+    setIsRequesting(false); // Liberamos el botón internamente aunque ocultaremos el form
+
+    // Fase 1: Precargar rutas reales usando OSRM
+    const fakeStartLat = origin![0] + 0.015;
+    const fakeStartLng = origin![1] + 0.015;
+    const fakeStart: [number, number] = [fakeStartLat, fakeStartLng];
+
+    const routeToOrigin = await fetchOsrmRoute(fakeStart, origin!);
+    const routeToDest = await fetchOsrmRoute(origin!, destination!);
+
+    const pointsToOrigin = subsampleRoute(routeToOrigin, 20); // 20 pasos hasta origen
+    const pointsToDest = subsampleRoute(routeToDest, 30);     // 30 pasos hasta destino
+
+    // Fase 2: Encontrar la grúa luego de 3 segundos
+    setTimeout(() => {
+      setTripState('found');
+      setEta(7); // 7 minutos mock inicial
+      setTowLocation(pointsToOrigin[0]);
+
+      // Fase 3: Animar la grúa acercándose al origen por la ruta
+      let step1 = 0;
+      const arriveInterval = setInterval(() => {
+        step1++;
+        if (step1 >= pointsToOrigin.length) {
+          clearInterval(arriveInterval);
+          // ¡Llegó al Origen!
+          setTowLocation(origin);
+          setTripState('in_progress');
+          
+          // Fase 4: Viajando hacia el destino por la ruta
+          let step2 = 0;
+          const toDestInterval = setInterval(() => {
+            step2++;
+            
+            if (step2 >= pointsToDest.length) {
+              clearInterval(toDestInterval);
+              setTowLocation(destination);
+              setTripState('completed');
+            } else {
+              setTowLocation(pointsToDest[step2]);
+            }
+          }, 800); // Actualiza la posición hacia destino cada 0.8s
+          
+        } else {
+          // Grúa acercándose al origen
+          setTowLocation(pointsToOrigin[step1]);
+          setEta(Math.max(1, Math.floor(7 * (1 - step1 / pointsToOrigin.length)))); // Bajamos el ETA mock
+        }
+      }, 600); // 0.6s por tick de aproximación
+    }, 3000);
   };
 
   const handleAddVehicle = async (formData: FormData) => {
@@ -127,10 +208,13 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-      {/* Columna del Formulario */}
-      <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 shadow-sm">
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* Ubicaciones con Autocompletado */}
+      {/* Columna Izquierda: Formulario o Status (si está en viaje) */}
+      <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 shadow-sm overflow-hidden relative">
+        
+        {tripState === 'idle' ? (
+          <>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* Ubicaciones con Autocompletado */}
           <div>
             <AddressSearch 
               id="origin" 
@@ -306,11 +390,68 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
         
         {/* Formulario Oculto para creación de vehículo (usar form attribute previene submits anidados) */}
         <form id="add-vehicle-form" action={handleAddVehicle}></form>
+        </>
+        ) : (
+          <div className="h-full flex flex-col justify-center items-center text-center space-y-6 py-8">
+            {tripState === 'searching' && (
+              <div className="animate-pulse space-y-4">
+                <div className="w-20 h-20 bg-yellow-300 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                  <span className="text-3xl">🔍</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800">Buscando TowIt para tu remolque...</h3>
+                <p className="text-gray-500 font-medium">Estamos conectando con los conductores de grúas cercanos.</p>
+              </div>
+            )}
+
+            {tripState === 'found' && (
+              <div className="space-y-4">
+                <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto shadow-xl ring-4 ring-yellow-300">
+                  <span className="text-3xl">🛻</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800">¡TowIt Encontrado!</h3>
+                <div className="bg-white p-4 rounded-xl border border-gray-200 text-left w-full shadow-sm">
+                  <p className="text-sm text-gray-500 font-semibold mb-1">CONDUCTOR</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-lg font-bold text-gray-900">Carlos • Grúa {selectedCraneType === "large" ? "Pesada" : "Mediana"}</p>
+                    <div className="bg-gray-100 px-3 py-1 rounded-full"><span className="font-bold text-gray-800">★ 4.9</span></div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <span className="text-gray-600 font-medium">Llegando en</span>
+                    <span className="text-xl font-bold text-yellow-600">{eta} min</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {tripState === 'in_progress' && (
+              <div className="space-y-4">
+                 <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto shadow-lg animate-bounce">
+                  <span className="text-3xl">🚗</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800">Grúa en camino a tu destino</h3>
+                <p className="text-gray-500 font-medium">El conductor ya cargó tu vehículo y se dirige hacia el taller indicado.</p>
+              </div>
+            )}
+
+            {tripState === 'completed' && (
+              <div className="space-y-4">
+                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-green-200">
+                  <span className="text-4xl text-white">✓</span>
+                </div>
+                <h3 className="text-3xl font-bold text-gray-800">Viaje Finalizado</h3>
+                <p className="text-gray-600 font-medium">Gracias por elegir nuestro servicio TowIt. Tu vehículo ha sido descargado con éxito.</p>
+                <button onClick={() => window.location.reload()} className="mt-6 w-full px-6 py-3 bg-black text-white font-bold rounded-lg hover:bg-gray-800 transition">
+                  Solicitar otra grúa
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Columna del Mapa */}
       <div className="lg:flex items-center justify-center bg-gray-200 rounded-xl shadow-inner overflow-hidden h-96 lg:h-auto">
-        <DynamicMap origin={origin} destination={destination} />
+        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} />
       </div>
     </div>
   );

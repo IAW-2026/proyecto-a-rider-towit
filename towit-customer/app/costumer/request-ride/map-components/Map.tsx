@@ -72,9 +72,10 @@ function RoutingLine({ origin, destination }: { origin: [number, number] | null,
 type MapProps = {
   origin?: [number, number] | null;
   destination?: [number, number] | null;
+  towLocation?: [number, number] | null;
 };
 
-export default function Map({ origin, destination }: MapProps) {
+export default function Map({ origin, destination, towLocation }: MapProps) {
   const defaultPosition: [number, number] = [-38.7333, -62.2667]; // Coordenadas de Buenos Aires
 
   return (
@@ -100,6 +101,22 @@ export default function Map({ origin, destination }: MapProps) {
       {destination && (
         <Marker position={destination}>
           <Popup>Destino</Popup>
+        </Marker>
+      )}
+
+      {towLocation && (
+        <Marker 
+          position={towLocation} 
+          zIndexOffset={1000}
+          icon={L.divIcon({
+            html: '<div style="font-size: 32px; filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.4)); transform: scaleX(-1);">🛻</div>',
+            className: 'bg-transparent border-none shadow-none',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+          })}
+        >
+          <Popup>Grúa TowIt en camino</Popup>
         </Marker>
       )}
 
