@@ -59,7 +59,32 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
   const [selectedCraneType, setSelectedCraneType] = useState<string>("medium");
+  const [isExpanded, setIsExpanded] = useState(true); // Control del arrastre en mobile
   
+  // Variables para detectar gestos de swipe
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - touchStart;
+
+    // Si desliza hacia abajo más de 40px
+    if (diff > 40) {
+      setIsExpanded(false);
+      setTouchStart(null); // resetea
+    }
+    // Si desliza hacia arriba más de 40px
+    else if (diff < -40) {
+      setIsExpanded(true);
+      setTouchStart(null); // resetea
+    }
+  };
+
   // Estados para el formulario inline de crear vehículo
   const [isAddingVehicle, setIsAddingVehicle] = useState(false);
   const [loadingVehicle, setLoadingVehicle] = useState(false);
@@ -207,14 +232,34 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-      {/* Columna Izquierda: Formulario o Status (si está en viaje) */}
-      <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 shadow-sm overflow-hidden relative">
-        
-        {tripState === 'idle' ? (
-          <>
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              {/* Ubicaciones con Autocompletado */}
+    <div className="absolute inset-0 w-full h-full">
+      {/* Mapa (Fondo absoluto en toda la pantalla) */}
+      <div className="absolute inset-0 z-0 bg-gray-200">
+        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} />
+      </div>
+
+      {/* Panel Frontal Flotante */}
+      <div 
+        className={`absolute bottom-0 left-0 right-0 lg:right-auto lg:left-0 lg:top-0 lg:h-full lg:w-[450px] xl:w-[500px] bg-white z-10 rounded-t-3xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] lg:shadow-[10px_0_40px_rgba(0,0,0,0.1)] flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'h-[65vh]' : 'h-[8vh] lg:h-full'}`}
+      >
+        {/* Indicador de drag en celular (el "palito" fijo que no scrollea) */}
+        <div 
+          className="w-full h-10 flex-none flex justify-center items-center cursor-pointer lg:hidden z-20"
+          onClick={() => setIsExpanded(!isExpanded)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+        >
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full pointer-events-none"></div>
+        </div>
+
+        {/* Contenedor INTERNO con scroll */}
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-6 pb-24 lg:pt-6 ${!isExpanded ? 'hidden lg:block' : 'block'}`}>
+          <div className="relative min-h-max flex flex-col">
+            {tripState === 'idle' ? (
+              <>
+                <h2 className="text-2xl font-extrabold text-black mb-6">Solicitá una Grúa</h2>
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                {/* Ubicaciones con Autocompletado */}
           <div>
             <AddressSearch 
               id="origin" 
@@ -382,8 +427,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
             )}
           </div>
 
-          <button disabled={isRequesting} type="submit" className="w-full px-6 py-4 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition text-xl duration-200 cursor-pointer flex justify-between items-center disabled:opacity-75 disabled:cursor-not-allowed">
-            <span>{isRequesting ? "Procesando..." : "Confirmar y Buscar Grúa"}</span>
+          <button disabled={isRequesting} type="submit" className="w-full mt-4 px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition text-lg duration-200 cursor-pointer flex justify-between items-center shadow-md disabled:opacity-75 disabled:cursor-not-allowed">
+            <span>{isRequesting ? "Procesando..." : "Confirmar TowIt"}</span>
             {estimatedPrice > 0 && !isRequesting ? <span>{formatPrice(estimatedPrice)}</span> : null}
           </button>
         </form>
@@ -440,19 +485,16 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                 </div>
                 <h3 className="text-3xl font-bold text-gray-800">Viaje Finalizado</h3>
                 <p className="text-gray-600 font-medium">Gracias por elegir nuestro servicio TowIt. Tu vehículo ha sido descargado con éxito.</p>
-                <button onClick={() => window.location.reload()} className="mt-6 w-full px-6 py-3 bg-black text-white font-bold rounded-lg hover:bg-gray-800 transition">
+                <button onClick={() => window.location.reload()} className="mt-6 w-full px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition shadow-md">
                   Solicitar otra grúa
                 </button>
               </div>
             )}
           </div>
         )}
+        </div>
       </div>
-
-      {/* Columna del Mapa */}
-      <div className="lg:flex items-center justify-center bg-gray-200 rounded-xl shadow-inner overflow-hidden h-96 lg:h-auto">
-        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} />
-      </div>
+    </div>
     </div>
   );
 }
