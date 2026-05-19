@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addVehicleAction, deleteVehicleAction } from "./actions";
+import { addVehicleAction, deleteVehicleAction, editVehicleAction } from "./actions";
 
 interface Vehicle {
   id: string;
@@ -13,14 +13,31 @@ interface Vehicle {
 
 export default function VehiclesClient({ initialVehicles = [] }: { initialVehicles?: Vehicle[] }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleAddClick = () => {
+    setEditingVehicle(null);
+    setShowForm(true);
+  };
+
+  const handleEditClick = (vehicle: Vehicle) => {
+    setEditingVehicle(vehicle);
+    setShowForm(true);
+  };
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
     setError("");
     
-    const result = await addVehicleAction(formData);
+    let result;
+    if (editingVehicle) {
+      formData.append("vehicleId", editingVehicle.id);
+      result = await editVehicleAction(formData);
+    } else {
+      result = await addVehicleAction(formData);
+    }
 
     if (result?.error) {
       setError(result.error);
@@ -29,6 +46,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
     }
 
     // Server action triggerea revalidatePath, por ende actualiza prop 'initialVehicles'
+    setEditingVehicle(null);
     setShowForm(false);
     setLoading(false);
   };
@@ -55,7 +73,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
         </div>
         {!showForm && (
           <button 
-            onClick={() => setShowForm(true)}
+            onClick={handleAddClick}
             className="px-6 py-3 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition text-lg duration-200 cursor-pointer shadow-sm"
           >
             + Agregar Vehículo
@@ -65,7 +83,9 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
 
       {showForm && (
         <div className="bg-white p-6 rounded-xl border-2 border-gray-200 shadow-sm mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Agregar Nuevo Vehículo</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            {editingVehicle ? "Editar Vehículo" : "Agregar Nuevo Vehículo"}
+          </h3>
           
           {error && <p className="text-red-500 mb-4">{error}</p>}
           
@@ -76,6 +96,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                 <input 
                   type="text" 
                   name="brand" 
+                  defaultValue={editingVehicle?.brand}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-300 focus:border-yellow-300 outline-none text-black"
                   placeholder="Ej: Toyota"
@@ -86,6 +107,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                 <input 
                   type="text" 
                   name="model" 
+                  defaultValue={editingVehicle?.model}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-300 focus:border-yellow-300 outline-none text-black"
                   placeholder="Ej: Corolla"
@@ -96,6 +118,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                 <input 
                   type="number" 
                   name="year" 
+                  defaultValue={editingVehicle?.year}
                   required
                   min="1900"
                   max={new Date().getFullYear() + 1}
@@ -108,6 +131,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                 <input 
                   type="number" 
                   name="weight" 
+                  defaultValue={editingVehicle?.weight}
                   step="0.1"
                   min="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-300 focus:border-yellow-300 outline-none text-black"
@@ -119,7 +143,10 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
             <div className="flex justify-end gap-3 mt-6">
               <button 
                 type="button" 
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingVehicle(null);
+                }}
                 className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition"
               >
                 Cancelar
@@ -129,7 +156,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                 disabled={loading}
                 className="px-6 py-2 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition cursor-pointer disabled:opacity-50"
               >
-                {loading ? "Guardando..." : "Guardar Vehículo"}
+                {loading ? "Guardando..." : (editingVehicle ? "Actualizar Vehículo" : "Guardar Vehículo")}
               </button>
             </div>
           </form>
@@ -142,24 +169,35 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
           <p>Haz clic en "Agregar Vehículo" para registrar tu primer unidad.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-4">
           {!showForm && initialVehicles.map((vehicle) => (
-            <div key={vehicle.id} className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
-              <div className="mb-4">
-                <h3 className="text-xl font-bold text-gray-900">
-                  {vehicle.brand} {vehicle.model}
-                </h3>
-                <p className="text-gray-600 text-sm">Año: {vehicle.year}</p>
+            <div key={vehicle.id} className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {vehicle.brand} {vehicle.model}
+                  </h3>
+                  <p className="text-gray-600 text-sm">Año: {vehicle.year}</p>
+                </div>
+                <div className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 self-start sm:self-auto">
+                  <p className="text-gray-700 font-medium text-sm">Peso: {vehicle.weight} toneladas</p>
+                </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                <p className="text-gray-700 font-semibold">Peso: {vehicle.weight} toneladas</p>
+              
+              <div className="flex items-center gap-3 self-end sm:self-auto">
+                <button
+                  onClick={() => handleEditClick(vehicle)}
+                  className="px-5 py-2 bg-gray-100 text-gray-800 font-semibold rounded-lg hover:bg-gray-200 transition duration-200"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(vehicle.id)}
+                  className="px-5 py-2 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 transition duration-200"
+                >
+                  Eliminar
+                </button>
               </div>
-              <button
-                onClick={() => handleDelete(vehicle.id)}
-                className="w-full px-4 py-2 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 transition duration-200"
-              >
-                Eliminar
-              </button>
             </div>
           ))}
         </div>

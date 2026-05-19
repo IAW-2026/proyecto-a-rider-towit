@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import DynamicMap from "@/components/rider/DynamicMap";
-import AddressSearch from "@/components/rider/AddressSearch";
+import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
+import AddressSearch from "@/app/costumer/request-ride/map-components/AddressSearch";
 
 export default function RequestRideForm() {
   const [origin, setOrigin] = useState<[number, number] | null>(null);

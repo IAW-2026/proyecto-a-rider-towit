@@ -10,7 +10,7 @@ type MapProps = {
 
 export default function DynamicMap({ origin, destination }: MapProps) {
   const Map = useMemo(() => dynamic(
-    () => import('@/components/rider/Map'),
+    () => import('@/app/costumer/request-ride/map-components/Map'),
     { 
       loading: () => <p>Cargando mapa...</p>,
       ssr: false 

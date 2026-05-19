@@ -1,5 +1,5 @@
 import Navbar from "@/components/layout/Navbar";
-import RequestRideForm from "@/components/rider/RequestRideForm";
+import RequestRideForm from "@/app/costumer/request-ride/RequestRideForm";
 import Link from "next/link";
 
 export default async function RequestRidePage() {

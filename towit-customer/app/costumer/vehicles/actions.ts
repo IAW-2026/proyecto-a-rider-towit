@@ -89,3 +89,40 @@ export async function deleteVehicleAction(vehicleId: number) {
     return { error: "No se pudo eliminar el vehículo." };
   }
 }
+
+export async function editVehicleAction(formData: FormData) {
+  try {
+    const vehicleId = Number(formData.get("vehicleId"));
+    const brand = formData.get("brand")?.toString();
+    const model = formData.get("model")?.toString();
+    const year = Number(formData.get("year"));
+    const weight = Number(formData.get("weight"));
+
+    if (!vehicleId || !brand || !model || !year) {
+      return { error: "Campos requeridos faltantes" };
+    }
+
+    const currentCustomer = await getOrCreateCustomer();
+
+    // Actualizar el vehículo verificando que pertenezca al usuario actual
+    await db.update(vehicle)
+      .set({
+        brand,
+        model,
+        year,
+        weight: weight ? weight.toString() : null,
+      })
+      .where(
+        and(
+          eq(vehicle.vehicleId, vehicleId),
+          eq(vehicle.customerId, currentCustomer.customerId)
+        )
+      );
+
+    revalidatePath("/costumer/vehicles");
+    return { success: true };
+  } catch (error) {
+    console.error("Error al editar el vehículo:", error);
+    return { error: "Hubo un error al editar el vehículo. Inténtalo de nuevo." };
+  }
+}
