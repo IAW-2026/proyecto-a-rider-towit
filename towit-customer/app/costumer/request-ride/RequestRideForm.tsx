@@ -100,6 +100,9 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const [towLocation, setTowLocation] = useState<[number, number] | null>(null);
   const [eta, setEta] = useState<number | null>(null);
 
+  const [originText, setOriginText] = useState<string>("");
+  const [destinationText, setDestinationText] = useState<string>("");
+
   // Efecto para abrir el modal automáticamente cuando se completa el viaje
   useEffect(() => {
     if (tripState === 'completed' && !isExpanded) {
@@ -151,6 +154,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       originLng: origin![1],
       destinationLat: destination![0],
       destinationLng: destination![1],
+      originText: originText,
+      destinationText: destinationText,
       vehicleId: parseInt(selectedVehicleId, 10),
       craneType: selectedCraneType
     });
@@ -281,8 +286,9 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
               id="origin" 
               label="Ubicación de Origen" 
               placeholder="Ej: Av. Siempreviva 742" 
-              onSelect={(coords) => {
+              onSelect={(coords, display_name) => {
                 setOrigin(coords);
+                setOriginText(display_name || "");
                 setFormErrors(prev => ({ ...prev, origin: undefined }));
               }} 
             />
@@ -294,8 +300,9 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
               id="destination" 
               label="Destino" 
               placeholder="Ej: Taller Mecánico 'El Rápido'" 
-              onSelect={(coords) => {
+              onSelect={(coords, display_name) => {
                 setDestination(coords);
+                setDestinationText(display_name || "");
                 setFormErrors(prev => ({ ...prev, destination: undefined }));
               }} 
             />

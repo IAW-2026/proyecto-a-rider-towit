@@ -1,4 +1,4 @@
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 
@@ -28,16 +28,16 @@ export default async function Navbar() {
         ) : (
           // Contenido para usuarios no autenticados
           <div className="hidden md:flex gap-4">
-            <Link href="/auth/sign-in">
+            <SignInButton mode="modal">
               <button className="px-6 py-2 text-yellow-300 font-semibold hover:text-yellow-200 transition cursor-pointer">
                 Iniciar Sesión
               </button>
-            </Link>
-            <Link href="/auth/sign-up">
+            </SignInButton>
+            <SignUpButton mode="modal">
               <button className="px-6 py-2 bg-yellow-300 text-black font-semibold rounded-lg hover:bg-yellow-200 transition cursor-pointer">
                 Crear Cuenta
               </button>
-            </Link>
+            </SignUpButton>
           </div>
         )}
       </div>

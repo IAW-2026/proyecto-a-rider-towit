@@ -11,6 +11,8 @@ export async function createTripAction(data: {
   originLng: number;
   destinationLat: number;
   destinationLng: number;
+  originText?: string;
+  destinationText?: string;
   vehicleId: number;
   craneType: string;
 }) {
@@ -37,6 +39,8 @@ export async function createTripAction(data: {
     const newTrip = await db.insert(trip).values({
       customerId: customerRecord.customerId,
       vehicleId: data.vehicleId,
+      originChar: data.originText || `Lat: ${data.originLat.toFixed(6)}, Lng: ${data.originLng.toFixed(6)}`,
+      DestinationChar: data.destinationText || `Lat: ${data.destinationLat.toFixed(6)}, Lng: ${data.destinationLng.toFixed(6)}`,
       originLat: data.originLat.toString(),
       originLng: data.originLng.toString(),
       destinationLat: data.destinationLat.toString(),

@@ -35,7 +35,8 @@ export const trip = pgTable('Trip', {
   vehicleId: integer('vehicle_id')
     .references(() => vehicle.vehicleId, { onDelete: 'set null' }),
   towerId: varchar('tower_id', { length: 255 }),
-  
+  originChar: varchar('origin_char', { length: 255 }),
+  DestinationChar: varchar('destination_char', { length: 255 }),
   // Coordenadas de Origen
   originLat: decimal('origin_lat', { precision: 9, scale: 6 }).notNull(),
   originLng: decimal('origin_lng', { precision: 9, scale: 6 }).notNull(),

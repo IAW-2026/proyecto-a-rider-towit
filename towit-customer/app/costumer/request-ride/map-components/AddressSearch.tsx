@@ -6,13 +6,14 @@ type AddressResult = {
   display_name: string;
   lat: string;
   lon: string;
+  address?: any;
 };
 
 type AddressSearchProps = {
   label: string;
   placeholder: string;
   id: string;
-  onSelect: (coords: [number, number] | null) => void;
+  onSelect: (coords: [number, number] | null, addressName?: string) => void;
 };
 
 export default function AddressSearch({ label, placeholder, id, onSelect }: AddressSearchProps) {
@@ -70,10 +71,28 @@ export default function AddressSearch({ label, placeholder, id, onSelect }: Addr
     }, 600);
   };
 
+  const formatAddress = (address?: any) => {
+    if (!address) return null;
+    const road = address.road || address.pedestrian || address.street || "";
+    const number = address.house_number || "";
+    const neighbourhood = address.neighbourhood || address.suburb || address.quarter || address.city_district || "";
+    const city = address.city || address.town || address.village || "";
+    const state = address.state || address.province || "";
+
+    const parts = [];
+    if (road) parts.push(`${road}${number ? ` ${number}` : ''}`);
+    if (neighbourhood) parts.push(neighbourhood);
+    if (city) parts.push(city);
+    if (state) parts.push(state);
+    
+    return parts.length > 0 ? parts.join(", ") : null;
+  };
+
   const handleSelect = (result: AddressResult) => {
-    setQuery(result.display_name);
+    const formatted = formatAddress(result.address) || result.display_name.split(', ').slice(0, 3).join(', ');
+    setQuery(formatted);
     setIsOpen(false);
-    onSelect([parseFloat(result.lat), parseFloat(result.lon)]);
+    onSelect([parseFloat(result.lat), parseFloat(result.lon)], formatted);
   };
 
   return (
@@ -94,15 +113,18 @@ export default function AddressSearch({ label, placeholder, id, onSelect }: Addr
         <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {loading && <li className="px-4 py-2 text-gray-900">Buscando...</li>}
           {!loading && results.length === 0 && <li className="px-4 py-2 text-gray-900">No se encontraron resultados</li>}
-          {!loading && results.map((result, idx) => (
-            <li 
-              key={idx} 
-              onClick={() => handleSelect(result)}
-              className="px-4 py-3 text-black hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0 truncate"
-            >
-              {result.display_name}
-            </li>
-          ))}
+          {!loading && results.map((result, idx) => {
+            const formatted = formatAddress(result.address) || result.display_name.split(', ').slice(0, 3).join(', ');
+            return (
+              <li 
+                key={idx} 
+                onClick={() => handleSelect(result)}
+                className="px-4 py-3 text-black hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0 truncate"
+              >
+                {formatted}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

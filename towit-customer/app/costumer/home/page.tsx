@@ -39,9 +39,11 @@ export default async function CostumerHome() {
               <p className="text-gray-600 mb-6">
                 Consulta el historial de tus viajes anteriores y revisa los detalles de los servicios completados.
               </p>
-              <button className="w-full px-6 py-3 border-2 border-black text-black font-bold rounded-lg hover:bg-gray-200 transition text-lg duration-200 cursor-pointer">
-                Ver Historial
-              </button>
+              <Link href="/costumer/history" className="w-full block">
+                <button className="w-full px-6 py-3 border-2 border-black text-black font-bold rounded-lg hover:bg-gray-200 transition text-lg duration-200 cursor-pointer">
+                  Ver Historial
+                </button>
+              </Link>
             </div>
 
             {/* Card: Mis Vehículos */}
