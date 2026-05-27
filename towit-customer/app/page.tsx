@@ -25,12 +25,12 @@ export default async function Page() {
             <p className="text-lg md:text-xl font-bold text-gray-800 mb-8 md:mb-2"> La forma más sencilla de solicitar un remolque</p>
             <p className="text-lg md:text-xl text-gray-700 mb-8 md:mb-10"> No te quedes varado. Conectamos tu vehículo con la ayuda más cercana</p>
             <div className="space-y-3">
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" forceRedirectUrl="/costumer/home">
                 <button className="w-full px-6 py-3 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition text-lg duration-200 cursor-pointer">
                   Iniciar Sesión
                 </button>
               </SignInButton>
-              <SignUpButton mode="modal">
+              <SignUpButton mode="modal" forceRedirectUrl="/costumer/home">
                 <button className="w-full px-6 py-3 border-2 border-black text-black font-bold rounded-lg hover:bg-yellow-50 transition text-lg duration-200 cursor-pointer">
                   Crear Cuenta
                 </button>
