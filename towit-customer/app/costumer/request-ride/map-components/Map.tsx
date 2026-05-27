@@ -5,7 +5,7 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import "leaflet-defaulticon-compatibility";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, ZoomControl } from "react-leaflet";
 import L from "leaflet";
 
 // Componente auxiliar para ajustar el mapa a los marcadores
@@ -69,6 +69,34 @@ function RoutingLine({ origin, destination }: { origin: [number, number] | null,
   );
 }
 
+// Ícono personalizado para la grúa (coche)
+// TAMAÑO IDEAL DE IMAGEN: 48x48 píxeles o 64x64 píxeles (formato PNG transparente o SVG)
+const carIcon = L.icon({
+  iconUrl: "/images/fiestajejes.png", // En Next.js, la carpeta 'public' se accede directamente desde la raíz '/'
+  iconSize: [48, 48], // [Ancho, Alto] de la imagen
+  iconAnchor: [24, 24], // Punto del icono que corresponde a la posición del mapa (centro)
+  popupAnchor: [0, -24], // Dónde se abre el popup en relación al icono
+});
+
+// Ícono personalizado para el ORIGEN (por ejemplo verde)
+// TAMAÑO IDEAL: 32x32 píxeles
+const originIcon = L.divIcon({
+  // En caso de no tener imagen, armamos uno con CSS (círculo verde) o puedes cambiarlo por un L.icon
+  html: '<div class="w-6 h-6 bg-yellow-500 rounded-full border-4 border-white shadow-md"></div>',
+  className: 'bg-transparent border-none',
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+});
+
+// Ícono personalizado para el DESTINO (por ejemplo rojo)
+// TAMAÑO IDEAL: 32x32 píxeles
+const destinationIcon = L.divIcon({
+  html: '<div class="w-6 h-6 bg-black rounded-full border-4 border-white shadow-md"></div>',
+  className: 'bg-transparent border-none',
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+});
+
 type MapProps = {
   origin?: [number, number] | null;
   destination?: [number, number] | null;
@@ -82,9 +110,11 @@ export default function Map({ origin, destination, towLocation }: MapProps) {
     <MapContainer
       center={origin || defaultPosition}
       zoom={13}
-      scrollWheelZoom={false}
+      scrollWheelZoom={true}
+      zoomControl={false}
       className="w-full h-full"
     >
+      <ZoomControl position="topright" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -93,13 +123,13 @@ export default function Map({ origin, destination, towLocation }: MapProps) {
       <ChangeView origin={origin || null} destination={destination || null} />
 
       {origin && (
-        <Marker position={origin}>
+        <Marker position={origin} icon={originIcon}>
           <Popup>Origen</Popup>
         </Marker>
       )}
 
       {destination && (
-        <Marker position={destination}>
+        <Marker position={destination} icon={destinationIcon}>
           <Popup>Destino</Popup>
         </Marker>
       )}
@@ -108,13 +138,7 @@ export default function Map({ origin, destination, towLocation }: MapProps) {
         <Marker 
           position={towLocation} 
           zIndexOffset={1000}
-          icon={L.divIcon({
-            html: '<div style="font-size: 32px; filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.4)); transform: scaleX(-1);">🛻</div>',
-            className: 'bg-transparent border-none shadow-none',
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -16]
-          })}
+          icon={carIcon}
         >
           <Popup>Grúa TowIt en camino</Popup>
         </Marker>

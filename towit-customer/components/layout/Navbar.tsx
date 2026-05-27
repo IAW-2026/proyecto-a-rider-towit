@@ -21,7 +21,9 @@ export default async function Navbar() {
             <span className="hidden sm:inline text-yellow-300 font-medium">
               Bienvenido, {user.firstName}
             </span>
-            <UserButton />
+            <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
+              <UserButton appearance={{ elements: { rootBox: "rounded-full" } }} />
+            </div>
           </div>
         ) : (
           // Contenido para usuarios no autenticados

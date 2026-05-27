@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
 import AddressSearch from "@/app/costumer/request-ride/map-components/AddressSearch";
 import { addVehicleAction } from "@/app/costumer/vehicles/actions";
@@ -98,6 +99,13 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const [tripState, setTripState] = useState<'idle' | 'searching' | 'found' | 'in_progress' | 'completed'>('idle');
   const [towLocation, setTowLocation] = useState<[number, number] | null>(null);
   const [eta, setEta] = useState<number | null>(null);
+
+  // Efecto para abrir el modal automáticamente cuando se completa el viaje
+  useEffect(() => {
+    if (tripState === 'completed' && !isExpanded) {
+      setIsExpanded(true);
+    }
+  }, [tripState, isExpanded]);
 
   // Calcular precio estimado basado en origen, destino y tipo de grúa
   let estimatedDistance = 0;
@@ -233,6 +241,14 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
   return (
     <div className="absolute inset-0 w-full h-full">
+      <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
+        <div className="absolute top-[10px] left-[10px] lg:left-[calc(450px+10px)] xl:left-[calc(500px+10px)] pointer-events-auto">
+          <Link href="/costumer/home" className="inline-flex items-center px-4 py-2 bg-white hover:bg-gray-100 text-gray-800 text-sm font-semibold rounded-[4px] transition-colors duration-200 shadow-[0_1px_5px_rgba(0,0,0,0.4)] border-2 border-[rgba(0,0,0,0.2)]" style={{ backgroundClip: 'padding-box' }}>
+            <span className="mr-2 leading-none">←</span> Volver atrás
+          </Link>
+        </div>
+      </div>
+
       {/* Mapa (Fondo absoluto en toda la pantalla) */}
       <div className="absolute inset-0 z-0 bg-gray-200">
         <DynamicMap origin={origin} destination={destination} towLocation={towLocation} />
@@ -253,7 +269,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
         </div>
 
         {/* Contenedor INTERNO con scroll */}
-        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-6 pb-24 lg:pt-6 ${!isExpanded ? 'hidden lg:block' : 'block'}`}>
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-6 pb-6 lg:pt-6 ${!isExpanded ? 'hidden lg:block' : 'block'}`}>
           <div className="relative min-h-max flex flex-col">
             {tripState === 'idle' ? (
               <>
@@ -421,15 +437,14 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                 <span className="font-bold text-gray-800">{estimatedDistance.toFixed(1)} km</span>
               </div>
             ) : (
-              <div className="mt-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100 text-blue-700 text-sm font-medium text-center">
-                Ingresá el Origen y Destino para ver los precios estimados
+              <div className="mt-4 p-4 rounded-xl border text-gray-700 text-sm font-medium border border-gray-200">
+                Ingresá el Origen y Destino para ver los precios de tu remolque
               </div>
             )}
           </div>
 
-          <button disabled={isRequesting} type="submit" className="w-full mt-4 px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition text-lg duration-200 cursor-pointer flex justify-between items-center shadow-md disabled:opacity-75 disabled:cursor-not-allowed">
+          <button disabled={isRequesting} type="submit" className="w-full mt-4 px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-900 transition text-lg duration-200 cursor-pointer flex justify-center items-center shadow-md disabled:opacity-75 disabled:cursor-not-allowed">
             <span>{isRequesting ? "Procesando..." : "Confirmar TowIt"}</span>
-            {estimatedPrice > 0 && !isRequesting ? <span>{formatPrice(estimatedPrice)}</span> : null}
           </button>
         </form>
         
@@ -457,7 +472,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                 <div className="bg-white p-4 rounded-xl border border-gray-200 text-left w-full shadow-sm">
                   <p className="text-sm text-gray-500 font-semibold mb-1">CONDUCTOR</p>
                   <div className="flex justify-between items-center">
-                    <p className="text-lg font-bold text-gray-900">Carlos • Grúa {selectedCraneType === "large" ? "Pesada" : "Mediana"}</p>
+                    <p className="text-lg font-bold text-gray-900">Pablo • Grúa {selectedCraneType === "large" ? "Pesada" : "Mediana"}</p>
                     <div className="bg-gray-100 px-3 py-1 rounded-full"><span className="font-bold text-gray-800">★ 4.9</span></div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
@@ -480,8 +495,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
             {tripState === 'completed' && (
               <div className="space-y-4">
-                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-green-200">
-                  <span className="text-4xl text-white">✓</span>
+                <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-yellow-200">
+                  <span className="text-5xl text-black font-medium">✓</span>
                 </div>
                 <h3 className="text-3xl font-bold text-gray-800">Viaje Finalizado</h3>
                 <p className="text-gray-600 font-medium">Gracias por elegir nuestro servicio TowIt. Tu vehículo ha sido descargado con éxito.</p>
