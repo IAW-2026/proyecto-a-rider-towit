@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
 import AddressSearch from "@/app/costumer/request-ride/map-components/AddressSearch";
 import { addVehicleAction } from "@/app/costumer/vehicles/actions";
-import { createTripAction } from "@/app/costumer/request-ride/actions";
+import { createTripAction, cancelTripAction, finishTripAction } from "@/app/costumer/request-ride/actions";
 
 // Función para calcular distancia (Haversine) en km
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -96,16 +96,22 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   
   // Estado para la creación y simulación del viaje
   const [isRequesting, setIsRequesting] = useState(false);
-  const [tripState, setTripState] = useState<'idle' | 'searching' | 'found' | 'in_progress' | 'completed'>('idle');
+  const [tripState, setTripState] = useState<'idle' | 'searching' | 'found' | 'in_progress' | 'completed' | 'cancelled'>('idle');
   const [towLocation, setTowLocation] = useState<[number, number] | null>(null);
   const [eta, setEta] = useState<number | null>(null);
 
   const [originText, setOriginText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
 
-  // Efecto para abrir el modal automáticamente cuando se completa el viaje
+  // Guardamos el ID del viaje activo para poder cancelarlo después
+  const [currentTripId, setCurrentTripId] = useState<number | null>(null);
+  
+  // Guardamos referencias a las animaciones para poder cortarlas si se cancela
+  const intervalsRef = useRef<{ arrive?: NodeJS.Timeout, toDest?: NodeJS.Timeout }>({});
+
+  // Efecto para abrir el modal automáticamente cuando se completa o cancela el viaje
   useEffect(() => {
-    if (tripState === 'completed' && !isExpanded) {
+    if ((tripState === 'completed' || tripState === 'cancelled') && !isExpanded) {
       setIsExpanded(true);
     }
   }, [tripState, isExpanded]);
@@ -157,7 +163,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       originText: originText,
       destinationText: destinationText,
       vehicleId: parseInt(selectedVehicleId, 10),
-      craneType: selectedCraneType
+      craneType: selectedCraneType,
+      estimatedPrice: estimatedPrice
     });
 
     setIsRequesting(false);
@@ -166,6 +173,10 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       alert(result.error);
       setIsRequesting(false);
       return;
+    }
+
+    if (result.trip) {
+      setCurrentTripId(result.trip.tripId);
     }
 
     // Comenzar el flujo Mockeado de simulación (estilo Uber)
@@ -191,27 +202,35 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
       // Fase 3: Animar la grúa acercándose al origen por la ruta
       let step1 = 0;
-      const arriveInterval = setInterval(() => {
+      intervalsRef.current.arrive = setInterval(() => {
         step1++;
         if (step1 >= pointsToOrigin.length) {
-          clearInterval(arriveInterval);
+          clearInterval(intervalsRef.current.arrive);
           // ¡Llegó al Origen!
           setTowLocation(origin);
           setTripState('in_progress');
           
           // Fase 4: Viajando hacia el destino por la ruta
           let step2 = 0;
-          const toDestInterval = setInterval(() => {
+          intervalsRef.current.toDest = setInterval(() => {
             step2++;
             
             if (step2 >= pointsToDest.length) {
-              clearInterval(toDestInterval);
+              clearInterval(intervalsRef.current.toDest);
               setTowLocation(destination);
               setTripState('completed');
+              
+              // Actualizamos el estado a finalizado en la base de datos
+              if (currentTripId) {
+                finishTripAction(currentTripId).catch(console.error);
+              }
+              
+              setCurrentTripId(null); // Viaje completado, ya no se puede cancelar
             } else {
               setTowLocation(pointsToDest[step2]);
             }
           }, 800); // Actualiza la posición hacia destino cada 0.8s
+
           
         } else {
           // Grúa acercándose al origen
@@ -220,6 +239,30 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
         }
       }, 600); // 0.6s por tick de aproximación
     }, 3000);
+  };
+
+  const handleCancelTrip = async () => {
+    if (!currentTripId) return;
+
+    if (intervalsRef.current.arrive) clearInterval(intervalsRef.current.arrive);
+    if (intervalsRef.current.toDest) clearInterval(intervalsRef.current.toDest);
+
+    setIsRequesting(true); // Re-usamos loading
+    
+    // Llamar a la acción para cancelar viaje (avisa a Payments y Tower App)
+    const res = await cancelTripAction(currentTripId);
+    
+    setIsRequesting(false);
+    
+    if (res.error) {
+      alert("Error al cancelar: " + res.error);
+      return;
+    }
+
+    setTripState('cancelled');
+    setTowLocation(null);
+    setCurrentTripId(null);
+    setEta(null);
   };
 
   const handleAddVehicle = async (formData: FormData) => {
@@ -511,6 +554,30 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                   Solicitar otra grúa
                 </button>
               </div>
+            )}
+
+            {tripState === 'cancelled' && (
+              <div className="space-y-4">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-red-50">
+                  <span className="text-4xl text-red-500 font-medium">✗</span>
+                </div>
+                <h3 className="text-3xl font-bold text-gray-800">Viaje Cancelado</h3>
+                <p className="text-gray-600 font-medium">El viaje fue cancelado y se solicitó el reembolso correspondiente.</p>
+                <button onClick={() => window.location.reload()} className="mt-6 w-full px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition shadow-md">
+                  Solicitar otra grúa
+                </button>
+              </div>
+            )}
+
+            {/* Botón de Cancelar viaje - ocultarlo si ya llegó al origen (in_progress) */}
+            {(tripState === 'searching' || tripState === 'found') && (
+              <button
+                onClick={handleCancelTrip}
+                disabled={isRequesting}
+                className="w-full mt-auto py-3 bg-red-100 hover:bg-red-200 text-red-600 font-bold rounded-lg border border-red-300 transition text-md duration-200 disabled:opacity-50"
+              >
+                {isRequesting ? "Cancelando..." : "Cancelar Viaje"}
+              </button>
             )}
           </div>
         )}
