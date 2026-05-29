@@ -126,6 +126,27 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     estimatedDistance = calculateDistance(origin[0], origin[1], destination[0], destination[1]);
   }
 
+  // Límites de peso por tipo de grúa (en toneladas)
+  const weightLimits: Record<string, number> = {
+    medium: 2,
+    large: 4.5,
+    conventional: Infinity,
+  };
+
+  const selectedVehicle = initialVehicles.find(v => v.id === selectedVehicleId);
+  const selectedWeight = selectedVehicle?.weight ?? 0;
+
+  const availableCraneTypes = (Object.keys(weightLimits) as Array<keyof typeof weightLimits>).filter(
+    type => selectedWeight <= weightLimits[type]
+  );
+
+  // Auto-switch si el tipo actual no es compatible
+  useEffect(() => {
+    if (selectedVehicleId && availableCraneTypes.length > 0 && !availableCraneTypes.includes(selectedCraneType as keyof typeof weightLimits)) {
+      setSelectedCraneType(availableCraneTypes[0]);
+    }
+  }, [selectedVehicleId, selectedWeight]);
+
   // Precios base y por km (ARS)
   const rates = {
     medium: { base: 12000, perKm: 1500 },
@@ -444,46 +465,50 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
           {/* Tipo de Grúa */}
           <div>
             <label className="block text-lg font-bold text-gray-800 mb-3">Tipo de Grúa</label>
+            {!selectedVehicleId ? (
+              <div className="p-4 rounded-xl border border-gray-200 text-gray-500 text-sm font-medium text-center">
+                Seleccioná un vehículo para ver las opciones de grúa disponibles
+              </div>
+            ) : (
             <div className="space-y-3">
-              <label 
-                className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${selectedCraneType === 'medium' ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-200 hover:border-yellow-400 bg-white'}`}
-              >
-                <div className="flex items-center">
-                  <input type="radio" name="craneType" value="medium" checked={selectedCraneType === 'medium'} onChange={() => setSelectedCraneType('medium')} className="h-5 w-5 text-yellow-500 focus:ring-yellow-400 border-gray-300"/>
-                  <div className="ml-4">
-                    <span className="block text-md font-bold text-gray-900">Vehículo Mediano</span>
-                    <span className="block text-sm text-gray-500 mt-0.5 font-medium">Autos, SUVs</span>
-                  </div>
-                </div>
-                {estimatedDistance > 0 ? <span className="font-bold text-gray-900">{formatPrice(rates.medium.base + rates.medium.perKm * estimatedDistance)}</span> : null}
-              </label>
+              {([
+                { key: 'medium' as const, label: 'Vehículo Mediano', desc: 'Hasta 2 toneladas' },
+                { key: 'large' as const, label: 'Vehículo Grande', desc: 'Hasta 4,5 toneladas' },
+                { key: 'conventional' as const, label: 'Grúa Convencional', desc: 'Sin límite de peso' },
+              ]).map(({ key, label, desc }) => {
+                const available = availableCraneTypes.includes(key);
+                const isSelected = selectedCraneType === key;
 
-              <label 
-                className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${selectedCraneType === 'large' ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-200 hover:border-yellow-400 bg-white'}`}
-              >
-                <div className="flex items-center">
-                  <input type="radio" name="craneType" value="large" checked={selectedCraneType === 'large'} onChange={() => setSelectedCraneType('large')} className="h-5 w-5 text-yellow-500 focus:ring-yellow-400 border-gray-300"/>
-                  <div className="ml-4">
-                    <span className="block text-md font-bold text-gray-900">Vehículo Grande</span>
-                    <span className="block text-sm text-gray-500 mt-0.5 font-medium">Camionetas, Vans</span>
-                  </div>
-                </div>
-                {estimatedDistance > 0 ? <span className="font-bold text-gray-900">{formatPrice(rates.large.base + rates.large.perKm * estimatedDistance)}</span> : null}
-              </label>
+                if (!available) {
+                  return (
+                    <div key={key} className="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl bg-gray-50 opacity-50">
+                      <div className="flex items-center">
+                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 bg-gray-100" />
+                        <div className="ml-4">
+                          <span className="block text-md font-bold text-gray-400">{label}</span>
+                          <span className="block text-sm text-gray-400 mt-0.5 font-medium">{desc}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs text-red-400 font-medium">Supera el peso</span>
+                    </div>
+                  );
+                }
 
-              <label 
-                className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${selectedCraneType === 'conventional' ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-200 hover:border-yellow-400 bg-white'}`}
-              >
-                <div className="flex items-center">
-                  <input type="radio" name="craneType" value="conventional" checked={selectedCraneType === 'conventional'} onChange={() => setSelectedCraneType('conventional')} className="h-5 w-5 text-yellow-500 focus:ring-yellow-400 border-gray-300"/>
-                  <div className="ml-4">
-                    <span className="block text-md font-bold text-gray-900">Grúa Convencional</span>
-                    <span className="block text-sm text-gray-500 mt-0.5 font-medium">Arrastre estándar</span>
-                  </div>
-                </div>
-                {estimatedDistance > 0 ? <span className="font-bold text-gray-900">{formatPrice(rates.conventional.base + rates.conventional.perKm * estimatedDistance)}</span> : null}
-              </label>
+                return (
+                  <label key={key} className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${isSelected ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-200 hover:border-yellow-400 bg-white'}`}>
+                    <div className="flex items-center">
+                      <input type="radio" name="craneType" value={key} checked={isSelected} onChange={() => setSelectedCraneType(key)} className="h-5 w-5 text-yellow-500 focus:ring-yellow-400 border-gray-300"/>
+                      <div className="ml-4">
+                        <span className="block text-md font-bold text-gray-900">{label}</span>
+                        <span className="block text-sm text-gray-500 mt-0.5 font-medium">{desc}</span>
+                      </div>
+                    </div>
+                    {estimatedDistance > 0 ? <span className="font-bold text-gray-900">{formatPrice(rates[key].base + rates[key].perKm * estimatedDistance)}</span> : null}
+                  </label>
+                );
+              })}
             </div>
+            )}
             
             {estimatedDistance > 0 ? (
               <div className="mt-4 p-4 bg-gray-100/80 rounded-xl flex justify-between items-center border border-gray-200">
