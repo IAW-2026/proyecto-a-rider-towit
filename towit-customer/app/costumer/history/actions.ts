@@ -4,6 +4,8 @@ import { db } from "@/db";
 import { trip, customer, vehicle } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, desc } from "drizzle-orm";
+import { getTowerDriverInfo } from "@/services/towerService";
+import { getTripRating } from "@/services/feedbackService";
 
 async function getOrCreateCustomer() {
   const user = await currentUser();
@@ -29,10 +31,11 @@ async function getOrCreateCustomer() {
 export async function getTripsAction() {
   try {
     const customerRecord = await getOrCreateCustomer();
-    
+    const user = await currentUser();
+    const userId = user?.id || "";
+
     // Obtener los viajes del usuario actual, ordenados por fecha/hora descendente
-    // También podés hacer un join con vehicle si necesitas mostrar el vehículo usado
-    const userTrips = await db
+    const rawTrips = await db
       .select({
         tripId: trip.tripId,
         date: trip.date,
@@ -46,11 +49,41 @@ export async function getTripsAction() {
         destinationLng: trip.destinationLng,
         vehicleBrand: vehicle.brand,
         vehicleModel: vehicle.model,
+        towerId: trip.towerId,
+        feedbackId: trip.feedbackId,
       })
       .from(trip)
       .leftJoin(vehicle, eq(trip.vehicleId, vehicle.vehicleId))
       .where(eq(trip.customerId, customerRecord.customerId))
       .orderBy(desc(trip.date), desc(trip.time));
+
+    // Enriquecer cada viaje con datos mock de Tower y Feedback
+    const userTrips = await Promise.all(rawTrips.map(async (t) => {
+      let towerInfo = null;
+      let tripRating = null;
+
+      if (t.towerId) {
+        try {
+          towerInfo = await getTowerDriverInfo(t.towerId);
+        } catch (e) {
+          console.error("Error fetching tower info:", e);
+        }
+      }
+
+      if (t.feedbackId) {
+        try {
+          tripRating = await getTripRating(String(t.tripId), userId);
+        } catch (e) {
+          console.error("Error fetching trip rating:", e);
+        }
+      }
+
+      return {
+        ...t,
+        towerInfo,
+        tripRating: tripRating?.rating ?? null,
+      };
+    }));
 
     return { trips: userTrips };
   } catch (error: any) {

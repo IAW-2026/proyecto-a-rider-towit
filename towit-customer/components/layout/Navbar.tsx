@@ -1,9 +1,20 @@
 import { UserButton, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { getAvgRating } from "@/services/feedbackService";
 
 export default async function Navbar() {
   const user = await currentUser();
+
+  let userRating: number | null = null;
+  if (user) {
+    try {
+      const ratingResult = await getAvgRating(user.id);
+      userRating = ratingResult?.avg_rating ?? null;
+    } catch (e) {
+      console.error("Error fetching user rating:", e);
+    }
+  }
 
   return (
     <nav className="bg-black shadow-lg">
@@ -21,6 +32,12 @@ export default async function Navbar() {
             <span className="hidden sm:inline text-yellow-300 font-medium">
               Bienvenido, {user.firstName}
             </span>
+            {userRating !== null && (
+              <div className="flex items-center gap-1 bg-yellow-300/20 px-2.5 py-1 rounded-lg">
+                <span className="text-yellow-400 text-sm">★</span>
+                <span className="text-yellow-200 text-sm font-bold">{userRating}</span>
+              </div>
+            )}
             <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
               <UserButton appearance={{ elements: { rootBox: "rounded-full" } }} />
             </div>

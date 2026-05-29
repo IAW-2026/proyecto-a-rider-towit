@@ -10,8 +10,6 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function getTripRating(tripId: string, userId: string) {
   if (useMocks()) {
     console.log(`[MOCK - Feedback App] Obteniendo la calificación del viaje #${tripId} para el usuario ${userId}...`);
-    await delay(800);
-    // Simula que el viaje recibió 4 estrellas
     return { rating: 4 };
   }
 
@@ -54,8 +52,6 @@ export async function submitRating(payload: SubmitRatingPayload) {
 export async function getAvgRating(userId: string) {
   if (useMocks()) {
     console.log(`[MOCK - Feedback App] Obteniendo promedio histórico para el conductor ${userId}...`);
-    await delay(1000);
-    // Simula el promedio general de un chofer (ej: 4.8 estrellas)
     return { avg_rating: 4.8 };
   }
 

@@ -75,7 +75,28 @@ export async function getTowerRequestStatus(tripId: string) {
   */
 }
 
-// 4. Cancelar pedido de tower
+// 4. Obtener datos del conductor/tower asignado
+export async function getTowerDriverInfo(towerId: string) {
+  if (useMocks()) {
+    console.log(`[MOCK - Tower App] Obteniendo info del conductor ${towerId}...`);
+    return {
+      tower_id: towerId,
+      driver_name: "Carlos Rodríguez",
+      driver_phone: "+54 11 5555-1234",
+      vehicle_brand: "Mercedes-Benz",
+      vehicle_model: "Atego 815",
+      vehicle_year: 2020,
+      driver_rating: 4.9
+    };
+  }
+
+  /*
+  const res = await fetch(`${process.env.TOWER_API_URL}/api/tower/drivers/${towerId}`);
+  return res.json();
+  */
+}
+
+// 5. Cancelar pedido de tower
 export async function cancelTowerRequest(tripId: string) {
   if (useMocks()) {
     console.log(`[MOCK - Tower App] Cancelando solicitud para el viaje #${tripId}...`);

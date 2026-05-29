@@ -179,8 +179,10 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       return;
     }
 
+    let createdTripId: number | null = null;
     if (result.trip) {
-      setCurrentTripId(result.trip.tripId);
+      createdTripId = result.trip.tripId;
+      setCurrentTripId(createdTripId);
     }
 
     // Comenzar el flujo Mockeado de simulación (estilo Uber)
@@ -225,8 +227,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
               setTripState('completed');
               
               // Actualizamos el estado a finalizado en la base de datos
-              if (currentTripId) {
-                finishTripAction(currentTripId).catch(console.error);
+              if (createdTripId) {
+                finishTripAction(createdTripId).catch(console.error);
               }
             } else {
               setTowLocation(pointsToDest[step2]);

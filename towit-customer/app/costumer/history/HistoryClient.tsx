@@ -47,6 +47,16 @@ function AddressDisplay({ lat, lng }: { lat: number; lng: number }) {
   return <span>{address}</span>;
 }
 
+interface TowerInfo {
+  tower_id: string;
+  driver_name: string;
+  driver_phone: string;
+  vehicle_brand: string;
+  vehicle_model: string;
+  vehicle_year: number;
+  driver_rating: number;
+}
+
 interface Trip {
   id: string;
   date: string;
@@ -60,20 +70,41 @@ interface Trip {
   originLng: number;
   destinationLat: number;
   destinationLng: number;
+  towerInfo: TowerInfo | null;
+  tripRating: number | null;
+  price: number | null;
 }
 
 export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const toggleExpand = (id: string) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
-      case "completed":
-        return <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">Completado</span>;
-      case "in_progress":
-        return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-bold">En curso</span>;
-      case "cancelled":
+      case "finalizado":
+        return <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">Finalizado</span>;
+      case "en proceso":
+        return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-bold">En proceso</span>;
+      case "cancelado":
         return <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-bold">Cancelado</span>;
+      case "pendiente pago":
+        return <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-bold">Pendiente de pago</span>;
       default:
         return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-bold">{status}</span>;
     }
+  };
+
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} className={`text-lg ${star <= rating ? "text-yellow-400" : "text-gray-300"}`}>★</span>
+        ))}
+      </div>
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -83,6 +114,10 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
     } catch {
       return dateString;
     }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(price);
   };
 
   return (
@@ -105,41 +140,103 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
           <p className="text-gray-600 mb-6">Cuando solicites un remolque, aparecerá aquí.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {trips.map((trip) => (
-            <div key={trip.id} className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow flex flex-col">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-gray-500 font-semibold mb-1">
-                    {formatDate(trip.date)} a las {trip.time.substring(0, 5)}hs
-                  </p>
-                  <h4 className="text-lg font-bold text-gray-900 mt-1">
-                    {trip.vehicleBrand} {trip.vehicleModel}
-                  </h4>
+        <div className="flex flex-col gap-3 pb-4">
+          {trips.map((trip) => {
+            const isExpanded = expandedId === trip.id;
+            return (
+              <div
+                key={trip.id}
+                className={`bg-white border-2 rounded-xl shadow-sm transition-all duration-200 ${
+                  isExpanded ? "border-yellow-400" : "border-gray-200"
+                }`}
+              >
+                {/* Header clickeable — solo resumen */}
+                <div
+                  onClick={() => toggleExpand(trip.id)}
+                  className="p-4 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-lg shrink-0">🚗</span>
+                      <span className="text-lg font-bold text-gray-900 truncate">
+                        {trip.vehicleBrand} {trip.vehicleModel}
+                      </span>
+                    </div>
+                    {trip.price !== null && (
+                      <span className="text-lg font-bold text-green-700 shrink-0">{formatPrice(trip.price)}</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    <p className="text-xs text-gray-500 font-semibold">
+                      {formatDate(trip.date)} — {trip.time.substring(0, 5)}hs
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {getStatusBadge(trip.status)}
+                      <div className={`text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  {getStatusBadge(trip.status)}
-                </div>
+
+                {/* Detalle expandible */}
+                {isExpanded && (
+                  <div className="px-4 pb-5 pt-1 border-t border-gray-100">
+                    {/* Origen y destino conectados por línea */}
+                    <div className="ml-2 flex flex-col">
+                      <div className="flex items-start gap-3">
+                        <div className="flex flex-col items-center">
+                          <span className="w-3 h-3 bg-yellow-400 rounded-full shrink-0" />
+                          <div className="w-0.5 h-10 bg-gray-300" />
+                          <span className="w-3 h-3 bg-black rounded-full shrink-0" />
+                        </div>
+                        <div className="flex-1 min-w-0 pt-0.5 space-y-[34px]">
+                          <p className="text-sm text-gray-800 leading-tight">
+                            {trip.originChar && !trip.originChar.startsWith("Lat:") ? trip.originChar : <AddressDisplay lat={trip.originLat} lng={trip.originLng} />}
+                          </p>
+                          <p className="text-sm text-gray-800 leading-tight">
+                            {trip.DestinationChar && !trip.DestinationChar.startsWith("Lat:") ? trip.DestinationChar : <AddressDisplay lat={trip.destinationLat} lng={trip.destinationLng} />}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {trip.towerInfo && (
+                      <div className="mt-5 pt-4 border-t border-gray-200">
+                        <p className="text-xs font-semibold text-gray-500 mb-2">CONDUCTOR ASIGNADO</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-yellow-200 rounded-full flex items-center justify-center text-lg font-bold text-black shrink-0">
+                            {trip.towerInfo.driver_name.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate">{trip.towerInfo.driver_name}</p>
+                            <p className="text-xs text-gray-500">{trip.towerInfo.vehicle_brand} {trip.towerInfo.vehicle_model} ({trip.towerInfo.vehicle_year})</p>
+                          </div>
+                          <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg shrink-0">
+                            <span className="text-yellow-500 text-sm">★</span>
+                            <span className="text-sm font-bold text-gray-800">{trip.towerInfo.driver_rating}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {trip.tripRating !== null && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-xs font-semibold text-gray-500 mb-2">CALIFICACIÓN DEL VIAJE</p>
+                        <div className="flex items-center gap-3">
+                          {renderStars(trip.tripRating)}
+                          <span className="text-sm font-bold text-gray-700">{trip.tripRating}/5</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              
-              <div className="mt-4 flex-1">
-                <div className="relative pl-6 pb-6 border-l-2 border-gray-200 ml-2">
-                  <div className="absolute w-3 h-3 bg-yellow-400 rounded-full -left-[7px] top-1"></div>
-                  <p className="text-sm font-semibold text-gray-500 mb-1">ORIGEN</p>
-                  <p className="text-sm text-gray-800">
-                    {trip.originChar && !trip.originChar.startsWith("Lat:") ? trip.originChar : <AddressDisplay lat={trip.originLat} lng={trip.originLng} />}
-                  </p>
-                </div>
-                <div className="relative pl-6 ml-2">
-                  <div className="absolute w-3 h-3 bg-black rounded-full -left-[7px] top-1"></div>
-                  <p className="text-sm font-semibold text-gray-500 mb-1">DESTINO</p>
-                  <p className="text-sm text-gray-800">
-                    {trip.DestinationChar && !trip.DestinationChar.startsWith("Lat:") ? trip.DestinationChar : <AddressDisplay lat={trip.destinationLat} lng={trip.destinationLng} />}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </>
