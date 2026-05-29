@@ -8,7 +8,8 @@ import { revalidatePath } from "next/cache";
 
 // Importamos los mocks de los servicios
 import { generatePayment, refundPayment } from "@/services/paymentService";
-import { cancelTowerRequest } from "@/services/towerService";
+import { requestTowerForTrip, cancelTowerRequest } from "@/services/towerService";
+import { submitRating } from "@/services/feedbackService";
 
 export async function createTripAction(data: {
   originLat: number;
@@ -78,6 +79,31 @@ export async function createTripAction(data: {
       console.error("Error al cobrar:", e);
       // Como esto es un mock, no detenemos el viaje ante error, pero en la vida real sí se haría.
     }
+
+    // ==========================================
+    // ETAPA MOCK: Asignamos tower a través de Tower App
+    // ==========================================
+    try {
+      const towerResult = await requestTowerForTrip({
+        customer_id: user.id,
+        trip: {
+          id: String(createdTrip.tripId),
+          origin: { lat: data.originLat.toString(), long: data.originLng.toString() },
+          destination: { lat: data.destinationLat.toString(), long: data.destinationLng.toString() },
+        },
+        vehicle_data: { brand: "", model: "", year: 0 },
+      });
+
+      if (towerResult?.tower_id) {
+        await db.update(trip)
+          .set({ towerId: towerResult.tower_id })
+          .where(eq(trip.tripId, createdTrip.tripId));
+        createdTrip.towerId = towerResult.tower_id;
+        console.log("Tower asignado exitosamente:", towerResult.tower_id);
+      }
+    } catch (e) {
+      console.error("Error al asignar tower:", e);
+    }
     // ==========================================
 
     revalidatePath("/costumer/request-ride");
@@ -142,5 +168,54 @@ export async function finishTripAction(tripId: number) {
   } catch (error: any) {
     console.error("Error finalizando el viaje:", error);
     return { error: "Hubo un error al finalizar el viaje." };
+  }
+}
+
+export async function submitFeedbackAction(data: {
+  tripId: number;
+  rating: number;
+  comment?: string;
+}) {
+  try {
+    const user = await currentUser();
+    if (!user) {
+      return { error: "Acceso denegado." };
+    }
+
+    const customerRecord = await db.query.customer.findFirst({
+      where: eq(customer.clerkId, user.id)
+    });
+
+    if (!customerRecord) {
+      return { error: "Cliente no encontrado." };
+    }
+
+    // ==========================================
+    // ETAPA MOCK: Enviamos calificación a Feedback App
+    // ==========================================
+    const feedbackResult = await submitRating({
+      trip_id: String(data.tripId),
+      customer_id: user.id,
+      rating: data.rating,
+      comment: data.comment
+    });
+
+    if (!feedbackResult) {
+      return { error: "No se recibió respuesta de Feedback App." };
+    }
+
+    console.log("Feedback enviado exitosamente:", feedbackResult);
+
+    // Guardamos el feedbackId en el registro del viaje
+    await db.update(trip)
+      .set({ feedbackId: feedbackResult.feedback_id })
+      .where(eq(trip.tripId, data.tripId));
+    // ==========================================
+
+    revalidatePath("/costumer/history");
+    return { success: true, feedbackId: feedbackResult.feedback_id };
+  } catch (error: any) {
+    console.error("Error enviando feedback:", error);
+    return { error: "Hubo un error al enviar la calificación." };
   }
 }

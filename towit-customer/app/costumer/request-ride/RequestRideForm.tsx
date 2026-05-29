@@ -5,7 +5,7 @@ import Link from "next/link";
 import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
 import AddressSearch from "@/app/costumer/request-ride/map-components/AddressSearch";
 import { addVehicleAction } from "@/app/costumer/vehicles/actions";
-import { createTripAction, cancelTripAction, finishTripAction } from "@/app/costumer/request-ride/actions";
+import { createTripAction, cancelTripAction, finishTripAction, submitFeedbackAction } from "@/app/costumer/request-ride/actions";
 
 // Función para calcular distancia (Haversine) en km
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -105,6 +105,10 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
   // Guardamos el ID del viaje activo para poder cancelarlo después
   const [currentTripId, setCurrentTripId] = useState<number | null>(null);
+  
+  // Estados para feedback post-viaje
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
   
   // Guardamos referencias a las animaciones para poder cortarlas si se cancela
   const intervalsRef = useRef<{ arrive?: NodeJS.Timeout, toDest?: NodeJS.Timeout }>({});
@@ -224,8 +228,6 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
               if (currentTripId) {
                 finishTripAction(currentTripId).catch(console.error);
               }
-              
-              setCurrentTripId(null); // Viaje completado, ya no se puede cancelar
             } else {
               setTowLocation(pointsToDest[step2]);
             }
@@ -543,15 +545,65 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
               </div>
             )}
 
-            {tripState === 'completed' && (
+            {tripState === 'completed' && !feedbackSubmitted && (
               <div className="space-y-4">
                 <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-yellow-200">
                   <span className="text-5xl text-black font-medium">✓</span>
                 </div>
                 <h3 className="text-3xl font-bold text-gray-800">Viaje Finalizado</h3>
-                <p className="text-gray-600 font-medium">Gracias por elegir nuestro servicio TowIt. Tu vehículo ha sido descargado con éxito.</p>
-                <button onClick={() => window.location.reload()} className="mt-6 w-full px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition shadow-md">
-                  Solicitar otra grúa
+                <p className="text-gray-600 font-medium">Tu vehículo llegó a destino. Calificá el servicio para finalizar.</p>
+
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-4">
+                  <p className="text-lg font-bold text-gray-800 mb-4">Calificá el servicio</p>
+                  <div className="flex justify-center gap-1 mb-6">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span key={star} className="text-4xl text-yellow-400">★</span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!currentTripId) return;
+                      setFeedbackLoading(true);
+                      const res = await submitFeedbackAction({
+                        tripId: currentTripId,
+                        rating: 5,
+                        comment: ""
+                      });
+                      setFeedbackLoading(false);
+                      if (res.success) {
+                        setFeedbackSubmitted(true);
+                      } else {
+                        alert("Error al enviar calificación: " + (res.error || "desconocido"));
+                      }
+                    }}
+                    disabled={feedbackLoading}
+                    className="w-full px-6 py-3 bg-yellow-300 text-black font-bold rounded-xl hover:bg-yellow-400 transition text-lg duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {feedbackLoading ? "Enviando..." : "Enviar Calificación (5★)"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {tripState === 'completed' && feedbackSubmitted && (
+              <div className="space-y-4">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-green-200">
+                  <span className="text-5xl text-green-600 font-medium">✓</span>
+                </div>
+                <h3 className="text-3xl font-bold text-gray-800">Calificación enviada</h3>
+                <div className="flex justify-center gap-1 mb-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star} className="text-3xl text-yellow-400">★</span>
+                  ))}
+                </div>
+                <p className="text-gray-600 font-medium">Gracias por tu calificación. ¡Esperamos verte de nuevo!</p>
+                <Link href="/costumer/home" className="w-full block">
+                  <button className="w-full px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-900 transition text-lg duration-200 shadow-md cursor-pointer">
+                    Volver al inicio
+                  </button>
+                </Link>
+                <button onClick={() => window.location.reload()} className="w-full px-6 py-4 border-2 border-black text-black font-bold rounded-xl hover:bg-gray-100 transition text-lg duration-200 cursor-pointer">
+                  Solicitar otro viaje
                 </button>
               </div>
             )}

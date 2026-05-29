@@ -42,7 +42,7 @@ export async function requestTowerForTrip(payload: TowerRequestPayload) {
   if (useMocks()) {
     console.log(`[MOCK - Tower App] Solicitando tower para viaje #${payload.trip.id}...`);
     await delay(2000);
-    return {}; // Según docs, devuelve un objeto vacío ante éxito inicial
+    return { tower_id: "tow_mock_001" };
   }
 
   /*
