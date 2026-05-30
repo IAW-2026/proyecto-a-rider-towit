@@ -1,6 +1,8 @@
 import { UserButton, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { getAvgRating } from "@/services/feedbackService";
 
 export default async function Navbar() {
@@ -19,9 +21,9 @@ export default async function Navbar() {
   return (
     <nav className="bg-black shadow-lg">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
-        <Link href={user ? "/costumer/home" : "/"} className="flex items-center gap-2 cursor-pointer">
+        <Link href={user ? "/costumer/home" : "/"} className="flex items-center gap-4 cursor-pointer">
           <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
-          <div className="text-2xl md:text-3xl font-bold text-yellow-200">
+          <div className="text-2xl md:text-3xl font-bold text-white">
             TowIt
           </div>
         </Link>
@@ -29,13 +31,13 @@ export default async function Navbar() {
         {user ? (
           // Contenido para usuarios autenticados
           <div className="flex items-center gap-4">
-            <span className="hidden sm:inline text-yellow-300 font-medium">
+            <span className="hidden sm:inline text-brand-yellow font-medium">
               Bienvenido, {user.firstName}
             </span>
             {userRating !== null && (
-              <div className="flex items-center gap-1 bg-yellow-300/20 px-2.5 py-1 rounded-lg">
-                <span className="text-yellow-400 text-sm">★</span>
-                <span className="text-yellow-200 text-sm font-bold">{userRating}</span>
+              <div className="flex items-center gap-1 bg-brand-yellow/20 px-2.5 py-1 rounded-lg">
+                <FontAwesomeIcon icon={faStar} className="text-sm text-brand-yellow" />
+                <span className="text-brand-yellow-dark text-sm font-bold">{userRating}</span>
               </div>
             )}
             <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center">
@@ -46,12 +48,12 @@ export default async function Navbar() {
           // Contenido para usuarios no autenticados
           <div className="hidden md:flex gap-4">
             <SignInButton mode="modal" forceRedirectUrl="/costumer/home">
-              <button className="px-6 py-2 text-yellow-300 font-semibold hover:text-yellow-200 transition cursor-pointer">
+              <button className="px-6 py-2 text-brand-yellow font-semibold hover:text-brand-yellow-dark transition cursor-pointer">
                 Iniciar Sesión
               </button>
             </SignInButton>
             <SignUpButton mode="modal" forceRedirectUrl="/costumer/home">
-              <button className="px-6 py-2 bg-yellow-300 text-black font-semibold rounded-lg hover:bg-yellow-200 transition cursor-pointer">
+              <button className="px-6 py-2 bg-brand-yellow text-black font-semibold rounded-lg hover:bg-brand-yellow-hover transition cursor-pointer">
                 Crear Cuenta
               </button>
             </SignUpButton>

@@ -2,50 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faCar, faPlus, faMagnifyingGlass, faTruckPickup, faTruck, faCircleCheck, faCircleXmark, faStar } from "@fortawesome/free-solid-svg-icons";
+import { calculateDistance, fetchOsrmRoute, subsampleRoute, formatPrice } from "@/lib/utils";
+import { WEIGHT_LIMITS, CRANE_RATES, CRANE_TYPES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, ANIMATION_INTERVAL_ARRIVE_MS, ANIMATION_INTERVAL_TO_DEST_MS, SEARCH_DELAY_MS, MOCK_ETA_MINUTES } from "@/lib/constants";
+import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
 import AddressSearch from "@/app/costumer/request-ride/map-components/AddressSearch";
 import { addVehicleAction } from "@/app/costumer/vehicles/actions";
 import { createTripAction, cancelTripAction, finishTripAction, submitFeedbackAction } from "@/app/costumer/request-ride/actions";
-
-// Función para calcular distancia (Haversine) en km
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Radio de la Tierra en km
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
-    Math.sin(dLon / 2) * Math.sin(dLon / 2); 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
-  return R * c; 
-}
-
-// Funciones Helper para enrutamiento animado
-async function fetchOsrmRoute(start: [number, number], end: [number, number]) {
-  try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.routes && data.routes.length > 0) {
-      return data.routes[0].geometry.coordinates.map(
-        (coord: [number, number]) => [coord[1], coord[0]] as [number, number]
-      );
-    }
-  } catch (e) {
-    console.error("OSRM error:", e);
-  }
-  return [start, end]; 
-}
-
-function subsampleRoute(route: [number, number][], maxPoints: number) {
-  if (route.length <= maxPoints) return route;
-  const sampled: [number, number][] = [];
-  for (let i = 0; i < maxPoints; i++) {
-    const index = Math.floor((i / (maxPoints - 1)) * (route.length - 1));
-    sampled.push(route[index]);
-  }
-  return sampled;
-}
 
 interface Vehicle {
   id: string;
@@ -126,12 +91,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     estimatedDistance = calculateDistance(origin[0], origin[1], destination[0], destination[1]);
   }
 
-  // Límites de peso por tipo de grúa (en toneladas)
-  const weightLimits: Record<string, number> = {
-    medium: 2,
-    large: 4.5,
-    conventional: Infinity,
-  };
+  const weightLimits = WEIGHT_LIMITS;
 
   const selectedVehicle = initialVehicles.find(v => v.id === selectedVehicleId);
   const selectedWeight = selectedVehicle?.weight ?? 0;
@@ -147,22 +107,14 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     }
   }, [selectedVehicleId, selectedWeight]);
 
-  // Precios base y por km (ARS)
-  const rates = {
-    medium: { base: 12000, perKm: 1500 },
-    large: { base: 15000, perKm: 1800 },
-    conventional: { base: 18000, perKm: 2200 },
-  };
+  const rates = CRANE_RATES;
 
-  const currentRate = rates[selectedCraneType as keyof typeof rates] || rates.medium;
+  const currentRate = rates[selectedCraneType as keyof typeof CRANE_RATES] || rates.medium;
   const estimatedPrice = estimatedDistance > 0 
     ? currentRate.base + (currentRate.perKm * estimatedDistance) 
     : 0;
   
-  // Función para formatear a ARS
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(price);
-  };
+  // formatPrice imported from lib/utils
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,13 +170,12 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     const routeToOrigin = await fetchOsrmRoute(fakeStart, origin!);
     const routeToDest = await fetchOsrmRoute(origin!, destination!);
 
-    const pointsToOrigin = subsampleRoute(routeToOrigin, 20); // 20 pasos hasta origen
-    const pointsToDest = subsampleRoute(routeToDest, 30);     // 30 pasos hasta destino
+    const pointsToOrigin = subsampleRoute(routeToOrigin, ANIMATION_POINTS_TO_ORIGIN);
+    const pointsToDest = subsampleRoute(routeToDest, ANIMATION_POINTS_TO_DEST);
 
-    // Fase 2: Encontrar la grúa luego de 3 segundos
     setTimeout(() => {
       setTripState('found');
-      setEta(7); // 7 minutos mock inicial
+      setEta(MOCK_ETA_MINUTES);
       setTowLocation(pointsToOrigin[0]);
 
       // Fase 3: Animar la grúa acercándose al origen por la ruta
@@ -254,7 +205,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
             } else {
               setTowLocation(pointsToDest[step2]);
             }
-          }, 800); // Actualiza la posición hacia destino cada 0.8s
+          }, ANIMATION_INTERVAL_TO_DEST_MS);
 
           
         } else {
@@ -262,8 +213,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
           setTowLocation(pointsToOrigin[step1]);
           setEta(Math.max(1, Math.floor(7 * (1 - step1 / pointsToOrigin.length)))); // Bajamos el ETA mock
         }
-      }, 600); // 0.6s por tick de aproximación
-    }, 3000);
+      }, ANIMATION_INTERVAL_ARRIVE_MS);
+    }, SEARCH_DELAY_MS);
   };
 
   const handleCancelTrip = async () => {
@@ -316,9 +267,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     <div className="absolute inset-0 w-full h-full">
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
         <div className="absolute top-[10px] left-[10px] lg:left-[calc(450px+10px)] xl:left-[calc(500px+10px)] pointer-events-auto">
-          <Link href="/costumer/home" className="inline-flex items-center px-4 py-2 bg-white hover:bg-gray-100 text-gray-800 text-sm font-semibold rounded-[4px] transition-colors duration-200 shadow-[0_1px_5px_rgba(0,0,0,0.4)] border-2 border-[rgba(0,0,0,0.2)]" style={{ backgroundClip: 'padding-box' }}>
-            <span className="leading-none text-lg font-bold">←</span>
-          </Link>
+          <BackButton />
         </div>
       </div>
 
@@ -393,15 +342,15 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                 
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <input type="text" name="brand" form="add-vehicle-form" required placeholder="Marca (Ej: Toyota)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-yellow-400 focus:border-yellow-400 outline-none text-black" />
-                    <input type="text" name="model" form="add-vehicle-form" required placeholder="Modelo (Ej: Corolla)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-yellow-400 focus:border-yellow-400 outline-none text-black" />
-                    <input type="number" name="year" form="add-vehicle-form" required placeholder="Año (Ej: 2020)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-yellow-400 focus:border-yellow-400 outline-none text-black" />
-                    <input type="number" name="weight" form="add-vehicle-form" step="0.1" placeholder="Peso (Ton)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-yellow-400 focus:border-yellow-400 outline-none text-black" />
+                    <input type="text" name="brand" form="add-vehicle-form" required placeholder="Marca (Ej: Toyota)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black" />
+                    <input type="text" name="model" form="add-vehicle-form" required placeholder="Modelo (Ej: Corolla)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black" />
+                    <input type="number" name="year" form="add-vehicle-form" required placeholder="Año (Ej: 2020)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black" />
+                    <input type="number" name="weight" form="add-vehicle-form" step="0.1" placeholder="Peso (Ton)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black" />
                   </div>
                   
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setIsAddingVehicle(false)} className="px-3 py-1.5 text-sm text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition">Cancelar</button>
-                    <button type="submit" form="add-vehicle-form" disabled={loadingVehicle} className="px-4 py-1.5 text-sm bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition disabled:opacity-50">
+                    <button type="submit" form="add-vehicle-form" disabled={loadingVehicle} className="px-4 py-1.5 text-sm bg-brand-yellow text-black font-bold rounded-lg hover:bg-brand-yellow-hover transition disabled:opacity-50">
                       {loadingVehicle ? "Guardando..." : "Guardar y Seleccionar"}
                     </button>
                   </div>
@@ -410,13 +359,13 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
             ) : initialVehicles.length === 0 ? (
               <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl text-center bg-white hover:border-gray-400 hover:bg-gray-50/50 transition">
                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-xl">🚗</span>
+                  <FontAwesomeIcon icon={faCar} className="text-xl text-brand-yellow-dark" />
                 </div>
                 <p className="text-gray-600 mb-4 font-medium">No tienes vehículos registrados.</p>
                 <button 
                   type="button"
                   onClick={() => setIsAddingVehicle(true)}
-                  className="inline-block px-5 py-2.5 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition cursor-pointer"
+                  className="inline-block px-5 py-2.5 bg-brand-yellow text-black font-bold rounded-lg hover:bg-brand-yellow-hover transition cursor-pointer"
                 >
                   Registrar mi primer vehículo
                 </button>
@@ -428,8 +377,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                     key={v.id} 
                     className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${
                       selectedVehicleId === v.id 
-                        ? 'border-yellow-400 bg-yellow-50/50' 
-                        : 'border-gray-200 hover:border-yellow-400 bg-white'
+ ? 'border-brand-yellow bg-brand-yellow/5' 
+                      : 'border-gray-200 hover:border-brand-yellow bg-white'
                     }`}
                   >
                     <input 
@@ -441,7 +390,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                         setSelectedVehicleId(e.target.value);
                         setFormErrors(prev => ({ ...prev, vehicle: undefined }));
                       }}
-                      className="h-5 w-5 text-yellow-500 focus:ring-yellow-400 border-gray-300"
+className="h-5 w-5 text-brand-yellow-dark focus:ring-brand-yellow border-gray-300"
                     />
                     <div className="ml-4 flex-1">
                       <span className="block text-md font-bold text-gray-900">{v.brand} {v.model}</span>
@@ -452,10 +401,10 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                 <button
                   type="button"
                   onClick={() => setIsAddingVehicle(true)}
-                  className="w-full flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-yellow-400 hover:bg-yellow-50/30 transition duration-200 bg-white"
+                  className="w-full flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-brand-yellow hover:bg-brand-yellow/5 transition duration-200 bg-white"
                 >
                   <span className="text-gray-600 font-semibold text-md flex items-center gap-2">
-                    <span className="text-xl leading-none mb-0.5">+</span> Registrar nuevo vehículo
+                    <FontAwesomeIcon icon={faPlus} className="text-lg" /> Registrar nuevo vehículo
                   </span>
                 </button>
               </div>
@@ -471,11 +420,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
               </div>
             ) : (
             <div className="space-y-3">
-              {([
-                { key: 'medium' as const, label: 'Vehículo Mediano', desc: 'Hasta 2 toneladas' },
-                { key: 'large' as const, label: 'Vehículo Grande', desc: 'Hasta 4,5 toneladas' },
-                { key: 'conventional' as const, label: 'Grúa Convencional', desc: 'Sin límite de peso' },
-              ]).map(({ key, label, desc }) => {
+              {CRANE_TYPES.map(({ key, label, desc }) => {
                 const available = availableCraneTypes.includes(key);
                 const isSelected = selectedCraneType === key;
 
@@ -495,9 +440,9 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                 }
 
                 return (
-                  <label key={key} className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${isSelected ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-200 hover:border-yellow-400 bg-white'}`}>
+                  <label key={key} className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${isSelected ? 'border-brand-yellow bg-brand-yellow/5' : 'border-gray-200 hover:border-brand-yellow bg-white'}`}>
                     <div className="flex items-center">
-                      <input type="radio" name="craneType" value={key} checked={isSelected} onChange={() => setSelectedCraneType(key)} className="h-5 w-5 text-yellow-500 focus:ring-yellow-400 border-gray-300"/>
+                      <input type="radio" name="craneType" value={key} checked={isSelected} onChange={() => setSelectedCraneType(key)} className="h-5 w-5 text-brand-yellow-dark focus:ring-brand-yellow border-gray-300"/>
                       <div className="ml-4">
                         <span className="block text-md font-bold text-gray-900">{label}</span>
                         <span className="block text-sm text-gray-500 mt-0.5 font-medium">{desc}</span>
@@ -534,8 +479,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
           <div className="h-full flex flex-col justify-center items-center text-center space-y-6 py-8">
             {tripState === 'searching' && (
               <div className="animate-pulse space-y-4">
-                <div className="w-20 h-20 bg-yellow-300 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                  <span className="text-3xl">🔍</span>
+                <div className="w-20 h-20 bg-brand-yellow rounded-full flex items-center justify-center mx-auto shadow-lg">
+                  <FontAwesomeIcon icon={faMagnifyingGlass} className="text-3xl text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800">Buscando TowIt para tu remolque...</h3>
                 <p className="text-gray-500 font-medium">Estamos conectando con los conductores de grúas cercanos.</p>
@@ -544,8 +489,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
             {tripState === 'found' && (
               <div className="space-y-4">
-                <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto shadow-xl ring-4 ring-yellow-300">
-                  <span className="text-3xl">🛻</span>
+                <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto shadow-xl ring-4 ring-brand-yellow">
+                  <FontAwesomeIcon icon={faTruckPickup} className="text-3xl text-brand-yellow" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800">¡TowIt Encontrado!</h3>
                 <div className="bg-white p-4 rounded-xl border border-gray-200 text-left w-full shadow-sm">
@@ -556,7 +501,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                     <span className="text-gray-600 font-medium">Llegando en</span>
-                    <span className="text-xl font-bold text-yellow-600">{eta} min</span>
+                    <span className="text-xl font-bold text-brand-yellow-dark">{eta} min</span>
                   </div>
                 </div>
               </div>
@@ -564,8 +509,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
             {tripState === 'in_progress' && (
               <div className="space-y-4">
-                 <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto shadow-lg animate-bounce">
-                  <span className="text-3xl">🚗</span>
+                 <div className="w-20 h-20 bg-brand-yellow rounded-full flex items-center justify-center mx-auto shadow-lg animate-bounce">
+                  <FontAwesomeIcon icon={faTruck} className="text-3xl text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800">Grúa en camino a tu destino</h3>
                 <p className="text-gray-500 font-medium">El conductor ya cargó tu vehículo y se dirige hacia el taller indicado.</p>
@@ -574,8 +519,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
             {tripState === 'completed' && !feedbackSubmitted && (
               <div className="space-y-4">
-                <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-yellow-200">
-                  <span className="text-5xl text-black font-medium">✓</span>
+                <div className="w-20 h-20 bg-brand-yellow rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-brand-yellow/30">
+                  <FontAwesomeIcon icon={faCircleCheck} className="text-5xl text-white" />
                 </div>
                 <h3 className="text-3xl font-bold text-gray-800">Viaje Finalizado</h3>
                 <p className="text-gray-600 font-medium">Tu vehículo llegó a destino. Calificá el servicio para finalizar.</p>
@@ -583,8 +528,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-4">
                   <p className="text-lg font-bold text-gray-800 mb-4">Calificá el servicio</p>
                   <div className="flex justify-center gap-1 mb-6">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span key={star} className="text-4xl text-yellow-400">★</span>
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <FontAwesomeIcon key={s} icon={faStar} className="text-4xl text-brand-yellow" />
                     ))}
                   </div>
                   <button
@@ -604,9 +549,9 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                       }
                     }}
                     disabled={feedbackLoading}
-                    className="w-full px-6 py-3 bg-yellow-300 text-black font-bold rounded-xl hover:bg-yellow-400 transition text-lg duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-6 py-3 bg-brand-yellow text-black font-bold rounded-xl hover:bg-brand-yellow-hover transition text-lg duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {feedbackLoading ? "Enviando..." : "Enviar Calificación (5★)"}
+                    {feedbackLoading ? "Enviando..." : <>Enviar Calificación <FontAwesomeIcon icon={faStar} className="ml-1" /></>}
                   </button>
                 </div>
               </div>
@@ -615,12 +560,12 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
             {tripState === 'completed' && feedbackSubmitted && (
               <div className="space-y-4">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-green-200">
-                  <span className="text-5xl text-green-600 font-medium">✓</span>
+                  <FontAwesomeIcon icon={faCircleCheck} className="text-5xl text-green-600" />
                 </div>
                 <h3 className="text-3xl font-bold text-gray-800">Calificación enviada</h3>
                 <div className="flex justify-center gap-1 mb-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span key={star} className="text-3xl text-yellow-400">★</span>
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <FontAwesomeIcon key={s} icon={faStar} className="text-3xl text-brand-yellow" />
                   ))}
                 </div>
                 <p className="text-gray-600 font-medium">Gracias por tu calificación. ¡Esperamos verte de nuevo!</p>
@@ -638,7 +583,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
             {tripState === 'cancelled' && (
               <div className="space-y-4">
                 <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto shadow-lg ring-4 ring-red-50">
-                  <span className="text-4xl text-red-500 font-medium">✗</span>
+                  <FontAwesomeIcon icon={faCircleXmark} className="text-4xl text-red-500" />
                 </div>
                 <h3 className="text-3xl font-bold text-gray-800">Viaje Cancelado</h3>
                 <p className="text-gray-600 font-medium">El viaje fue cancelado y se solicitó el reembolso correspondiente.</p>

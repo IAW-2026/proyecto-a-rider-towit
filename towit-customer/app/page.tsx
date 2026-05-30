@@ -4,6 +4,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBolt, faLocationDot, faCreditCard, faUserCheck, faMobileScreenButton, faHeadset } from "@fortawesome/free-solid-svg-icons"
+import Footer from "@/components/ui/Footer"
 
 // Add to your globals.css:
 // @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap');
@@ -13,12 +14,12 @@ export default async function Page() {
   if (user) redirect("/costumer/home")
 
   return (
-    <div className="min-h-screen bg-white text-gray-900" style={{ fontFamily: "'Geist', sans-serif" }}>
+    <div className="min-h-screen bg-white text-gray-900">
 
       <nav className="sticky top-0 z-50 bg-[#0A0A0B] border-b border-white/10">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           {/* Logo */}
-          <Link href={user ? "/costumer/home" : "/"} className="flex items-center gap-2 cursor-pointer">
+          <Link href={user ? "/costumer/home" : "/"} className="flex items-center gap-4  cursor-pointer">
           <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
           <div className="text-2xl md:text-3xl font-bold text-white">
             TowIt
@@ -190,37 +191,7 @@ export default async function Page() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="border-t border-gray-100 bg-[#0A0A0B]">
-        <div className="mx-auto max-w-6xl px-8 py-8">
-          <div className="grid grid-cols-2 gap-10 pb-6 lg:grid-cols-4">
-            {/* Brand */}
-            <div className="col-span-2 lg:col-span-1">
-              <div className="mb-4 flex items-center gap-2.5">
-                {/* Logo */}
-                  <div className="flex items-center gap-2">
-                    <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
-                    <div className="text-2xl md:text-3xl font-bold text-white">
-                      TowIt
-                    </div>
-                  </div>
-              </div>
-              <p className=" max-w-[220px] text-[13px] leading-relaxed text-white/35">
-                Conectamos tu vehículo con la ayuda más cercana. Disponible en toda Argentina.
-              </p>
-              
-            </div>
-            
-          </div>
-
-          <div className="flex flex-col items-start justify-between gap-4 border-t border-white/[0.06] pt-8 sm:flex-row sm:items-center">
-            <p className="text-[12px] text-white/20">
-              © {new Date().getFullYear()} TowIt. Todos los derechos reservados.
-            </p>
-            <p className="text-[12px] text-white/20">Hecho en Argentina 🇦🇷 - IAW 2026</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
     </div>
   )

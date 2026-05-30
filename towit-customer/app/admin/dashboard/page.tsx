@@ -44,7 +44,7 @@ export default async function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-black text-white px-6 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-4">
-          <Link href="/admin/dashboard" className="text-xl font-bold text-yellow-300">
+          <Link href="/admin/dashboard" className="text-xl font-bold text-brand-yellow">
             TowIt Admin
           </Link>
         </div>
@@ -58,7 +58,7 @@ export default async function AdminDashboard() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-yellow-400">
+          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-brand-yellow">
             <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide">Viajes Totales</h2>
             <p className="text-4xl font-bold text-gray-900">{tripCount.value}</p>
           </div>

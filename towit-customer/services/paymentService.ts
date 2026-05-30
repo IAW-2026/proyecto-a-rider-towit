@@ -3,8 +3,8 @@
  * Maneja la comunicación de Customer App hacia Payments App.
  */
 
-const useMocks = () => process.env.USE_MOCKS !== "false";
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { useMocks } from "@/lib/service-utils";
+import { delay } from "@/lib/utils";
 
 export interface PaymentPayload {
   trip_id: number;

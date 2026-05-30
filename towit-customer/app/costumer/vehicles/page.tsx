@@ -1,5 +1,5 @@
 import Navbar from "@/components/layout/Navbar";
-import Link from "next/link";
+import BackButton from "@/components/ui/BackButton";
 import VehiclesClient from "./VehiclesClient";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
@@ -36,9 +36,7 @@ export default async function VehiclesPage() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-6 md:px-12 w-full pt-6">
-        <Link href="/costumer/home" className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold rounded-lg transition-colors duration-200 shadow-sm border border-gray-200">
-          <span className="leading-none text-lg font-bold">←</span>
-        </Link>
+        <BackButton />
       </div>
 
       {/* Contenido Principal */}

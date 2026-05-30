@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCar, faClipboardList, faChevronDown, faStar } from "@fortawesome/free-solid-svg-icons";
+import { formatPrice, formatDate } from "@/lib/utils";
+import { StarRatingDisplay } from "@/components/ui/StarRating";
 import { geocodeAction } from "./actions";
 
 // Caché global para no repetir peticiones a las mismas coordenadas
@@ -97,28 +101,9 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
     }
   };
 
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <span key={star} className={`text-lg ${star <= rating ? "text-yellow-400" : "text-gray-300"}`}>★</span>
-        ))}
-      </div>
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat('es-AR', { dateStyle: 'medium' }).format(date);
-    } catch {
-      return dateString;
-    }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(price);
-  };
+  const renderStars = (rating: number) => (
+    <StarRatingDisplay rating={rating} />
+  );
 
   return (
     <>
@@ -134,7 +119,7 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
       {trips.length === 0 ? (
         <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-10 text-center">
           <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">📋</span>
+            <FontAwesomeIcon icon={faClipboardList} className="text-2xl text-gray-500" />
           </div>
           <h3 className="text-xl font-bold text-gray-800 mb-2">No tienes viajes aún</h3>
           <p className="text-gray-600 mb-6">Cuando solicites un remolque, aparecerá aquí.</p>
@@ -157,7 +142,7 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-lg shrink-0">🚗</span>
+                      <FontAwesomeIcon icon={faCar} className="text-lg shrink-0 text-gray-700" />
                       <span className="text-lg font-bold text-gray-900 truncate">
                         {trip.vehicleBrand} {trip.vehicleModel}
                       </span>
@@ -173,11 +158,7 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                     </p>
                     <div className="flex items-center gap-2 shrink-0">
                       {getStatusBadge(trip.status)}
-                      <div className={`text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
+                      <FontAwesomeIcon icon={faChevronDown} className={`text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
                   </div>
                 </div>
@@ -216,7 +197,7 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                             <p className="text-xs text-gray-500">{trip.towerInfo.vehicle_brand} {trip.towerInfo.vehicle_model} ({trip.towerInfo.vehicle_year})</p>
                           </div>
                           <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg shrink-0">
-                            <span className="text-yellow-500 text-sm">★</span>
+                            <FontAwesomeIcon icon={faStar} className="text-sm text-brand-yellow" />
                             <span className="text-sm font-bold text-gray-800">{trip.towerInfo.driver_rating}</span>
                           </div>
                         </div>

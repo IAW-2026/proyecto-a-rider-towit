@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { addVehicleAction, deleteVehicleAction, editVehicleAction } from "./actions";
 
 interface Vehicle {
@@ -74,9 +76,9 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
         {!showForm && (
           <button 
             onClick={handleAddClick}
-            className="px-6 py-3 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition text-lg duration-200 cursor-pointer shadow-sm"
+            className="px-6 py-3 bg-brand-yellow text-black font-bold rounded-lg hover:bg-brand-yellow-hover transition text-lg duration-200 cursor-pointer shadow-sm"
           >
-            + Agregar Vehículo
+            <FontAwesomeIcon icon={faPlus} className="mr-2" /> Agregar Vehículo
           </button>
         )}
       </header>
@@ -98,7 +100,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                   name="brand" 
                   defaultValue={editingVehicle?.brand}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-300 focus:border-yellow-300 outline-none text-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black"
                   placeholder="Ej: Toyota"
                 />
               </div>
@@ -109,7 +111,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                   name="model" 
                   defaultValue={editingVehicle?.model}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-300 focus:border-yellow-300 outline-none text-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black"
                   placeholder="Ej: Corolla"
                 />
               </div>
@@ -122,7 +124,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                   required
                   min="1900"
                   max={new Date().getFullYear() + 1}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-300 focus:border-yellow-300 outline-none text-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black"
                   placeholder="Ej: 2020"
                 />
               </div>
@@ -134,7 +136,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
                   defaultValue={editingVehicle?.weight}
                   step="0.1"
                   min="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-300 focus:border-yellow-300 outline-none text-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black"
                   placeholder="Ej: 1.5"
                 />
               </div>
@@ -154,7 +156,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
               <button 
                 type="submit" 
                 disabled={loading}
-                className="px-6 py-2 bg-yellow-300 text-black font-bold rounded-lg hover:bg-yellow-400 transition cursor-pointer disabled:opacity-50"
+                className="px-6 py-2 bg-brand-yellow text-black font-bold rounded-lg hover:bg-brand-yellow-hover transition cursor-pointer disabled:opacity-50"
               >
                 {loading ? "Guardando..." : (editingVehicle ? "Actualizar Vehículo" : "Guardar Vehículo")}
               </button>

@@ -3,8 +3,8 @@
  * Maneja la comunicación de Customer App hacia Tower App.
  */
 
-const useMocks = () => process.env.USE_MOCKS !== "false";
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { useMocks } from "@/lib/service-utils";
+import { delay } from "@/lib/utils";
 
 // 1. Obtener datos de vehículo de Tower
 export async function getTowerVehicle(vehicleId: string) {

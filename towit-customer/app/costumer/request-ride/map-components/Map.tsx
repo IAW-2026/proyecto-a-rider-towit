@@ -3,6 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
+import { OSRM_BASE_URL, DEFAULT_MAP_CENTER, TOW_TRUCK_ICON } from "@/lib/constants";
 
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, ZoomControl } from "react-leaflet";
@@ -40,7 +41,7 @@ function RoutingLine({ origin, destination }: { origin: [number, number] | null,
     const fetchRoute = async () => {
       try {
         // En OSRM las coordenadas van como longitud,latitud
-        const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson`;
+        const url = `${OSRM_BASE_URL}/${origin[1]},${origin[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson`;
         const res = await fetch(url);
         const data = await res.json();
         
@@ -72,7 +73,7 @@ function RoutingLine({ origin, destination }: { origin: [number, number] | null,
 // Ícono personalizado para la grúa (coche)
 // TAMAÑO IDEAL DE IMAGEN: 48x48 píxeles o 64x64 píxeles (formato PNG transparente o SVG)
 const carIcon = L.icon({
-  iconUrl: "/images/fiestajejes.png", // En Next.js, la carpeta 'public' se accede directamente desde la raíz '/'
+  iconUrl: TOW_TRUCK_ICON,
   iconSize: [48, 48], // [Ancho, Alto] de la imagen
   iconAnchor: [24, 24], // Punto del icono que corresponde a la posición del mapa (centro)
   popupAnchor: [0, -24], // Dónde se abre el popup en relación al icono
@@ -104,7 +105,7 @@ type MapProps = {
 };
 
 export default function Map({ origin, destination, towLocation }: MapProps) {
-  const defaultPosition: [number, number] = [-38.7333, -62.2667]; // Coordenadas de Buenos Aires
+  const defaultPosition: [number, number] = DEFAULT_MAP_CENTER;
 
   return (
     <MapContainer
