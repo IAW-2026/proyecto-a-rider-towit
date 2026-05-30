@@ -32,7 +32,7 @@ export default async function HistoryPage() {
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-6 md:px-12 pt-6">
           <Link href="/costumer/home" className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold rounded-lg transition-colors duration-200 shadow-sm border border-gray-200">
-            <span className="mr-2 leading-none">←</span> Volver atrás
+            <span className="leading-none text-lg font-bold">←</span>
           </Link>
         </div>
 

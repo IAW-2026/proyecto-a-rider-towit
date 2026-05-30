@@ -317,7 +317,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
         <div className="absolute top-[10px] left-[10px] lg:left-[calc(450px+10px)] xl:left-[calc(500px+10px)] pointer-events-auto">
           <Link href="/costumer/home" className="inline-flex items-center px-4 py-2 bg-white hover:bg-gray-100 text-gray-800 text-sm font-semibold rounded-[4px] transition-colors duration-200 shadow-[0_1px_5px_rgba(0,0,0,0.4)] border-2 border-[rgba(0,0,0,0.2)]" style={{ backgroundClip: 'padding-box' }}>
-            <span className="mr-2 leading-none">←</span> Volver atrás
+            <span className="leading-none text-lg font-bold">←</span>
           </Link>
         </div>
       </div>
