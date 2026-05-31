@@ -8,6 +8,7 @@ import { OSRM_BASE_URL, DEFAULT_MAP_CENTER } from "@/lib/constants";
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, ZoomControl } from "react-leaflet";
 import L from "leaflet";
+import { faCarSide, faTruckPickup } from "@fortawesome/free-solid-svg-icons";
 
 function ChangeView({ origin, destination }: { origin: [number, number] | null, destination: [number, number] | null }) {
   const map = useMap();
@@ -81,26 +82,28 @@ const destinationIcon = L.divIcon({
 
 function getCarIcon(craneType: string) {
   if (craneType === "medium") {
+    const [w, h, , , path] = faCarSide.icon;
     return L.divIcon({
-      html: '<svg viewBox="0 0 640 512" style="width:32px;height:32px;fill:#1a1a1a;filter:drop-shadow(0 0 0 2px white);"><path d="M171.3 96H224v96H111.3l60.1-96zM96 192h-3.2c-19.9 0-38.3 7.9-52.1 21.9L9.5 247.4C3.3 253.9 0 262.5 0 271.4V352c0 17.7 14.3 32 32 32h32c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h32c17.7 0 32-14.3 32-32V271.4c0-8.9-3.3-17.5-9.5-24L598 213.9C584.2 199.9 565.8 192 545.9 192H480V112c0-26.5-21.5-48-48-48H272c-26.5 0-48 21.5-48 48v80H96zM480 288c0 26.5-21.5 48-48 48s-48-21.5-48-48s21.5-48 48-48s48 21.5 48 48zM160 336c-26.5 0-48-21.5-48-48s21.5-48 48-48s48 21.5 48 48s-21.5 48-48 48z"/></svg>',
+      html: `<svg viewBox="0 0 ${w} ${h}" style="width:40px;height:40px;"><path fill="#1a1a1a" stroke="white" stroke-width="36" paint-order="stroke fill" stroke-linejoin="round" d="${path}"/></svg>`,
       className: 'bg-transparent border-none',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
     });
   }
   if (craneType === "large") {
+    const [w, h, , , path] = faTruckPickup.icon;
     return L.divIcon({
-      html: '<svg viewBox="0 0 640 512" style="width:32px;height:32px;fill:#1a1a1a;filter:drop-shadow(0 0 0 2px white);"><path d="M368 0c-8.8 0-16 7.2-16 16V96h-3.2c-19.9 0-38.3 7.9-52.1 21.9L265.5 149.4C259.3 155.9 256 164.5 256 173.4V256H144V48c0-8.8-7.2-16-16-16H80c-8.8 0-16 7.2-16 16V256H32c-17.7 0-32 14.3-32 32v80c0 17.7 14.3 32 32 32h32c0 53 43 96 96 96s96-43 96-96h96c0 53 43 96 96 96s96-43 96-96h32c17.7 0 32-14.3 32-32V288c0-35.3-28.7-64-64-64H384V32c0-17.7-14.3-32-32-32H368zM208 384c-26.5 0-48-21.5-48-48s21.5-48 48-48s48 21.5 48 48s-21.5 48-48 48zm224-48c0 26.5-21.5 48-48 48s-48-21.5-48-48s21.5-48 48-48s48 21.5 48 48z"/></svg>',
+      html: `<svg viewBox="0 0 ${w} ${h}" style="width:40px;height:40px;"><path fill="#1a1a1a" stroke="white" stroke-width="36" paint-order="stroke fill" stroke-linejoin="round" d="${path}"/></svg>`,
       className: 'bg-transparent border-none',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
     });
   }
   return L.divIcon({
-    html: '<img src="/images/logo/tow2.svg" style="width:32px;height:32px;filter:drop-shadow(0 0 0 2px white);" />',
+    html: '<img src="/images/logo/tow2.svg" style="width:34px;height:34px;border:3px solid white;border-radius:4px;" />',
     className: 'bg-transparent border-none',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
   });
 }
 

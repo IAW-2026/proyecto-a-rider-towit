@@ -293,7 +293,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
           <div className="relative min-h-max flex flex-col">
             {tripState === 'idle' ? (
               <>
-                <h2 className="text-2xl font-extrabold text-black mb-6">Solicitá una Grúa</h2>
+                <h2 className="text-2xl font-extrabold text-black mb-6">Solicitá tu Grúa</h2>
               <form className="space-y-6" onSubmit={handleSubmit}>
                 {/* Ubicaciones con Autocompletado */}
           <div>
@@ -348,7 +348,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                   
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setIsAddingVehicle(false)} className="px-3 py-1.5 text-sm text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition">Cancelar</button>
-                    <button type="submit" form="add-vehicle-form" disabled={loadingVehicle} className="px-4 py-1.5 text-sm bg-brand-yellow text-black font-bold rounded-lg hover:bg-brand-yellow-hover transition disabled:opacity-50">
+                    <button type="submit" form="add-vehicle-form" disabled={loadingVehicle} className="px-4 py-1.5 text-sm bg-brand-yellow text-black font-bold rounded-lg hover:bg-brand-yellow-hover transition disabled:opacity-50 cursor-pointer">
                       {loadingVehicle ? "Guardando..." : "Guardar y Seleccionar"}
                     </button>
                   </div>
