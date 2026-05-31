@@ -1,5 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import BackButton from "@/components/ui/BackButton";
+import Footer from "@/components/ui/Footer";
 import HistoryClient from "./HistoryClient";
 import { getTripsAction } from "./actions";
 
@@ -38,6 +39,7 @@ export default async function HistoryPage() {
           <HistoryClient trips={formattedTrips} />
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

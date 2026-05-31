@@ -1,5 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import BackButton from "@/components/ui/BackButton";
+import Footer from "@/components/ui/Footer";
 import VehiclesClient from "./VehiclesClient";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
@@ -45,6 +46,7 @@ export default async function VehiclesPage() {
           <VehiclesClient initialVehicles={formattedVehicles} />
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
