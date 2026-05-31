@@ -294,12 +294,12 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
         )}
       </div>
 
-      <div className="absolute inset-0 z-0 bg-gray-200">
+      <div className="absolute inset-0 z-0 bg-muted">
         <DynamicMap origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
       </div>
 
       <div
-        className={`absolute bottom-0 left-0 right-0 lg:right-auto lg:left-0 lg:top-0 lg:h-full lg:w-[450px] xl:w-[500px] bg-white z-10 rounded-t-3xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] lg:shadow-[10px_0_40px_rgba(0,0,0,0.1)] flex flex-col transition-all duration-300 ease-in-out ${
+        className={`absolute bottom-0 left-0 right-0 lg:right-auto lg:left-0 lg:top-0 lg:h-full lg:w-[450px] xl:w-[500px] bg-card z-10 rounded-t-3xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] lg:shadow-[10px_0_40px_rgba(0,0,0,0.1)] flex flex-col transition-all duration-300 ease-in-out ${
           isExpanded ? "h-[80vh]" : "h-[14vh] lg:h-full"
         }`}
       >
@@ -309,7 +309,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
         >
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full pointer-events-none" />
+          <div className="w-12 h-1.5 bg-muted rounded-full pointer-events-none" />
         </div>
 
         <div
@@ -327,7 +327,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                   <button
                     onClick={handleCancelTrip}
                     disabled={isRequesting}
-                    className="w-full py-3 bg-red-100 hover:bg-red-200 text-red-600 font-bold rounded-xl border border-red-300 transition text-sm duration-200 disabled:opacity-50 cursor-pointer"
+                    className="w-full py-3 bg-red-900/30 hover:bg-red-900/50 text-red-400 font-bold rounded-xl border border-red-800 transition text-sm duration-200 disabled:opacity-50 cursor-pointer"
                   >
                     {isRequesting ? "Cancelando..." : "Cancelar Viaje"}
                   </button>

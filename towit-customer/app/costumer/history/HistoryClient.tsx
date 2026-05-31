@@ -66,10 +66,10 @@ interface Trip {
 }
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  finalizado:       { label: "Finalizado",        className: "bg-gray-100 text-gray-600" },
-  "en proceso":     { label: "En proceso",         className: "bg-[#F5C518]/20 text-[#7A600A]" },
-  cancelado:        { label: "Cancelado",          className: "bg-gray-100 text-gray-400" },
-  "pendiente pago": { label: "Pendiente de pago",  className: "bg-[#F5C518]/15 text-[#7A600A]" },
+  finalizado:       { label: "Finalizado",        className: "bg-muted text-muted-foreground" },
+  "en proceso":     { label: "En proceso",         className: "bg-brand-yellow/20 text-brand-yellow-dark" },
+  cancelado:        { label: "Cancelado",          className: "bg-muted text-muted-foreground" },
+  "pendiente pago": { label: "Pendiente de pago",  className: "bg-brand-yellow/15 text-brand-yellow-dark" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -86,30 +86,30 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
   const toggle = (id: string) => setExpandedId(expandedId === id ? null : id);
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Geist', sans-serif" }}>
+    <div className="min-h-screen bg-background text-foreground" style={{ fontFamily: "'Geist', sans-serif" }}>
       <div className="mx-auto max-w-2xl px-4 py-0 sm:px-6 sm:py-0">
 
         {/* Header */}
         <header className="mb-6 sm:mb-10">
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[#D4A017]">
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-brand-yellow-dark">
             Historial
           </p>
-          <h1 className="text-[28px] font-extrabold tracking-[-1px] leading-tight text-gray-900 sm:text-[38px] sm:tracking-[-1.5px]">
+          <h1 className="text-[28px] font-extrabold tracking-[-1px] leading-tight text-foreground sm:text-[38px] sm:tracking-[-1.5px]">
             Mis viajes
           </h1>
-          <p className="mt-1.5 text-[14px] text-gray-500 sm:text-[16px]">
+          <p className="mt-1.5 text-[14px] text-muted-foreground sm:text-[16px]">
             Todos los servicios de grúa que solicitaste.
           </p>
         </header>
 
         {/* Empty state */}
         {trips.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
-            <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5C518]/10">
-              <FontAwesomeIcon icon={faClipboardList} className="h-6 w-6 text-[#D4A017]" />
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+            <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-yellow/10">
+              <FontAwesomeIcon icon={faClipboardList} className="h-6 w-6 text-brand-yellow-dark" />
             </div>
-            <p className="mb-1 text-[15px] font-bold text-gray-900">Todavía no tenés viajes</p>
-            <p className="text-[13px] text-gray-400">Cuando solicites un remolque, aparecerá aquí.</p>
+            <p className="mb-1 text-[15px] font-bold text-foreground">Todavía no tenés viajes</p>
+            <p className="text-[13px] text-muted-foreground">Cuando solicites un remolque, aparecerá aquí.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
@@ -118,10 +118,10 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
               return (
                 <div
                   key={trip.id}
-                  className={`overflow-hidden rounded-2xl bg-white transition-all duration-200 ${
+                  className={`overflow-hidden rounded-2xl bg-card transition-all duration-200 ${
                     isExpanded
-                      ? "shadow-[0_4px_24px_rgba(245,197,24,0.15)] ring-1 ring-[#F5C518]"
-                      : "shadow-sm ring-1 ring-gray-100 active:bg-gray-50"
+                      ? "shadow-[0_4px_24px_rgba(245,197,24,0.15)] ring-1 ring-brand-yellow"
+                      : "shadow-sm ring-1 ring-border active:bg-muted"
                   }`}
                 >
                   {/* Summary row — tap target generoso */}
@@ -131,23 +131,23 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                   >
                     {/* Icon */}
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      isExpanded ? "bg-[#F5C518]/15" : "bg-gray-100"
+                      isExpanded ? "bg-brand-yellow/15" : "bg-muted"
                     }`}>
                       <FontAwesomeIcon
                         icon={faCar}
-                        className={`h-4 w-4 ${isExpanded ? "text-[#D4A017]" : "text-gray-500"}`}
+                        className={`h-4 w-4 ${isExpanded ? "text-brand-yellow-dark" : "text-gray-500"}`}
                       />
                     </div>
 
                     {/* Middle: vehicle + date + status */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="truncate text-[14px] font-bold text-gray-900">
+                        <p className="truncate text-[14px] font-bold text-foreground">
                           {trip.vehicleBrand} {trip.vehicleModel}
                         </p>
                         <StatusBadge status={trip.status} />
                       </div>
-                      <p className="mt-0.5 text-[11px] text-gray-400">
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
                         {formatDate(trip.date)} · {trip.time.substring(0, 5)}hs
                       </p>
                     </div>
@@ -155,7 +155,7 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                     {/* Right: price + chevron */}
                     <div className="flex shrink-0 items-center gap-2">
                       {trip.price !== null && (
-                        <span className="text-[14px] font-bold text-gray-900">
+                        <span className="text-[14px] font-bold text-foreground">
                           {formatPrice(trip.price)}
                         </span>
                       )}
@@ -168,32 +168,32 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
 
                   {/* Expanded detail */}
                   {isExpanded && (
-                    <div className="border-t border-gray-100 px-4 pb-5 pt-4 space-y-5">
+                    <div className="border-t border-border px-4 pb-5 pt-4 space-y-5">
 
                       {/* Route */}
                       <div className="flex gap-3">
                         {/* Vertical timeline */}
                         <div className="flex flex-col items-center pt-0.5 shrink-0">
                           <div className="h-4 w-4 rounded-full" style={{ backgroundColor: 'white', border: '4px solid black' }} />
-                          <div className="my-1 w-px flex-1 border-l-2 border-dashed border-gray-200" style={{ minHeight: 32 }} />
+                          <div className="my-1 w-px flex-1 border-l-2 border-dashed border-border" style={{ minHeight: 32 }} />
                           <div className="h-4 w-4" style={{ backgroundColor: 'white', border: '4px solid black' }} />
                         </div>
 
                         {/* Addresses */}
                         <div className="flex min-w-0 flex-1 flex-col gap-4">
                           <div>
-                            <p className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400">Origen</p>
-                            <p className="text-[13px] leading-snug text-gray-700">
+                            <p className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Origen</p>
+                            <p className="text-[13px] leading-snug text-foreground/80">
                               {trip.originChar && !trip.originChar.startsWith("Lat:")
                                 ? trip.originChar
                                 : <AddressDisplay lat={trip.originLat} lng={trip.originLng} />}
                             </p>
                           </div>
                           <div>
-                            <p className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400">
-                              <p className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-gray-400">Destino</p>
+                            <p className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                              <p className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Destino</p>
                             </p>
-                            <p className="text-[13px] leading-snug text-gray-700">
+                            <p className="text-[13px] leading-snug text-foreground/80">
                               {trip.DestinationChar && !trip.DestinationChar.startsWith("Lat:")
                                 ? trip.DestinationChar
                                 : <AddressDisplay lat={trip.destinationLat} lng={trip.destinationLng} />}
@@ -204,28 +204,28 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
 
                       {/* Conductor */}
                       {trip.towerInfo && (
-                        <div className="border-t border-gray-100 pt-4">
-                          <p className="mb-2.5 text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        <div className="border-t border-border pt-4">
+                          <p className="mb-2.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                             Conductor
                           </p>
                           <div className="flex items-center gap-3">
                             {/* Avatar */}
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5C518] text-[14px] font-extrabold text-black">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-yellow text-[14px] font-extrabold text-black">
                               {trip.towerInfo.driver_name.charAt(0)}
                             </div>
                             {/* Info */}
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-[13px] font-bold text-gray-900">
+                              <p className="truncate text-[13px] font-bold text-foreground">
                                 {trip.towerInfo.driver_name}
                               </p>
-                              <p className="text-[11px] text-gray-400">
+                              <p className="text-[11px] text-muted-foreground">
                                 {trip.towerInfo.vehicle_brand} {trip.towerInfo.vehicle_model} · {trip.towerInfo.vehicle_year}
                               </p>
                             </div>
                             {/* Rating chip */}
-                            <div className="flex shrink-0 items-center gap-1 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1">
-                              <FontAwesomeIcon icon={faStar} className="h-2.5 w-2.5 text-[#F5C518]" />
-                              <span className="text-[12px] font-bold text-gray-800">
+                            <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1">
+                              <FontAwesomeIcon icon={faStar} className="h-2.5 w-2.5 text-brand-yellow" />
+                              <span className="text-[12px] font-bold text-foreground">
                                 {trip.towerInfo.driver_rating}
                               </span>
                             </div>
@@ -235,13 +235,13 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
 
                       {/* Trip rating */}
                       {trip.tripRating !== null && (
-                        <div className="border-t border-gray-100 pt-4">
-                          <p className="mb-2 text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                        <div className="border-t border-border pt-4">
+                          <p className="mb-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                             Tu calificación
                           </p>
                           <div className="flex items-center gap-2.5">
                             <StarRatingDisplay rating={trip.tripRating} />
-                            <span className="text-[12px] font-bold text-gray-500">{trip.tripRating}/5</span>
+                            <span className="text-[12px] font-bold text-muted-foreground">{trip.tripRating}/5</span>
                           </div>
                         </div>
                       )}

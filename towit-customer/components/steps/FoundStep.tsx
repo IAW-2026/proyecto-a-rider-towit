@@ -17,19 +17,19 @@ export default function FoundStep({ craneTypeLabel, eta }: FoundStepProps) {
         </div>
       </div>
 
-      <h2 className="text-2xl font-extrabold text-black">¡TowIt Encontrado!</h2>
+      <h2 className="text-2xl font-extrabold text-foreground">¡TowIt Encontrado!</h2>
 
-      <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm text-left w-full max-w-sm">
-        <p className="text-xs text-gray-500 font-semibold mb-1 tracking-widest uppercase">CONDUCTOR</p>
+      <div className="bg-card p-5 rounded-xl border border-border shadow-sm text-left w-full max-w-sm">
+        <p className="text-xs text-muted-foreground font-semibold mb-1 tracking-widest uppercase">CONDUCTOR</p>
         <div className="flex justify-between items-center">
-          <p className="text-lg font-bold text-gray-900">Pablo • Grúa {craneTypeLabel}</p>
-          <div className="bg-gray-100 px-3 py-1 rounded-full">
+          <p className="text-lg font-bold text-foreground">Pablo • Grúa {craneTypeLabel}</p>
+          <div className="bg-muted px-3 py-1 rounded-full">
             <FontAwesomeIcon icon={faStar} className="text-xs text-brand-yellow mr-1" />
-            <span className="font-bold text-gray-800 text-sm">4.9</span>
+            <span className="font-bold text-foreground text-sm">4.9</span>
           </div>
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-          <span className="text-gray-600 font-medium">Llegando en</span>
+        <div className="mt-4 pt-4 border-t border-border flex justify-between items-center">
+          <span className="text-muted-foreground font-medium">Llegando en</span>
           <span className="text-xl font-bold text-brand-yellow-dark">{eta} min</span>
         </div>
       </div>

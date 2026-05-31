@@ -109,20 +109,20 @@ export default function AddressSearch({ label, placeholder, id, onSelect }: Addr
         onFocus={() => { if (results.length > 0) setIsOpen(true) }}
         placeholder={placeholder}
         autoComplete="off"
-        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-yellow-400 focus:border-yellow-400 transition text-black"
+          className="w-full px-4 py-3 border-2 border-border rounded-lg focus:ring-brand-yellow focus:border-brand-yellow transition text-foreground bg-card"
       />
       
       {isOpen && (
-        <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {loading && <li className="px-4 py-2 text-gray-900">Buscando...</li>}
-          {!loading && results.length === 0 && <li className="px-4 py-2 text-gray-900">No se encontraron resultados</li>}
+        <ul className="absolute z-10 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {loading && <li className="px-4 py-2 text-foreground">Buscando...</li>}
+          {!loading && results.length === 0 && <li className="px-4 py-2 text-foreground">No se encontraron resultados</li>}
           {!loading && results.map((result, idx) => {
             const formatted = formatAddress(result.address) || result.display_name.split(', ').slice(0, 3).join(', ');
             return (
               <li 
                 key={idx} 
                 onClick={() => handleSelect(result)}
-                className="px-4 py-3 text-black hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0 truncate"
+                className="px-4 py-3 text-foreground hover:bg-muted cursor-pointer border-b border-border last:border-0 truncate"
               >
                 {formatted}
               </li>

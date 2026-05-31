@@ -33,7 +33,7 @@ export default async function VehiclesPage() {
   }));
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-6 md:px-12 w-full pt-6">

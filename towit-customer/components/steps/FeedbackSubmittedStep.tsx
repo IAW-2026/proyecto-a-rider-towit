@@ -11,7 +11,7 @@ export default function FeedbackSubmittedStep() {
         <FontAwesomeIcon icon={faCircleCheck} className="text-5xl text-white" />
       </div>
 
-      <h2 className="text-2xl font-extrabold text-black">Calificación enviada</h2>
+      <h2 className="text-2xl font-extrabold text-foreground">Calificación enviada</h2>
 
       <div className="flex justify-center gap-1">
         {[1, 2, 3, 4, 5].map((s) => (
@@ -19,7 +19,7 @@ export default function FeedbackSubmittedStep() {
         ))}
       </div>
 
-      <p className="text-gray-500 font-medium">Gracias por tu calificación. <br />
+      <p className="text-muted-foreground font-medium">Gracias por tu calificación. <br />
        ¡Esperamos verte de nuevo!</p>
 
       <div>
@@ -31,7 +31,7 @@ export default function FeedbackSubmittedStep() {
 
         <button
           onClick={() => window.location.reload()}
-          className="w-full max-w-sm px-6 py-4 border-2 border-black text-black font-bold rounded-xl hover:bg-gray-100 transition text-base duration-200 cursor-pointer">
+          className="w-full max-w-sm px-6 py-4 border-2 border-foreground text-foreground font-bold rounded-xl hover:bg-muted transition text-base duration-200 cursor-pointer">
           Solicitar otro viaje
         </button>
       </div>

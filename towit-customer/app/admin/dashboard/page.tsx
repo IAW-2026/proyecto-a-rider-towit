@@ -41,64 +41,64 @@ export default async function AdminDashboard() {
     .limit(20);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar variant="admin" />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-8">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <Link href="/admin/dashboard/trips" className="bg-white rounded-xl shadow p-6 border-l-4 border-brand-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
-            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-gray-700 transition">Viajes Totales</h2>
-            <p className="text-4xl font-bold text-gray-900">{tripCount.value}</p>
+          <Link href="/admin/dashboard/trips" className="bg-card rounded-xl shadow p-6 border-l-4 border-brand-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+            <h2 className="text-muted-foreground text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-foreground transition">Viajes Totales</h2>
+            <p className="text-4xl font-bold text-foreground">{tripCount.value}</p>
           </Link>
-          <Link href="/admin/dashboard/customers" className="bg-white rounded-xl shadow p-6 border-l-4 border-brand-yellow-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
-            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-gray-700 transition">Clientes Registrados</h2>
-            <p className="text-4xl font-bold text-gray-900">{customerCount.value}</p>
+          <Link href="/admin/dashboard/customers" className="bg-card rounded-xl shadow p-6 border-l-4 border-brand-yellow-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+            <h2 className="text-muted-foreground text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-foreground transition">Clientes Registrados</h2>
+            <p className="text-4xl font-bold text-foreground">{customerCount.value}</p>
           </Link>
-          <Link href="/admin/dashboard/vehicles" className="bg-white rounded-xl shadow p-6 border-l-4 border-brand-yellow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
-            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-gray-700 transition">Vehículos Registrados</h2>
-            <p className="text-4xl font-bold text-gray-900">{vehicleCount.value}</p>
+          <Link href="/admin/dashboard/vehicles" className="bg-card rounded-xl shadow p-6 border-l-4 border-brand-yellow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+            <h2 className="text-muted-foreground text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-foreground transition">Vehículos Registrados</h2>
+            <p className="text-4xl font-bold text-foreground">{vehicleCount.value}</p>
           </Link>
         </div>
 
-        <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900">Últimos Viajes Registrados</h2>
+        <div className="bg-card rounded-xl shadow-xl overflow-hidden border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="text-lg font-bold text-foreground">Últimos Viajes Registrados</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha y Hora</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origen</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destino</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Fecha y Hora</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Cliente</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Origen</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Destino</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Estado</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-border">
                 {recentTrips.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                    <td colSpan={6} className="px-6 py-4 whitespace-nowrap text-center text-sm text-muted-foreground">
                       No hay viajes registrados aún.
                     </td>
                   </tr>
                 ) : (
                   recentTrips.map((info) => (
-                    <tr key={info.tripId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{info.tripId}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <tr key={info.tripId} className="hover:bg-muted">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">#{info.tripId}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {info.date} {info.time}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {info.customerName || "Desconocido"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title={info.origin || "Sin origen guardado"}>
+                      <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs truncate" title={info.origin || "Sin origen guardado"}>
                         {info.origin || "Coordenadas"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title={info.destination || "Sin destino guardado"}>
+                      <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs truncate" title={info.destination || "Sin destino guardado"}>
                         {info.destination || "Coordenadas"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

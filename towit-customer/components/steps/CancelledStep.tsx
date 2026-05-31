@@ -10,14 +10,14 @@ export default function CancelledStep() {
         <FontAwesomeIcon icon={faCircleXmark} className="text-4xl text-red-500" />
       </div>
 
-      <h2 className="text-2xl font-extrabold text-black">Viaje Cancelado</h2>
-      <p className="text-gray-500 font-medium">
+      <h2 className="text-2xl font-extrabold text-foreground">Viaje Cancelado</h2>
+      <p className="text-muted-foreground font-medium">
         El viaje fue cancelado y se solicitó el reembolso correspondiente.
       </p>
 
       <button
         onClick={() => window.location.reload()}
-        className="w-full max-w-sm px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition shadow-md cursor-pointer"
+        className="w-full max-w-sm px-6 py-4 bg-brand-dark text-white font-bold rounded-xl hover:bg-muted transition shadow-md cursor-pointer"
       >
         Solicitar otra grúa
       </button>

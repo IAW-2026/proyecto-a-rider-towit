@@ -2,7 +2,7 @@ import Link from "next/link"
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-100 bg-brand-dark">
+    <footer className="border-t border-border bg-brand-dark">
       <div className="mx-auto max-w-6xl px-8 py-8">
         <div className="grid grid-cols-2 gap-10 pb-6 lg:grid-cols-4">
           <div className="col-span-2 lg:col-span-1">
@@ -16,7 +16,7 @@ export default function Footer() {
                 TowIt
               </span>
             </div>
-            <p className="max-w-[220px] text-[13px] leading-relaxed text-white/35">
+            <p className="max-w-[220px] text-[13px] leading-relaxed text-muted-foreground">
               Conectamos tu vehículo con la ayuda más cercana. Disponible en
               toda Argentina.
             </p>
@@ -24,11 +24,11 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col items-start justify-between gap-4 border-t border-white/6 pt-8 sm:flex-row sm:items-center">
-          <p className="text-[12px] text-white/20">
+          <p className="text-[12px] text-muted-foreground">
             &copy; {new Date().getFullYear()} TowIt. Todos los derechos
             reservados.
           </p>
-          <p className="text-[12px] text-white/20">
+          <p className="text-[12px] text-muted-foreground">
             Hecho en Argentina - IAW 2026
           </p>
         </div>

@@ -32,13 +32,13 @@ export default function CompletedFeedbackStep({ tripId, onSubmitFeedback, onFeed
         <FontAwesomeIcon icon={faCircleCheck} className="text-5xl text-white" />
       </div>
 
-      <h2 className="text-2xl font-extrabold text-black">Viaje Finalizado</h2>
-      <p className="text-gray-500 font-medium">
+      <h2 className="text-2xl font-extrabold text-foreground">Viaje Finalizado</h2>
+      <p className="text-muted-foreground font-medium">
         Tu vehículo llegó a destino. Calificá el servicio para finalizar.
       </p>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 w-full max-w-sm">
-        <p className="text-lg font-bold text-black mb-4">Calificá el servicio</p>
+      <div className="bg-card rounded-xl p-6 shadow-sm border border-border w-full max-w-sm">
+        <p className="text-lg font-bold text-foreground mb-4">Calificá el servicio</p>
         <div className="flex justify-center gap-1 mb-6">
           {[1, 2, 3, 4, 5].map((s) => {
             const active = (hoverRating || rating) >= s;
@@ -53,7 +53,7 @@ export default function CompletedFeedbackStep({ tripId, onSubmitFeedback, onFeed
               >
                 <FontAwesomeIcon
                   icon={faStar}
-                  className={`text-4xl transition-colors duration-150 ${active ? "text-brand-yellow" : "text-gray-600"}`}
+                  className={`text-4xl transition-colors duration-150 ${active ? "text-brand-yellow" : "text-muted-foreground"}`}
                 />
               </button>
             );

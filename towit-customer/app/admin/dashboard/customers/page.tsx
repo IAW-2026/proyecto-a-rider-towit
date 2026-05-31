@@ -61,12 +61,12 @@ export default async function AdminCustomersPage(props: { searchParams?: Promise
     .orderBy(desc(customer.customerId));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar variant="admin" />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
+          <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
           <Link href="/admin/dashboard" className="text-sm text-brand-yellow-dark hover:text-brand-yellow-hover font-semibold transition">
             ← Volver al Dashboard
           </Link>
@@ -79,9 +79,9 @@ export default async function AdminCustomersPage(props: { searchParams?: Promise
               name="q"
               defaultValue={query}
               placeholder="Buscar por nombre, ID o Clerk ID..."
-              className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-xl text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black"
+              className="w-full px-4 py-3 pr-10 border-2 border-border rounded-xl text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card"
             />
-            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -89,31 +89,31 @@ export default async function AdminCustomersPage(props: { searchParams?: Promise
           </div>
         </form>
 
-        <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
+        <div className="bg-card rounded-xl shadow-xl overflow-hidden border border-border">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clerk ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Nombre</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Clerk ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acción</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-border">
                 {allCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-500">
+                    <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
                       {query ? "No se encontraron clientes con ese criterio." : "No hay clientes registrados aún."}
                     </td>
                   </tr>
                 ) : (
                   allCustomers.map((c) => (
-                    <tr key={c.customerId} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{c.customerId}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.fullName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-mono max-w-[200px] truncate" title={c.clerkId}>
+                    <tr key={c.customerId} className="hover:bg-muted transition">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-foreground">{c.customerId}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{c.fullName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground font-mono max-w-[200px] truncate" title={c.clerkId}>
                         {c.clerkId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -133,9 +133,9 @@ export default async function AdminCustomersPage(props: { searchParams?: Promise
             </table>
           </div>
 
-          <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 text-sm text-gray-500">
+          <div className="px-6 py-3 border-t border-border bg-muted text-sm text-muted-foreground">
             Total: {allCustomers.length} cliente{allCustomers.length !== 1 ? "s" : ""}
-            {query && <> • Filtrado por: <span className="font-medium text-gray-700">&ldquo;{query}&rdquo;</span></>}
+            {query && <> • Filtrado por: <span className="font-medium text-foreground">&ldquo;{query}&rdquo;</span></>}
           </div>
         </div>
       </main>

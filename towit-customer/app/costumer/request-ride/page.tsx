@@ -31,7 +31,7 @@ export default async function RequestRidePage() {
   }));
 
   return (
-    <div className="flex flex-col h-screen bg-white overflow-hidden">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <Navbar />
       
       {/* Contenido Principal a pantalla completa (sin márgenes laterales) */}

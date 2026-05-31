@@ -9,8 +9,8 @@ export default function InProgressStep() {
         </div>
       </div>
 
-      <h2 className="text-2xl font-extrabold text-black">Grúa en camino a tu destino</h2>
-      <p className="text-gray-500 font-medium">
+      <h2 className="text-2xl font-extrabold text-foreground">Grúa en camino a tu destino</h2>
+      <p className="text-muted-foreground font-medium">
         El conductor ya cargó tu vehículo y se dirige hacia el taller indicado.
       </p>
     </div>

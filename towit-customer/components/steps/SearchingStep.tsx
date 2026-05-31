@@ -10,8 +10,8 @@ export default function SearchingStep() {
         <div className="animate-pulse w-20 h-20 bg-brand-yellow rounded-full flex items-center justify-center mx-auto shadow-lg">
           <FontAwesomeIcon icon={faMagnifyingGlass} className="text-3xl text-white" />
         </div>
-        <h2 className="text-2xl font-extrabold text-black">Buscando TowIt para tu remolque...</h2>
-        <p className="text-gray-500 font-medium">
+        <h2 className="text-2xl font-extrabold text-foreground">Buscando TowIt para tu remolque...</h2>
+        <p className="text-muted-foreground font-medium">
           Estamos conectando con los conductores de grúas cercanos.
         </p>
       </div>

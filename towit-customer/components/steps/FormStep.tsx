@@ -90,7 +90,7 @@ export default function FormStep({
 
   return (
     <>
-      <h2 className="text-2xl font-extrabold text-black mb-6">Solicitá tu Grúa</h2>
+      <h2 className="text-2xl font-extrabold text-foreground mb-6">Solicitá tu Grúa</h2>
 
       <form className="space-y-6" onSubmit={onSubmit}>
         {/* Origin */}
@@ -124,27 +124,27 @@ export default function FormStep({
         {/* Vehicle Selection */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <label className="block text-lg font-bold text-gray-800">
+            <label className="block text-lg font-bold text-foreground">
               Selecciona tu Vehículo
             </label>
           </div>
           {formErrors.vehicle && <p className="text-red-500 text-sm mb-3 font-medium">{formErrors.vehicle}</p>}
 
           {isAddingVehicle ? (
-            <div className="p-5 border-2 border-gray-200 bg-white rounded-xl shadow-sm">
-              <h4 className="text-md font-bold text-gray-800 mb-3">Registrar Nuevo Vehículo</h4>
+            <div className="p-5 border-2 border-border bg-card rounded-xl shadow-sm">
+              <h4 className="text-md font-bold text-foreground mb-3">Registrar Nuevo Vehículo</h4>
               {vehicleError && <p className="text-red-500 mb-3 text-sm">{vehicleError}</p>}
 
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="text" name="brand" id="add-vehicle-form" required placeholder="Marca (Ej: Toyota)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black" />
-                  <input type="text" name="model" id="add-vehicle-form" required placeholder="Modelo (Ej: Corolla)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black" />
-                  <input type="number" name="year" id="add-vehicle-form" required placeholder="Año (Ej: 2020)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black" />
-                  <input type="number" name="weight" id="add-vehicle-form" step="0.1" placeholder="Peso (Ton)" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-black" />
+                  <input type="text" name="brand" id="add-vehicle-form" required placeholder="Marca (Ej: Toyota)" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card" />
+                  <input type="text" name="model" id="add-vehicle-form" required placeholder="Modelo (Ej: Corolla)" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card" />
+                  <input type="number" name="year" id="add-vehicle-form" required placeholder="Año (Ej: 2020)" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card" />
+                  <input type="number" name="weight" id="add-vehicle-form" step="0.1" placeholder="Peso (Ton)" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card" />
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={() => setIsAddingVehicle(false)} className="px-3 py-1.5 text-sm text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition cursor-pointer">Cancelar</button>
+                  <button type="button" onClick={() => setIsAddingVehicle(false)} className="px-3 py-1.5 text-sm text-muted-foreground font-medium hover:bg-muted rounded-lg transition cursor-pointer">Cancelar</button>
                   <button type="submit" form="add-vehicle-form" disabled={loadingVehicle} className="px-4 py-1.5 text-sm bg-brand-yellow text-black font-bold rounded-lg hover:bg-brand-yellow-hover transition disabled:opacity-50 cursor-pointer">
                     {loadingVehicle ? "Guardando..." : "Guardar y Seleccionar"}
                   </button>
@@ -152,11 +152,11 @@ export default function FormStep({
               </div>
             </div>
           ) : initialVehicles.length === 0 ? (
-            <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl text-center bg-white hover:border-gray-400 hover:bg-gray-50/50 transition">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className="p-6 border-2 border-dashed border-border rounded-xl text-center bg-card hover:border-border hover:bg-muted/50 transition">
+              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
                 <FontAwesomeIcon icon={faCar} className="text-xl text-brand-yellow-dark" />
               </div>
-              <p className="text-gray-600 mb-4 font-medium">No tienes vehículos registrados.</p>
+              <p className="text-muted-foreground mb-4 font-medium">No tienes vehículos registrados.</p>
               <button
                 type="button"
                 onClick={() => setIsAddingVehicle(true)}
@@ -188,17 +188,17 @@ export default function FormStep({
                     className="h-5 w-5 accent-gray-700 focus:ring-brand-yellow border-gray-300"
                   />
                   <div className="ml-4 flex-1">
-                    <span className="block text-md font-bold text-gray-900">{v.brand} {v.model}</span>
-                    <span className="block text-sm text-gray-500 mt-0.5 font-medium">Año: {v.year} • Peso: {v.weight} toneladas</span>
+                    <span                     className="block text-md font-bold text-foreground">{v.brand} {v.model}</span>
+                    <span className="block text-sm text-muted-foreground mt-0.5 font-medium">Año: {v.year} • Peso: {v.weight} toneladas</span>
                   </div>
                 </label>
               ))}
               <button
                 type="button"
                 onClick={() => setIsAddingVehicle(true)}
-                className="w-full flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-brand-yellow hover:bg-brand-yellow/5 transition duration-200 bg-white"
+                className="w-full flex items-center justify-center p-4 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-brand-yellow hover:bg-brand-yellow/5 transition duration-200 bg-card"
               >
-                <span className="text-gray-600 font-semibold text-md flex items-center gap-2">
+                <span className="text-muted-foreground font-semibold text-md flex items-center gap-2">
                   <FontAwesomeIcon icon={faPlus} className="text-lg" /> Registrar nuevo vehículo
                 </span>
               </button>
@@ -208,9 +208,9 @@ export default function FormStep({
 
         {/* Crane Type */}
         <div>
-          <label className="block text-lg font-bold text-gray-800 mb-3">Tipo de Grúa</label>
+          <label className="block text-lg font-bold text-foreground mb-3">Tipo de Grúa</label>
           {!selectedVehicleId ? (
-            <div className="p-4 rounded-xl border border-gray-200 text-gray-700 text-sm font-medium text-center">
+            <div className="p-4 rounded-xl border border-border text-muted-foreground text-sm font-medium text-center">
               Seleccioná un vehículo para ver las opciones de grúa disponibles
             </div>
           ) : (
@@ -222,9 +222,9 @@ export default function FormStep({
 
                 if (!available) {
                   return (
-                    <div key={key} className="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl bg-gray-50 opacity-50">
+                    <div key={key} className="flex items-center justify-between p-4 border-2 border-border rounded-xl bg-muted opacity-50">
                       <div className="flex items-center">
-                        <div className="h-5 w-5 rounded-full border-2 border-gray-300 bg-gray-100" />
+                        <div className="h-5 w-5 rounded-full border-2 border-border bg-muted" />
                         <div className="ml-4 flex items-center gap-3">
                           {CraneIcon ? (
                             <FontAwesomeIcon icon={CraneIcon} className="text-xl text-black" />
@@ -232,12 +232,12 @@ export default function FormStep({
                             <img src="/images/logo/tow2.svg" alt="Tow It" className="w-6 h-6 opacity-50" />
                           )}
                           <div>
-                            <span className="block text-md font-bold text-gray-400">{label}</span>
-                            <span className="block text-sm text-gray-400 mt-0.5 font-medium">{desc}</span>
+                            <span className="block text-md font-bold text-muted-foreground">{label}</span>
+                            <span className="block text-sm text-muted-foreground mt-0.5 font-medium">{desc}</span>
                           </div>
                         </div>
                       </div>
-                      <span className="text-xs text-black font-medium">Supera el peso</span>
+                      <span className="text-xs text-foreground font-medium">Supera el peso</span>
                     </div>
                   );
                 }
@@ -246,7 +246,7 @@ export default function FormStep({
                   <label
                     key={key}
                     className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${
-                      isSelected ? "border-brand-yellow bg-brand-yellow/5" : "border-gray-200 hover:border-brand-yellow bg-white"
+                      isSelected ? "border-brand-yellow bg-brand-yellow/5" : "border-border hover:border-brand-yellow bg-card"
                     }`}
                   >
                     <div className="flex items-center">
@@ -260,18 +260,18 @@ export default function FormStep({
                       />
                       <div className="ml-4 flex items-center gap-3">
                         {CraneIcon ? (
-                          <FontAwesomeIcon icon={CraneIcon} className={`text-xl ${isSelected ? "text-black" : "text-gray-500"}`} />
+                          <FontAwesomeIcon icon={CraneIcon} className={`text-xl ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
                         ) : (
                           <img src="/images/logo/tow2.svg" alt="Tow It" className={`w-6 h-6 ${isSelected ? "" : "opacity-60"}`} />
                         )}
                         <div>
-                          <span className="block text-md font-bold text-gray-900">{label}</span>
-                          <span className="block text-sm text-gray-500 mt-0.5 font-medium">{desc}</span>
+                          <span className="block text-md font-bold text-foreground">{label}</span>
+                          <span className="block text-sm text-muted-foreground mt-0.5 font-medium">{desc}</span>
                         </div>
                       </div>
                     </div>
                     {estimatedDistance > 0 ? (
-                      <span className="font-bold text-gray-900">
+                      <span className="font-bold text-foreground">
                         {formatPrice((CRANE_RATES[key as keyof typeof CRANE_RATES] || CRANE_RATES.medium).base + (CRANE_RATES[key as keyof typeof CRANE_RATES] || CRANE_RATES.medium).perKm * estimatedDistance)}
                       </span>
                     ) : null}
@@ -282,12 +282,12 @@ export default function FormStep({
           )}
 
           {estimatedDistance > 0 ? (
-            <div className="mt-4 p-4 bg-gray-100/80 rounded-xl flex justify-between items-center border border-gray-200">
-              <span className="text-gray-600 font-medium">Distancia estimada</span>
-              <span className="font-bold text-gray-800">{estimatedDistance.toFixed(1)} km</span>
+            <div className="mt-4 p-4 bg-muted/80 rounded-xl flex justify-between items-center border border-border">
+              <span className="text-muted-foreground font-medium">Distancia estimada</span>
+              <span className="font-bold text-foreground">{estimatedDistance.toFixed(1)} km</span>
             </div>
           ) : selectedVehicleId ? (
-            <div className="mt-4 p-4 rounded-xl border border-gray-200 text-gray-700 text-sm font-medium text-center">
+            <div className="mt-4 p-4 rounded-xl border border-border text-muted-foreground text-sm font-medium text-center">
               Ingresá el Origen y Destino para ver los precios de tu remolque
             </div>
           ) : null}
