@@ -47,7 +47,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: "'Geist', sans-serif" }}>
-      <div className="mx-auto max-w-2xl px-4 py-0 sm:px-6 sm:py-0">
+      <div className="mx-auto max-w-2xl px-4 py-0 sm:px-6 sm:py-0q">
 
         {/* Header */}
         <header className="mb-6 sm:mb-10">
