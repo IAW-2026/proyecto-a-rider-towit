@@ -24,7 +24,7 @@ export default function FeedbackSubmittedStep() {
 
       <div>
         <Link href="/costumer/home" className="w-full max-w-sm">
-          <button className="w-full px-6 py-4 mb-4 bg-brand-yellow text-white font-bold rounded-xl hover:bg-brand-yellow/80 transition text-base duration-200 shadow-md cursor-pointer">
+          <button className="w-full px-6 py-4 mb-4 bg-brand-yellow text-black font-bold rounded-xl hover:bg-brand-yellow/80 transition text-base duration-200 shadow-md cursor-pointer">
             Volver al inicio
           </button>
         </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTruckPickup, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faStar } from "@fortawesome/free-solid-svg-icons";
 
 interface FoundStepProps {
   craneTypeLabel: string;
@@ -11,9 +11,9 @@ interface FoundStepProps {
 export default function FoundStep({ craneTypeLabel, eta }: FoundStepProps) {
   return (
     <div className="flex flex-col items-center text-center space-y-6 py-8">
-      <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto shadow-xl ring-4 ring-brand-yellow">
+      <div className="w-20 h-20 flex items-center justify-center mx-auto">
         <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl">
-          <img src="/images/logo/tow.svg" alt="Tow It" />
+          <img src="/images/logo/tow2.svg" alt="Tow It" />
         </div>
       </div>
 
