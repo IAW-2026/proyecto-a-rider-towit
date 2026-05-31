@@ -34,7 +34,7 @@ export default async function CostumerHome() {
             <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl">
               <img src="/images/logo/tow.svg" alt="Tow It" width="56" height="56" />
             </div>
-            <h3 className="mb-2 text-[18px] font-bold text-foreground">Solicitar un Remolque</h3>
+            <h2 className="mb-2 text-[18px] font-bold text-foreground">Solicitar un Remolque</h2>
             <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
               Iniciá una nueva solicitud de grúa. Te conectaremos con el conductor más cercano en minutos.
             </p>
@@ -50,7 +50,7 @@ export default async function CostumerHome() {
             <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl">
               <FontAwesomeIcon icon={faClockRotateLeft} className="text-[44px] text-muted-foreground transition-colors group-hover:text-brand-yellow" />
             </div>
-            <h3 className="mb-2 text-[18px] font-bold text-foreground">Mis Viajes</h3>
+            <h2 className="mb-2 text-[18px] font-bold text-foreground">Mis Viajes</h2>
             <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
               Consultá el historial de tus viajes anteriores y revisá los detalles de cada servicio completado.
             </p>
@@ -65,7 +65,7 @@ export default async function CostumerHome() {
           <div className="group flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-md">
             <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl">
               <FontAwesomeIcon icon={faCarSide} className="text-[44px] text-muted-foreground transition-colors group-hover:text-brand-yellow" /></div>
-            <h3 className="mb-2 text-[18px] font-bold text-foreground">Mis Vehículos</h3>
+            <h2 className="mb-2 text-[18px] font-bold text-foreground">Mis Vehículos</h2>
             <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
               Agregá los datos de tu vehículo para agilizar el pedido. Gestioná altas, bajas y modificaciones.
             </p>
