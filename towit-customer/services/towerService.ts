@@ -1,8 +1,3 @@
-/**
- * towerService.ts
- * Maneja la comunicación de Customer App hacia Tower App.
- */
-
 import { useMocks } from "@/lib/service-utils";
 import { delay } from "@/lib/utils";
 

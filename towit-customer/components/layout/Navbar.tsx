@@ -45,7 +45,7 @@ export default function Navbar() {
             {userRating !== null && (
               <div className="flex items-center gap-1 bg-brand-yellow/20 px-2.5 py-1 rounded-lg">
                 <FontAwesomeIcon icon={faStar} className="text-sm text-brand-yellow" />
-                <span className="text-brand-yellow-dark text-sm font-bold">{userRating}</span>
+                <span className="text-brand-yellow-dark text-sm font-bold leading-none translate-y-px">{userRating}</span>
               </div>
             )}
             <UserButton appearance={{ elements: { userButtonAvatarBox: "!h-8 !w-8 md:!h-10 md:!w-10" } }} />

@@ -112,7 +112,7 @@ export default function FormStep({
           <AddressSearch
             id="destination"
             label="Destino"
-            placeholder="Ej: Taller Mecánico 'El Rápido'"
+            placeholder="Ej: Bag End, Hobbiton, La Comarca"
             onSelect={(coords, display_name) => {
               if (coords) onDestinationSelect(coords, display_name);
               onClearError("destination");

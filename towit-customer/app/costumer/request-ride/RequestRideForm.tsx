@@ -287,9 +287,11 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   return (
     <div className="absolute inset-0 w-full h-full">
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
-        <div className="absolute top-[10px] left-[10px] lg:left-[calc(450px+10px)] xl:left-[calc(500px+10px)] pointer-events-auto">
-          <BackButton />
-        </div>
+        {(tripState === "idle" || tripState === "cancelled" || (tripState === "completed" && feedbackSubmitted)) && (
+          <div className="absolute top-[10px] left-[10px] lg:left-[calc(450px+10px)] xl:left-[calc(500px+10px)] pointer-events-auto">
+            <BackButton />
+          </div>
+        )}
       </div>
 
       <div className="absolute inset-0 z-0 bg-gray-200">
