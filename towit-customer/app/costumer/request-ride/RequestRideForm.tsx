@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faCar, faPlus, faMagnifyingGlass, faTruckPickup, faTruck, faCircleCheck, faCircleXmark, faStar } from "@fortawesome/free-solid-svg-icons";
+import { faCar, faCarSide, faPlus, faMagnifyingGlass, faTruckPickup, faTruck, faCircleCheck, faCircleXmark, faStar } from "@fortawesome/free-solid-svg-icons";
 import { calculateDistance, fetchOsrmRoute, subsampleRoute, formatPrice } from "@/lib/utils";
 import { WEIGHT_LIMITS, CRANE_RATES, CRANE_TYPES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, ANIMATION_INTERVAL_ARRIVE_MS, ANIMATION_INTERVAL_TO_DEST_MS, SEARCH_DELAY_MS, MOCK_ETA_MINUTES } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
@@ -25,9 +25,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
   const [selectedCraneType, setSelectedCraneType] = useState<string>("medium");
-  const [isExpanded, setIsExpanded] = useState(true); // Control del arrastre en mobile
+  const [isExpanded, setIsExpanded] = useState(true);
   
-  // Variables para detectar gestos de swipe
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -39,15 +38,14 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     const currentY = e.touches[0].clientY;
     const diff = currentY - touchStart;
 
-    // Si desliza hacia abajo más de 40px
     if (diff > 40) {
       setIsExpanded(false);
-      setTouchStart(null); // resetea
+      setTouchStart(null); 
     }
-    // Si desliza hacia arriba más de 40px
+
     else if (diff < -40) {
       setIsExpanded(true);
-      setTouchStart(null); // resetea
+      setTouchStart(null); 
     }
   };
 
@@ -273,7 +271,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
       {/* Mapa (Fondo absoluto en toda la pantalla) */}
       <div className="absolute inset-0 z-0 bg-gray-200">
-        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} />
+        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
       </div>
 
       {/* Panel Frontal Flotante */}
@@ -390,7 +388,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
                         setSelectedVehicleId(e.target.value);
                         setFormErrors(prev => ({ ...prev, vehicle: undefined }));
                       }}
-className="h-5 w-5 text-brand-yellow-dark focus:ring-brand-yellow border-gray-300"
+className="h-5 w-5 accent-gray-700 focus:ring-brand-yellow border-gray-300"
                     />
                     <div className="ml-4 flex-1">
                       <span className="block text-md font-bold text-gray-900">{v.brand} {v.model}</span>
@@ -415,7 +413,7 @@ className="h-5 w-5 text-brand-yellow-dark focus:ring-brand-yellow border-gray-30
           <div>
             <label className="block text-lg font-bold text-gray-800 mb-3">Tipo de Grúa</label>
             {!selectedVehicleId ? (
-              <div className="p-4 rounded-xl border border-gray-200 text-gray-500 text-sm font-medium text-center">
+              <div className="p-4 rounded-xl border border-gray-200 text-gray-700 text-sm font-medium text-center">
                 Seleccioná un vehículo para ver las opciones de grúa disponibles
               </div>
             ) : (
@@ -424,17 +422,26 @@ className="h-5 w-5 text-brand-yellow-dark focus:ring-brand-yellow border-gray-30
                 const available = availableCraneTypes.includes(key);
                 const isSelected = selectedCraneType === key;
 
+                const CraneIcon = key === "medium" ? faCarSide : key === "large" ? faTruckPickup : null;
+
                 if (!available) {
                   return (
                     <div key={key} className="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl bg-gray-50 opacity-50">
                       <div className="flex items-center">
                         <div className="h-5 w-5 rounded-full border-2 border-gray-300 bg-gray-100" />
-                        <div className="ml-4">
-                          <span className="block text-md font-bold text-gray-400">{label}</span>
-                          <span className="block text-sm text-gray-400 mt-0.5 font-medium">{desc}</span>
+                        <div className="ml-4 flex items-center gap-3">
+                          {CraneIcon ? (
+                            <FontAwesomeIcon icon={CraneIcon} className="text-xl text-black" />
+                          ) : (
+                            <img src="/images/logo/tow1.svg" alt="Tow It" className="w-6 h-6 opacity-50" />
+                          )}
+                          <div>
+                            <span className="block text-md font-bold text-gray-400">{label}</span>
+                            <span className="block text-sm text-gray-400 mt-0.5 font-medium">{desc}</span>
+                          </div>
                         </div>
                       </div>
-                      <span className="text-xs text-red-400 font-medium">Supera el peso</span>
+                      <span className="text-xs text-black font-medium">Supera el peso</span>
                     </div>
                   );
                 }
@@ -442,10 +449,17 @@ className="h-5 w-5 text-brand-yellow-dark focus:ring-brand-yellow border-gray-30
                 return (
                   <label key={key} className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${isSelected ? 'border-brand-yellow bg-brand-yellow/5' : 'border-gray-200 hover:border-brand-yellow bg-white'}`}>
                     <div className="flex items-center">
-                      <input type="radio" name="craneType" value={key} checked={isSelected} onChange={() => setSelectedCraneType(key)} className="h-5 w-5 text-brand-yellow-dark focus:ring-brand-yellow border-gray-300"/>
-                      <div className="ml-4">
-                        <span className="block text-md font-bold text-gray-900">{label}</span>
-                        <span className="block text-sm text-gray-500 mt-0.5 font-medium">{desc}</span>
+                      <input type="radio" name="craneType" value={key} checked={isSelected} onChange={() => setSelectedCraneType(key)} className="h-5 w-5 accent-gray-700 focus:ring-brand-yellow border-gray-300"/>
+                      <div className="ml-4 flex items-center gap-3">
+                        {CraneIcon ? (
+                          <FontAwesomeIcon icon={CraneIcon} className={`text-xl ${isSelected ? 'text-black' : 'text-gray-500'}`} />
+                        ) : (
+                          <img src="/images/logo/tow2.svg" alt="Tow It" className={`w-6 h-6 ${isSelected ? '' : 'opacity-60'}`} />
+                        )}
+                        <div>
+                          <span className="block text-md font-bold text-gray-900">{label}</span>
+                          <span className="block text-sm text-gray-500 mt-0.5 font-medium">{desc}</span>
+                        </div>
                       </div>
                     </div>
                     {estimatedDistance > 0 ? <span className="font-bold text-gray-900">{formatPrice(rates[key].base + rates[key].perKm * estimatedDistance)}</span> : null}
@@ -460,15 +474,15 @@ className="h-5 w-5 text-brand-yellow-dark focus:ring-brand-yellow border-gray-30
                 <span className="text-gray-600 font-medium">Distancia estimada</span>
                 <span className="font-bold text-gray-800">{estimatedDistance.toFixed(1)} km</span>
               </div>
-            ) : (
-              <div className="mt-4 p-4 rounded-xl border text-gray-700 text-sm font-medium border border-gray-200">
+            ) : selectedVehicleId ? (
+              <div className="mt-4 p-4 rounded-xl border border-gray-200 text-gray-700 text-sm font-medium text-center">
                 Ingresá el Origen y Destino para ver los precios de tu remolque
               </div>
-            )}
+            ) : null}
           </div>
 
-          <button disabled={isRequesting} type="submit" className="w-full mt-4 px-6 py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-900 transition text-lg duration-200 cursor-pointer flex justify-center items-center shadow-md disabled:opacity-75 disabled:cursor-not-allowed">
-            <span>{isRequesting ? "Procesando..." : "Confirmar TowIt"}</span>
+          <button disabled={isRequesting} type="submit" className="w-full mt-4 rounded-xl bg-brand-yellow py-4 text-[15px] font-bold text-black shadow-[0_2px_12px_rgba(245,197,24,0.3)] transition-all hover:bg-brand-yellow-hover active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer">
+            {isRequesting ? "Procesando..." : "Confirmar TowIt"}
           </button>
         </form>
         

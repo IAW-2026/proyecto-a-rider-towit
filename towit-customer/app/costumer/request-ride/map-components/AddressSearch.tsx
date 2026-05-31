@@ -97,7 +97,10 @@ export default function AddressSearch({ label, placeholder, id, onSelect }: Addr
 
   return (
     <div className="relative" ref={wrapperRef}>
-      <label htmlFor={id} className="block text-lg font-bold text-black mb-2">{label}</label>
+      <label htmlFor={id} className="block text-lg font-bold text-black mb-2">
+        <span className={`inline-block w-4 h-4 align-middle mr-2  ${id === 'origin' ? 'rounded-full' : 'rounded-xs'}`} style={{ backgroundColor: 'white', border: '4px solid  #1a1a1a' }} />
+        {label}
+      </label>
       <input
         type="text"
         id={id}

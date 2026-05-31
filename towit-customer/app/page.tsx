@@ -14,7 +14,7 @@ export default async function Page() {
   if (user) redirect("/costumer/home")
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="flex flex-col min-h-screen bg-white text-gray-900">
 
       <nav className="sticky top-0 z-50 bg-[#0A0A0B] border-b border-white/10">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -42,6 +42,7 @@ export default async function Page() {
         </div>
       </nav>
 
+      <div className="flex-1">
       {/* ── HERO ── */}
       <section className="relative overflow-hidden bg-white">
         <div className="mx-auto flex max-w-6xl flex-col items-center px-6 pb-20 pt-20 text-center">
@@ -177,9 +178,7 @@ export default async function Page() {
               },
             ].map(({ n, title, desc }, i) => (
               <div key={n} className="relative">
-                {i < 3 && (
-                  <div className="absolute left-full top-5 hidden w-10 border-t-2 border-dashed border-gray-200 lg:block" />
-                )}
+                
                 <p className="mb-3 text-[42px] font-extrabold leading-none text-[#F5C518]" style={{ fontVariantNumeric: "tabular-nums" }}>
                   {n}
                 </p>
@@ -190,6 +189,7 @@ export default async function Page() {
           </div>
         </div>
       </section>
+      </div>
 
       <Footer />
 

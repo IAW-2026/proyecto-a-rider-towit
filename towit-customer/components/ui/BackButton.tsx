@@ -6,7 +6,7 @@ export default function BackButton({ href = "/costumer/home" }: { href?: string 
   return (
     <Link
       href={href}
-      className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition-colors duration-200 hover:bg-gray-200"
+      className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-black shadow-sm transition-colors duration-200 hover:bg-gray-200"
     >
       <FontAwesomeIcon icon={faArrowLeft} className="text-lg" />
     </Link>

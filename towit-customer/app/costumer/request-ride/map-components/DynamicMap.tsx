@@ -7,16 +7,17 @@ type MapProps = {
   origin?: [number, number] | null;
   destination?: [number, number] | null;
   towLocation?: [number, number] | null;
+  craneType?: string;
 };
 
-export default function DynamicMap({ origin, destination, towLocation }: MapProps) {
+export default function DynamicMap({ origin, destination, towLocation, craneType }: MapProps) {
   const Map = useMemo(() => dynamic(
     () => import('@/app/costumer/request-ride/map-components/Map'),
-    { 
+    {
       loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-200">Cargando mapa...</div>,
-      ssr: false 
+      ssr: false
     }
   ), []);
 
-  return <Map origin={origin} destination={destination} towLocation={towLocation} />;
+  return <Map origin={origin} destination={destination} towLocation={towLocation} craneType={craneType} />;
 }
