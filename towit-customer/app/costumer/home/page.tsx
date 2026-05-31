@@ -47,8 +47,8 @@ export default async function CostumerHome() {
 
           {/* Card: Mis Viajes */}
           <div className="group flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-200 hover:shadow-md">
-            <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl  text-2xl transition-colors ">
-              <FontAwesomeIcon icon={faClockRotateLeft} className="text-gray-600 transition-colors group-hover:text-brand-yellow" />
+            <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl">
+              <FontAwesomeIcon icon={faClockRotateLeft} className="text-[44px] text-gray-600 transition-colors group-hover:text-brand-yellow" />
             </div>
             <h3 className="mb-2 text-[18px] font-bold text-gray-900">Mis Viajes</h3>
             <p className="mb-6 flex-1 text-[14px] leading-relaxed text-gray-500">
@@ -63,8 +63,8 @@ export default async function CostumerHome() {
 
           {/* Card: Mis Vehículos */}
           <div className="group flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-200 hover:shadow-md">
-            <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl  text-2xl transition-colors group-hover:text-brand-yellow-dark">
-              <FontAwesomeIcon icon={faCarSide} className="text-gray-600 transition-colors group-hover:text-brand-yellow  " /></div>
+            <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl">
+              <FontAwesomeIcon icon={faCarSide} className="text-[44px] text-gray-600 transition-colors group-hover:text-brand-yellow" /></div>
             <h3 className="mb-2 text-[18px] font-bold text-gray-900">Mis Vehículos</h3>
             <p className="mb-6 flex-1 text-[14px] leading-relaxed text-gray-500">
               Agregá los datos de tu vehículo para agilizar el pedido. Gestioná altas, bajas y modificaciones.

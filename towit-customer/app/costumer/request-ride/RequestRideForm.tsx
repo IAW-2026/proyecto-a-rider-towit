@@ -276,7 +276,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
       {/* Panel Frontal Flotante */}
       <div 
-        className={`absolute bottom-0 left-0 right-0 lg:right-auto lg:left-0 lg:top-0 lg:h-full lg:w-[450px] xl:w-[500px] bg-white z-10 rounded-t-3xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] lg:shadow-[10px_0_40px_rgba(0,0,0,0.1)] flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'h-[65vh]' : 'h-[8vh] lg:h-full'}`}
+        className={`absolute bottom-0 left-0 right-0 lg:right-auto lg:left-0 lg:top-0 lg:h-full lg:w-[450px] xl:w-[500px] bg-white z-10 rounded-t-3xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] lg:shadow-[10px_0_40px_rgba(0,0,0,0.1)] flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'h-[80vh]' : 'h-[14vh] lg:h-full'}`}
       >
         {/* Indicador de drag en celular (el "palito" fijo que no scrollea) */}
         <div 

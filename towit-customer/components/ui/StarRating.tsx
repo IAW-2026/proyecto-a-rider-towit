@@ -21,18 +21,4 @@ export function StarRatingDisplay({
   )
 }
 
-export function StarRatingStatic({
-  size = "text-lg",
-  color = "text-brand-yellow",
-}: {
-  size?: string
-  color?: string
-}) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <FontAwesomeIcon key={s} icon={faStar} className={`${size} ${color}`} />
-      ))}
-    </div>
-  )
-}
+

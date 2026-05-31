@@ -1,6 +1,5 @@
 import Navbar from "@/components/layout/Navbar";
 import RequestRideForm from "@/app/costumer/request-ride/RequestRideForm";
-import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { customer, vehicle } from "@/db/schema";
