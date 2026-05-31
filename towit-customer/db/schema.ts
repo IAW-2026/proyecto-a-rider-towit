@@ -1,10 +1,11 @@
-import { pgTable, serial, varchar, integer, decimal, date, time } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, integer, decimal, date, time, boolean } from 'drizzle-orm/pg-core';
 
 // 1. Tabla: Customer
 export const customer = pgTable('Customer', {
   customerId: serial('customer_id').primaryKey(),
   clerkId: varchar('clerk_id', { length: 255 }).unique().notNull(),
   fullName: varchar('full_name', { length: 150 }).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
 });
 
 // 2. Tabla: Admin

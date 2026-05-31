@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { trip, customer, vehicle, admin } from "@/db/schema";
 import { eq, desc, count } from "drizzle-orm";
+import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
-import { SignOutButton } from "@clerk/nextjs";
 
 export default async function AdminDashboard() {
   const user = await currentUser();
@@ -41,38 +41,28 @@ export default async function AdminDashboard() {
     .limit(20);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-black text-white px-6 py-4 flex justify-between items-center shadow-md">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/dashboard" className="text-xl font-bold text-brand-yellow">
-            TowIt Admin
-          </Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-300 text-sm">Administrador: {user.firstName}</span>
-          <SignOutButton redirectUrl="/admin" />
-        </div>
-      </nav>
+    <div className="min-h-screen bg-white">
+      <Navbar variant="admin" />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-brand-yellow">
-            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide">Viajes Totales</h2>
+          <Link href="/admin/dashboard/trips" className="bg-white rounded-xl shadow p-6 border-l-4 border-brand-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-gray-700 transition">Viajes Totales</h2>
             <p className="text-4xl font-bold text-gray-900">{tripCount.value}</p>
-          </div>
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
-            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide">Clientes Registrados</h2>
+          </Link>
+          <Link href="/admin/dashboard/customers" className="bg-white rounded-xl shadow p-6 border-l-4 border-brand-yellow-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-gray-700 transition">Clientes Registrados</h2>
             <p className="text-4xl font-bold text-gray-900">{customerCount.value}</p>
-          </div>
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
-            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide">Vehículos Registrados</h2>
+          </Link>
+          <Link href="/admin/dashboard/vehicles" className="bg-white rounded-xl shadow p-6 border-l-4 border-brand-yellow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+            <h2 className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-gray-700 transition">Vehículos Registrados</h2>
             <p className="text-4xl font-bold text-gray-900">{vehicleCount.value}</p>
-          </div>
+          </Link>
         </div>
 
-        <div className="bg-white rounded-xl shadow overflow-hidden">
+        <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-bold text-gray-900">Últimos Viajes Registrados</h2>
           </div>
