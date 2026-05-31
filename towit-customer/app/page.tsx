@@ -1,17 +1,20 @@
-import { SignInButton, SignUpButton } from "@clerk/nextjs"
-import { currentUser } from "@clerk/nextjs/server"
+"use client"
+
+import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs"
 import Link from "next/link"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBolt, faLocationDot, faCreditCard, faUserCheck, faMobileScreenButton, faHeadset } from "@fortawesome/free-solid-svg-icons"
 import Footer from "@/components/ui/Footer"
 
-// Add to your globals.css:
-// @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap');
+export default function Page() {
+  const { isSignedIn, isLoaded } = useUser()
+  const router = useRouter()
 
-export default async function Page() {
-  const user = await currentUser()
-  if (user) redirect("/costumer/home")
+  useEffect(() => {
+    if (isLoaded && isSignedIn) router.replace("/costumer/home")
+  }, [isLoaded, isSignedIn, router])
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -19,7 +22,7 @@ export default async function Page() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           {/* Logo */}
-          <Link href={user ? "/costumer/home" : "/"} className="flex items-center gap-4  cursor-pointer">
+          <Link href="/" className="flex items-center gap-4 cursor-pointer">
           <img src="/images/logo/2.svg" alt="TowIt Logo" width="40" height="40" className="h-8 md:h-10 w-auto" />
           <div className="text-2xl md:text-3xl font-bold text-white">
             TowIt
