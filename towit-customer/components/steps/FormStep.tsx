@@ -229,7 +229,7 @@ export default function FormStep({
                           {CraneIcon ? (
                             <FontAwesomeIcon icon={CraneIcon} className="text-xl text-black" />
                           ) : (
-                            <img src="/images/logo/tow2.svg" alt="Tow It" className="w-6 h-6 opacity-50" />
+                            <img src="/images/logo/tow2.svg" alt="Tow It" width="24" height="24" className="w-6 h-6 opacity-50" />
                           )}
                           <div>
                             <span className="block text-md font-bold text-muted-foreground">{label}</span>
@@ -262,7 +262,7 @@ export default function FormStep({
                         {CraneIcon ? (
                           <FontAwesomeIcon icon={CraneIcon} className={`text-xl ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
                         ) : (
-                          <img src="/images/logo/tow2.svg" alt="Tow It" className={`w-6 h-6 ${isSelected ? "" : "opacity-60"}`} />
+                          <img src="/images/logo/tow2.svg" alt="Tow It" width="24" height="24" className={`w-6 h-6 ${isSelected ? "" : "opacity-60"}`} />
                         )}
                         <div>
                           <span className="block text-md font-bold text-foreground">{label}</span>

@@ -32,7 +32,7 @@ export default async function CostumerHome() {
           {/* Card: Solicitar Remolque — highlighted */}
           <div className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-brand-yellow bg-card p-6 shadow-[0_4px_24px_rgba(245,197,24,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_36px_rgba(245,197,24,0.28)]">
             <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl">
-              <img src="/images/logo/tow.svg" alt="Tow It" />
+              <img src="/images/logo/tow.svg" alt="Tow It" width="56" height="56" />
             </div>
             <h3 className="mb-2 text-[18px] font-bold text-foreground">Solicitar un Remolque</h3>
             <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">

@@ -20,7 +20,7 @@ export default async function Page() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           {/* Logo */}
           <Link href={user ? "/costumer/home" : "/"} className="flex items-center gap-4  cursor-pointer">
-          <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
+          <img src="/images/logo/2.svg" alt="TowIt Logo" width="40" height="40" className="h-8 md:h-10 w-auto" />
           <div className="text-2xl md:text-3xl font-bold text-white">
             TowIt
           </div>

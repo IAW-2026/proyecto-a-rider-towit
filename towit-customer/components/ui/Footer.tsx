@@ -10,7 +10,9 @@ export default function Footer() {
               <img
                 src="/images/logo/2.svg"
                 alt="TowIt Logo"
+                width="40" height="40"
                 className="h-8 w-auto md:h-10"
+                loading="lazy"
               />
               <span className="text-2xl font-bold text-white md:text-3xl">
                 TowIt

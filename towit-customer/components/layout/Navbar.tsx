@@ -24,7 +24,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
           <Link href={brandLink} className="flex items-center gap-4 cursor-pointer">
-            <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
+            <img src="/images/logo/2.svg" alt="TowIt Logo" width="40" height="40" className="h-8 md:h-10 w-auto" />
             <div className="text-2xl md:text-3xl font-bold text-white">{brandName}</div>
           </Link>
         </div>
@@ -36,7 +36,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
         <Link href={brandLink} className="flex items-center gap-4 cursor-pointer">
-          <img src="/images/logo/2.svg" alt="TowIt Logo" className="h-8 md:h-10 w-auto" />
+          <img src="/images/logo/2.svg" alt="TowIt Logo" width="40" height="40" className="h-8 md:h-10 w-auto" />
           <div className="text-2xl md:text-3xl font-bold text-white">{brandName}</div>
         </Link>
 
