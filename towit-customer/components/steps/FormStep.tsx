@@ -111,7 +111,7 @@ export default function FormStep({
         <div>
           <AddressSearch
             id="destination"
-            label="Destino"
+            label="Ubicación de Destino"
             placeholder="Ej: Bag End, Hobbiton, La Comarca"
             onSelect={(coords, display_name) => {
               if (coords) onDestinationSelect(coords, display_name);
@@ -154,9 +154,9 @@ export default function FormStep({
           ) : initialVehicles.length === 0 ? (
             <div className="p-6 border-2 border-dashed border-border rounded-xl text-center bg-card hover:border-border hover:bg-muted/50 transition">
               <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
-                <FontAwesomeIcon icon={faCar} className="text-xl text-brand-yellow-dark" />
+                <FontAwesomeIcon icon={faCar} className="text-xl text-brand-yellow" />
               </div>
-              <p className="text-muted-foreground mb-4 font-medium">No tienes vehículos registrados.</p>
+              <p className="text-foreground mb-4 font-medium">No tienes vehículos registrados.</p>
               <button
                 type="button"
                 onClick={() => setIsAddingVehicle(true)}
@@ -172,8 +172,8 @@ export default function FormStep({
                   key={v.id}
                   className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${
                     selectedVehicleId === v.id
-                      ? "border-brand-yellow bg-brand-yellow/5"
-                      : "border-gray-200 hover:border-brand-yellow bg-white"
+                      ? "border-brand-yellow bg-brand-yellow/10"
+                      : "border-border hover:border-brand-yellow bg-background"
                   }`}
                 >
                   <input
@@ -185,10 +185,10 @@ export default function FormStep({
                       onVehicleSelect(e.target.value);
                       onClearError("vehicle");
                     }}
-                    className="h-5 w-5 accent-gray-700 focus:ring-brand-yellow border-gray-300"
+                    className="h-5 w-5 accent-brand-yellow focus:ring-brand-yellow border-border"
                   />
                   <div className="ml-4 flex-1">
-                    <span                     className="block text-md font-bold text-foreground">{v.brand} {v.model}</span>
+                    <span className="block text-md font-bold text-foreground">{v.brand} {v.model}</span>
                     <span className="block text-sm text-muted-foreground mt-0.5 font-medium">Año: {v.year} • Peso: {v.weight} toneladas</span>
                   </div>
                 </label>
@@ -196,9 +196,9 @@ export default function FormStep({
               <button
                 type="button"
                 onClick={() => setIsAddingVehicle(true)}
-                className="w-full flex items-center justify-center p-4 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-brand-yellow hover:bg-brand-yellow/5 transition duration-200 bg-card"
+                className="w-full flex items-center justify-center p-4 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-brand-yellow hover:bg-brand-yellow/5 transition duration-200 bg-background"
               >
-                <span className="text-muted-foreground font-semibold text-md flex items-center gap-2">
+                <span className="text-foreground font-semibold text-md flex items-center gap-2">
                   <FontAwesomeIcon icon={faPlus} className="text-lg" /> Registrar nuevo vehículo
                 </span>
               </button>
@@ -222,14 +222,14 @@ export default function FormStep({
 
                 if (!available) {
                   return (
-                    <div key={key} className="flex items-center justify-between p-4 border-2 border-border rounded-xl bg-muted opacity-50">
+                    <div key={key} className="flex items-center justify-between p-4 border-2 border-border rounded-xl bg-background opacity-50">
                       <div className="flex items-center">
                         <div className="h-5 w-5 rounded-full border-2 border-border bg-muted" />
                         <div className="ml-4 flex items-center gap-3">
                           {CraneIcon ? (
-                            <FontAwesomeIcon icon={CraneIcon} className="text-xl text-black" />
+                            <FontAwesomeIcon icon={CraneIcon} className="text-xl text-muted-foreground" />
                           ) : (
-                            <img src="/images/logo/tow2.svg" alt="Tow It" width="24" height="24" className="w-6 h-6 opacity-50" />
+                            <img src="/images/logo/tow3.svg" alt="Tow It" width="24" height="24" className="w-6 h-6 opacity-50" />
                           )}
                           <div>
                             <span className="block text-md font-bold text-muted-foreground">{label}</span>
@@ -246,7 +246,7 @@ export default function FormStep({
                   <label
                     key={key}
                     className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition duration-200 ${
-                      isSelected ? "border-brand-yellow bg-brand-yellow/5" : "border-border hover:border-brand-yellow bg-card"
+                      isSelected ? "border-brand-yellow bg-brand-yellow/10" : "border-border hover:border-brand-yellow bg-background"
                     }`}
                   >
                     <div className="flex items-center">
@@ -256,13 +256,13 @@ export default function FormStep({
                         value={key}
                         checked={isSelected}
                         onChange={() => onCraneTypeSelect(key)}
-                        className="h-5 w-5 accent-gray-700 focus:ring-brand-yellow border-gray-300"
+                        className="h-5 w-5 accent-brand-yellow focus:ring-brand-yellow border-border"
                       />
                       <div className="ml-4 flex items-center gap-3">
                         {CraneIcon ? (
                           <FontAwesomeIcon icon={CraneIcon} className={`text-xl ${isSelected ? "text-foreground" : "text-muted-foreground"}`} />
                         ) : (
-                          <img src="/images/logo/tow2.svg" alt="Tow It" width="24" height="24" className={`w-6 h-6 ${isSelected ? "" : "opacity-60"}`} />
+                          <img src="/images/logo/tow3.svg" alt="Tow It" width="24" height="24" className={`w-6 h-6 ${isSelected ? "" : "opacity-60"}`} />
                         )}
                         <div>
                           <span className="block text-md font-bold text-foreground">{label}</span>

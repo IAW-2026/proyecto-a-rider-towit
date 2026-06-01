@@ -32,7 +32,7 @@ export default function Page() {
           {/* Nav actions */}
           <div className="flex items-center gap-2">
             <SignInButton mode="modal" forceRedirectUrl="/costumer/home">
-              <button className="rounded-lg px-4 py-2 text-sm font-medium text-white/60 transition-colors hover:bg-white/[0.08] hover:text-white cursor-pointer">
+              <button className="rounded-lg px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white cursor-pointer">
                 Iniciar Sesión
               </button>
             </SignInButton>

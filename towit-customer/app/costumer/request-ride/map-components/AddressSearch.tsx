@@ -97,8 +97,8 @@ export default function AddressSearch({ label, placeholder, id, onSelect }: Addr
 
   return (
     <div className="relative" ref={wrapperRef}>
-      <label htmlFor={id} className="block text-lg font-bold text-black mb-2">
-        <span className={`inline-block w-4 h-4 align-middle mr-2  ${id === 'origin' ? 'rounded-full' : 'rounded-xs'}`} style={{ backgroundColor: 'white', border: '4px solid  #1a1a1a' }} />
+      <label htmlFor={id} className="block text-lg font-bold text-foreground mb-2">
+        <span className={`inline-block w-4 h-4 align-middle mr-2  ${id === 'origin' ? 'rounded-full' : 'rounded-xs'}`} style={{ backgroundColor: 'black', border: '4px solid white' }} />
         {label}
       </label>
       <input
@@ -109,7 +109,7 @@ export default function AddressSearch({ label, placeholder, id, onSelect }: Addr
         onFocus={() => { if (results.length > 0) setIsOpen(true) }}
         placeholder={placeholder}
         autoComplete="off"
-          className="w-full px-4 py-3 border-2 border-border rounded-lg focus:ring-brand-yellow focus:border-brand-yellow transition text-foreground bg-card"
+          className="w-full px-4 py-3 border-2 border-border rounded-lg transition text-foreground bg-card"
       />
       
       {isOpen && (

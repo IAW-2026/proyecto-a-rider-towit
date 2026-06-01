@@ -66,7 +66,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
         {!showForm && (
           <button
             onClick={handleAddClick}
-            className="mb-5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand-yellow/50 bg-brand-yellow/5 py-3.5 text-[14px] font-bold text-brand-yellow-dark transition-all active:bg-brand-yellow/10"
+            className="mb-5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand-yellow/50 bg-brand-yellow/5 py-3.5 text-[14px] font-bold text-brand-yellow transition-all active:bg-brand-yellow/10"
           >
             <FontAwesomeIcon icon={faPlus} className="h-3.5 w-3.5" />
             Agregar vehículo

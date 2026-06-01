@@ -44,3 +44,25 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #9ca3af;
 }
+
+/* Leaflet dark theme overrides */
+.leaflet-control-zoom {
+  border: 1px solid var(--border) !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+.leaflet-control-zoom a {
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  border-bottom: 1px solid var(--border) !important;
+  font-size: 1.125rem !important; /* Larger for better hit area like zoom buttons typically are, but keeping the font-weight similar */
+  font-weight: 600 !important;
+  transition: background-color 0.2s !important;
+}
+.leaflet-control-zoom a:last-child {
+  border-bottom: none !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--muted) !important;
+}

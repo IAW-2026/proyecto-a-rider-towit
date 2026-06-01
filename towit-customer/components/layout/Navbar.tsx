@@ -46,9 +46,9 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
               Bienvenido, {user.firstName}
             </span>
             {variant !== "admin" && userRating !== null && (
-              <div className="flex items-center gap-1 bg-brand-yellow/20 px-2.5 py-1 rounded-lg">
+              <div className="flex items-center gap-1 bg-brand-yellow/10 px-2.5 py-1 rounded-lg border border-brand-yellow/20">
                 <FontAwesomeIcon icon={faStar} className="text-sm text-brand-yellow" />
-                <span className="text-brand-yellow-dark text-sm font-bold leading-none translate-y-px">{userRating}</span>
+                <span className="text-foreground text-sm font-bold leading-none translate-y-px">{userRating}</span>
               </div>
             )}
             <UserButton appearance={{ elements: { userButtonAvatarBox: "!h-8 !w-8 md:!h-10 md:!w-10" } }} />
