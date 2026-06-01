@@ -48,15 +48,15 @@ export default async function AdminDashboard() {
         <h1 className="text-3xl font-bold text-foreground mb-8">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <Link href="/admin/dashboard/trips" className="bg-card rounded-xl shadow p-6 border-l-4 border-brand-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+          <Link href="/admin/dashboard/trips" className="bg-card rounded-xl shadow p-6 border-l-4 border-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
             <h2 className="text-muted-foreground text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-foreground transition">Viajes Totales</h2>
             <p className="text-4xl font-bold text-foreground">{tripCount.value}</p>
           </Link>
-          <Link href="/admin/dashboard/customers" className="bg-card rounded-xl shadow p-6 border-l-4 border-brand-yellow-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+          <Link href="/admin/dashboard/customers" className="bg-card rounded-xl shadow p-6 border-l-4 border-brand-yellow  hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
             <h2 className="text-muted-foreground text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-foreground transition">Clientes Registrados</h2>
             <p className="text-4xl font-bold text-foreground">{customerCount.value}</p>
           </Link>
-          <Link href="/admin/dashboard/vehicles" className="bg-card rounded-xl shadow p-6 border-l-4 border-brand-yellow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
+          <Link href="/admin/dashboard/vehicles" className="bg-card rounded-xl shadow p-6 border-l-4 border-brand-yellow-dark hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 block group">
             <h2 className="text-muted-foreground text-sm font-semibold mb-1 uppercase tracking-wide group-hover:text-foreground transition">Vehículos Registrados</h2>
             <p className="text-4xl font-bold text-foreground">{vehicleCount.value}</p>
           </Link>
