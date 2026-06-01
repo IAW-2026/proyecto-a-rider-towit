@@ -304,12 +304,22 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
         }`}
       >
         <div
-          className="w-full h-10 flex-none flex justify-center items-center cursor-pointer lg:hidden z-20"
+          className="w-full h-12 flex-none flex justify-center items-center cursor-pointer lg:hidden z-20"
           onClick={() => setIsExpanded(!isExpanded)}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
         >
-          <div className="w-12 h-1.5 bg-muted rounded-full pointer-events-none" />
+          <svg
+            className={`w-10 h-5 text-muted-foreground transition-transform duration-300 ease-in-out ${isExpanded ? "rotate-0" : "rotate-180"}`}
+            viewBox="0 0 24 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="1 4 12 14 23 4" />
+          </svg>
         </div>
 
         <div

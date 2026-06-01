@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCar, faCarSide, faPlus, faTruckPickup } from "@fortawesome/free-solid-svg-icons";
 import { formatPrice } from "@/lib/utils";
@@ -65,15 +65,18 @@ export default function FormStep({
   const [isAddingVehicle, setIsAddingVehicle] = useState(false);
   const [loadingVehicle, setLoadingVehicle] = useState(false);
   const [vehicleError, setVehicleError] = useState("");
+  const submittingRef = useRef(false);
 
   const handleAddVehicle = async (formData: FormData) => {
-    if (loadingVehicle) return;
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoadingVehicle(true);
     setVehicleError("");
     const result = await onAddVehicle(formData);
     if (result?.error) {
       setVehicleError(result.error);
       setLoadingVehicle(false);
+      submittingRef.current = false;
       return;
     }
     if (result?.vehicle) {
@@ -81,6 +84,7 @@ export default function FormStep({
     }
     setIsAddingVehicle(false);
     setLoadingVehicle(false);
+    submittingRef.current = false;
   };
 
   const getCraneIcon = (key: string) => {

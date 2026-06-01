@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCircleXmark, faHouse } from "@fortawesome/free-solid-svg-icons";
 
 export default function CancelledStep() {
   return (
@@ -15,12 +16,22 @@ export default function CancelledStep() {
         El viaje fue cancelado y se solicitó el reembolso correspondiente.
       </p>
 
-      <button
-        onClick={() => window.location.reload()}
-        className="w-full max-w-sm px-6 py-4 bg-brand-dark text-white font-bold rounded-xl hover:bg-muted transition shadow-md cursor-pointer"
-      >
-        Solicitar otra grúa
-      </button>
+      <div className="flex flex-col gap-3 w-full max-w-sm">
+        <button
+          onClick={() => window.location.reload()}
+          className="w-full px-6 py-4 bg-brand-dark text-white font-bold rounded-xl hover:bg-muted transition shadow-md cursor-pointer"
+        >
+          Solicitar otra grúa
+        </button>
+
+        <Link
+          href="/costumer/home"
+          className="flex items-center justify-center gap-2 w-full px-6 py-4 border-2 border-border text-foreground font-bold rounded-xl hover:bg-muted transition cursor-pointer"
+        >
+          <FontAwesomeIcon icon={faHouse} className="h-4 w-4" />
+          Volver al inicio
+        </Link>
+      </div>
     </div>
   );
 }

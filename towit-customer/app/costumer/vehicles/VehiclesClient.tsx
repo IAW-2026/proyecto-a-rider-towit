@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPencil, faTrash, faCar, faWeightHanging, faCalendar, faTruck } from "@fortawesome/free-solid-svg-icons";
 import { addVehicleAction, deleteVehicleAction, editVehicleAction } from "./actions";
@@ -21,12 +21,14 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
   const [loading, setLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const submittingRef = useRef(false);
 
   const handleAddClick = () => { setEditingVehicle(null); setShowForm(true); };
   const handleEditClick = (v: Vehicle) => { setEditingVehicle(v); setShowForm(true); };
 
   const handleSubmit = async (formData: FormData) => {
-    if (loading) return;
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     setError("");
     let result;
@@ -36,10 +38,11 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
     } else {
       result = await addVehicleAction(formData);
     }
-    if (result?.error) { setError(result.error); setLoading(false); return; }
+    if (result?.error) { setError(result.error); setLoading(false); submittingRef.current = false; return; }
     setEditingVehicle(null);
     setShowForm(false);
     setLoading(false);
+    submittingRef.current = false;
   };
 
   const handleDeleteConfirm = async () => {
