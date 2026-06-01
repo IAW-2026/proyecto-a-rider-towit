@@ -5,8 +5,8 @@ import { trip, customer } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation";
 
-// Importamos los mocks de los servicios
 import { generatePayment, refundPayment } from "@/services/paymentService";
 import { requestTowerForTrip, cancelTowerRequest } from "@/services/towerService";
 import { submitRating } from "@/services/feedbackService";
@@ -23,6 +23,11 @@ export async function createTripAction(data: {
   estimatedPrice: number;
 }) {
   try {
+    const parsed = createTripSchema.safeParse(data);
+    if (!parsed.success) {
+      return { error: parsed.error.issues.map(e => e.message).join(". ") };
+    }
+
     const user = await currentUser();
     if (!user) {
       return { error: "Acceso denegado. No estás autenticado." };
@@ -37,59 +42,49 @@ export async function createTripAction(data: {
     }
 
     const now = new Date();
-    // YYYY-MM-DD (Usando la fecha local)
     const currentDate = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
-    // HH:MM:SS (Usando la hora local)
     const currentTime = now.toTimeString().split(" ")[0];
 
+    const v = parsed.data;
     const newTrip = await db.insert(trip).values({
       customerId: customerRecord.customerId,
-      vehicleId: data.vehicleId,
-      originChar: data.originText || `Lat: ${data.originLat.toFixed(6)}, Lng: ${data.originLng.toFixed(6)}`,
-      DestinationChar: data.destinationText || `Lat: ${data.destinationLat.toFixed(6)}, Lng: ${data.destinationLng.toFixed(6)}`,
-      originLat: data.originLat.toString(),
-      originLng: data.originLng.toString(),
-      destinationLat: data.destinationLat.toString(),
-      destinationLng: data.destinationLng.toString(),
+      vehicleId: v.vehicleId,
+      originChar: v.originText || `Lat: ${v.originLat.toFixed(6)}, Lng: ${v.originLng.toFixed(6)}`,
+      DestinationChar: v.destinationText || `Lat: ${v.destinationLat.toFixed(6)}, Lng: ${v.destinationLng.toFixed(6)}`,
+      originLat: v.originLat.toString(),
+      originLng: v.originLng.toString(),
+      destinationLat: v.destinationLat.toString(),
+      destinationLng: v.destinationLng.toString(),
       status: "pendiente pago",
       date: currentDate,
       time: currentTime,
-      towerId: null,      // explicitamente nulo como pide
-      feedbackId: null,   // explicitamente nulo como pide
+      towerId: null,
+      feedbackId: null,
     }).returning();
 
     const createdTrip = newTrip[0];
 
-    // ==========================================
-    // ETAPA MOCK: Lógica de cobro simulada (Payments App)
-    // ==========================================
     try {
       const paymentResult = await generatePayment({
         trip_id: createdTrip.tripId,
         clerk_id: user.id,
-        amount: data.estimatedPrice
+        amount: v.estimatedPrice
       });
       console.log("Pago exitoso simulado:", paymentResult);
-      
-      // Actualizamos el viaje a 'en proceso' ya que el pago se completó
+
       await db.update(trip).set({ status: "en proceso" }).where(eq(trip.tripId, createdTrip.tripId));
       createdTrip.status = "en proceso";
-
     } catch (e) {
       console.error("Error al cobrar:", e);
-      // Como esto es un mock, no detenemos el viaje ante error, pero en la vida real sí se haría.
     }
 
-    // ==========================================
-    // ETAPA MOCK: Asignamos tower a través de Tower App
-    // ==========================================
     try {
       const towerResult = await requestTowerForTrip({
         customer_id: user.id,
         trip: {
           id: String(createdTrip.tripId),
-          origin: { lat: data.originLat.toString(), long: data.originLng.toString() },
-          destination: { lat: data.destinationLat.toString(), long: data.destinationLng.toString() },
+          origin: { lat: v.originLat.toString(), long: v.originLng.toString() },
+          destination: { lat: v.destinationLat.toString(), long: v.destinationLng.toString() },
         },
         vehicle_data: { brand: "", model: "", year: 0 },
       });
@@ -99,35 +94,34 @@ export async function createTripAction(data: {
           .set({ towerId: towerResult.tower_id })
           .where(eq(trip.tripId, createdTrip.tripId));
         createdTrip.towerId = towerResult.tower_id;
-        console.log("Tower asignado exitosamente:", towerResult.tower_id);
       }
     } catch (e) {
       console.error("Error al asignar tower:", e);
     }
-    // ==========================================
 
     revalidatePath("/costumer/request-ride");
-
     return { success: true, trip: createdTrip };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Hubo un error al crear la solicitud de grúa."
     console.error("Error creating trip:", error);
-    return { error: "Hubo un error al crear la solicitud de grúa." };
+    return { error: message };
   }
 }
 
 export async function cancelTripAction(tripId: number) {
   try {
+    const parsed = tripIdSchema.safeParse(tripId);
+    if (!parsed.success) {
+      return { error: "ID de viaje inválido" };
+    }
+
     const user = await currentUser();
     if (!user) {
       return { error: "Acceso denegado." };
     }
 
-    // ==========================================
-    // ETAPA MOCK: Lógica de reembolso y cancelación (Payments App y Tower App)
-    // ==========================================
     console.log(`Iniciando cancelación del viaje #${tripId}`);
-    
-    // 1. Avisamos a Payments App que nos devuelva la plata
+
     const refundResult = await refundPayment({
       trip_id: String(tripId),
       clerk_id: user.id,
@@ -136,38 +130,41 @@ export async function cancelTripAction(tripId: number) {
     });
     console.log("Reembolso simulado exitoso:", refundResult);
 
-    // 2. Avisamos a Tower App que no mande la grúa
     const cancelResult = await cancelTowerRequest(String(tripId));
     console.log("Cancelación desde la app de la grúa exitosa:", cancelResult);
-    
-    // 3. Actualizamos en nuestra propia base de datos (Customer App)
+
     await db.update(trip).set({ status: "cancelado" }).where(eq(trip.tripId, tripId));
 
     revalidatePath("/costumer/history");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Hubo un error al cancelar el viaje."
     console.error("Error cancelando el viaje:", error);
-    return { error: "Hubo un error al cancelar el viaje." };
+    return { error: message };
   }
 }
 
 export async function finishTripAction(tripId: number) {
   try {
+    const parsed = tripIdSchema.safeParse(tripId);
+    if (!parsed.success) {
+      return { error: "ID de viaje inválido" };
+    }
+
     const user = await currentUser();
     if (!user) {
       return { error: "Acceso denegado." };
     }
 
     console.log(`Marcando el viaje #${tripId} como finalizado`);
-    
-    // Actualizamos en nuestra propia base de datos
     await db.update(trip).set({ status: "finalizado" }).where(eq(trip.tripId, tripId));
 
     revalidatePath("/costumer/history");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Hubo un error al finalizar el viaje."
     console.error("Error finalizando el viaje:", error);
-    return { error: "Hubo un error al finalizar el viaje." };
+    return { error: message };
   }
 }
 
@@ -177,6 +174,11 @@ export async function submitFeedbackAction(data: {
   comment?: string;
 }) {
   try {
+    const parsed = feedbackSchema.safeParse(data);
+    if (!parsed.success) {
+      return { error: parsed.error.issues.map(e => e.message).join(". ") };
+    }
+
     const user = await currentUser();
     if (!user) {
       return { error: "Acceso denegado." };
@@ -190,14 +192,12 @@ export async function submitFeedbackAction(data: {
       return { error: "Cliente no encontrado." };
     }
 
-    // ==========================================
-    // ETAPA MOCK: Enviamos calificación a Feedback App
-    // ==========================================
+    const v = parsed.data;
     const feedbackResult = await submitRating({
-      trip_id: String(data.tripId),
+      trip_id: String(v.tripId),
       customer_id: user.id,
-      rating: data.rating,
-      comment: data.comment
+      rating: v.rating,
+      comment: v.comment
     });
 
     if (!feedbackResult) {
@@ -206,16 +206,15 @@ export async function submitFeedbackAction(data: {
 
     console.log("Feedback enviado exitosamente:", feedbackResult);
 
-    // Guardamos el feedbackId en el registro del viaje
     await db.update(trip)
       .set({ feedbackId: feedbackResult.feedback_id })
-      .where(eq(trip.tripId, data.tripId));
-    // ==========================================
+      .where(eq(trip.tripId, v.tripId));
 
     revalidatePath("/costumer/history");
     return { success: true, feedbackId: feedbackResult.feedback_id };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Hubo un error al enviar la calificación."
     console.error("Error enviando feedback:", error);
-    return { error: "Hubo un error al enviar la calificación." };
+    return { error: message };
   }
 }

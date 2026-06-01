@@ -7,6 +7,7 @@
   --muted: #1C1C20;
   --border: #27272A;
   --muted-foreground: #A1A1AA;
+  color-scheme: dark;
 }
 
 @theme inline {

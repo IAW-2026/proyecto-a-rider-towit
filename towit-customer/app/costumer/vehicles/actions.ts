@@ -5,25 +5,23 @@ import { vehicle, customer } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { vehicleSchema, editVehicleSchema, tripIdSchema } from "@/lib/validation";
 
-// Función auxiliar para obtener o crear el cliente en nuestra Base de Datos
 async function getOrCreateCustomer() {
   const user = await currentUser();
   if (!user) throw new Error("Acceso denegado. No estás autenticado.");
 
-  // Buscar cliente por clerkId
   let customerRecord = await db.query.customer.findFirst({
     where: eq(customer.clerkId, user.id)
   });
 
-  // Si no está registrado en la base de datos de Neon, lo creamos
   if (!customerRecord) {
     const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Usuario sin nombre';
     const insertedCustomer = await db.insert(customer).values({
       clerkId: user.id,
       fullName: fullName,
     }).returning();
-    
+
     customerRecord = insertedCustomer[0];
   }
 
@@ -32,24 +30,20 @@ async function getOrCreateCustomer() {
 
 export async function addVehicleAction(formData: FormData) {
   try {
-    const brand = formData.get("brand")?.toString();
-    const model = formData.get("model")?.toString();
-    const year = Number(formData.get("year"));
-    const weight = Number(formData.get("weight"));
-
-    if (!brand || !model || !year) {
-      return { error: "Campos requeridos faltantes" };
+    const parsed = vehicleSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) {
+      return { error: parsed.error.issues.map(e => e.message).join(". ") };
     }
 
+    const { brand, model, year, weight } = parsed.data;
     const currentCustomer = await getOrCreateCustomer();
 
-    // Insertar el vehículo referenciando al customerId
     const newVehicle = await db.insert(vehicle).values({
       customerId: currentCustomer.customerId,
       brand,
       model,
       year,
-      weight: weight ? weight.toString() : null, // el esquema espera un string/decimal o number
+      weight: weight ? weight.toString() : null,
     }).returning();
 
     revalidatePath("/costumer/vehicles");
@@ -63,6 +57,11 @@ export async function addVehicleAction(formData: FormData) {
 
 export async function deleteVehicleAction(vehicleId: number) {
   try {
+    const parsed = tripIdSchema.safeParse(vehicleId);
+    if (!parsed.success) {
+      return { error: "ID de vehículo inválido" };
+    }
+
     const user = await currentUser();
     if (!user) throw new Error("Acceso denegado");
 
@@ -71,10 +70,9 @@ export async function deleteVehicleAction(vehicleId: number) {
     });
 
     if (!currentCustomer) {
-       return { error: "Cliente no encontrado" };
+      return { error: "Cliente no encontrado" };
     }
 
-    // Borrar el vehículo verificando que pertenezca al usuario actual
     await db.delete(vehicle)
       .where(
         and(
@@ -93,19 +91,14 @@ export async function deleteVehicleAction(vehicleId: number) {
 
 export async function editVehicleAction(formData: FormData) {
   try {
-    const vehicleId = Number(formData.get("vehicleId"));
-    const brand = formData.get("brand")?.toString();
-    const model = formData.get("model")?.toString();
-    const year = Number(formData.get("year"));
-    const weight = Number(formData.get("weight"));
-
-    if (!vehicleId || !brand || !model || !year) {
-      return { error: "Campos requeridos faltantes" };
+    const parsed = editVehicleSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) {
+      return { error: parsed.error.issues.map(e => e.message).join(". ") };
     }
 
+    const { vehicleId, brand, model, year, weight } = parsed.data;
     const currentCustomer = await getOrCreateCustomer();
 
-    // Actualizar el vehículo verificando que pertenezca al usuario actual
     await db.update(vehicle)
       .set({
         brand,

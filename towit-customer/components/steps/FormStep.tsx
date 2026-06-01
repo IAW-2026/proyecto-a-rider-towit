@@ -136,11 +136,23 @@ export default function FormStep({
               {vehicleError && <p className="text-red-500 mb-3 text-sm">{vehicleError}</p>}
 
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="text" name="brand" id="add-vehicle-form" required placeholder="Marca (Ej: Toyota)" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card" />
-                  <input type="text" name="model" id="add-vehicle-form" required placeholder="Modelo (Ej: Corolla)" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card" />
-                  <input type="number" name="year" id="add-vehicle-form" required placeholder="Año (Ej: 2020)" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card" />
-                  <input type="number" name="weight" id="add-vehicle-form" step="0.1" placeholder="Peso (Ton)" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">Marca <span className="text-brand-yellow-dark">*</span></label>
+                    <input type="text" name="brand" form="add-vehicle-form" required placeholder="Toyota" className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-[13px] text-foreground outline-none placeholder:text-muted-foreground focus:border-brand-yellow focus:bg-card focus:ring-2 focus:ring-brand-yellow/20 transition-all" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">Modelo <span className="text-brand-yellow-dark">*</span></label>
+                    <input type="text" name="model" form="add-vehicle-form" required placeholder="Corolla" className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-[13px] text-foreground outline-none placeholder:text-muted-foreground focus:border-brand-yellow focus:bg-card focus:ring-2 focus:ring-brand-yellow/20 transition-all" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">Año <span className="text-brand-yellow-dark">*</span></label>
+                    <input type="number" name="year" form="add-vehicle-form" required placeholder="2020" min="1900" max={new Date().getFullYear() + 1} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-[13px] text-foreground outline-none placeholder:text-muted-foreground focus:border-brand-yellow focus:bg-card focus:ring-2 focus:ring-brand-yellow/20 transition-all" />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">Peso (ton) <span className="text-brand-yellow-dark">*</span></label>
+                    <input type="number" name="weight" form="add-vehicle-form" required step="0.1" placeholder="1.5" min="0" className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-[13px] text-foreground outline-none placeholder:text-muted-foreground focus:border-brand-yellow focus:bg-card focus:ring-2 focus:ring-brand-yellow/20 transition-all" />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
