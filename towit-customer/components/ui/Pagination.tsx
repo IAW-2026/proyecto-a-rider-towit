@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons"
 
 interface PaginationProps {
   currentPage: number
@@ -37,7 +39,7 @@ export default function Pagination({
   if (totalPages > 1) pages.push(totalPages)
 
   return (
-    <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden">
+    <div className="bg-card rounded-xl shadow-xl border border-border">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4">
         <span className="text-sm text-muted-foreground">
           Total: {totalItems} resultado{totalItems !== 1 ? "s" : ""}
@@ -47,14 +49,14 @@ export default function Pagination({
           {currentPage > 1 ? (
             <Link
               href={buildUrl(currentPage - 1)}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition"
               aria-label="Página anterior"
             >
-              &lt;
+              <FontAwesomeIcon icon={faChevronLeft} className="h-3 w-3" />
             </Link>
           ) : (
-            <span className="px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground/40" aria-disabled="true">
-              &lt;
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg text-sm text-muted-foreground/30" aria-disabled="true">
+              <FontAwesomeIcon icon={faChevronLeft} className="h-3 w-3" />
             </span>
           )}
 
@@ -67,7 +69,7 @@ export default function Pagination({
               <Link
                 key={p}
                 href={buildUrl(p)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                className={`flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium transition ${
                   p === currentPage
                     ? "bg-brand-yellow text-black"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -82,14 +84,14 @@ export default function Pagination({
           {currentPage < totalPages ? (
             <Link
               href={buildUrl(currentPage + 1)}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition"
               aria-label="Página siguiente"
             >
-              &gt;
+              <FontAwesomeIcon icon={faChevronRight} className="h-3 w-3" />
             </Link>
           ) : (
-            <span className="px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground/40" aria-disabled="true">
-              &gt;
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg text-sm text-muted-foreground/30" aria-disabled="true">
+              <FontAwesomeIcon icon={faChevronRight} className="h-3 w-3" />
             </span>
           )}
         </nav>

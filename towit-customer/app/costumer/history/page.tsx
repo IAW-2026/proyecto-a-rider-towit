@@ -37,7 +37,7 @@ export default async function HistoryPage(props: { searchParams?: Promise<{ page
 
   return (
     <>
-    <main className="flex-1">
+    <main>
       <div className="max-w-7xl mx-auto px-6 md:px-12 pt-6">
         <BackButton />
       </div>
@@ -46,7 +46,7 @@ export default async function HistoryPage(props: { searchParams?: Promise<{ page
         <HistoryClient trips={formattedTrips} />
 
         {"totalPages" in result && typeof result.totalPages === "number" && (
-          <div className="mt-6">
+          <div className="max-w-2xl mx-auto mt-6">
             <Pagination
               currentPage={currentPage}
               totalPages={result.totalPages}

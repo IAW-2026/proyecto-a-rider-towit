@@ -86,7 +86,7 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
   const toggle = (id: string) => setExpandedId(expandedId === id ? null : id);
 
   return (
-    <div className="min-h-screen bg-background text-foreground" style={{ fontFamily: "'Geist', sans-serif" }}>
+    <div className="bg-background text-foreground" style={{ fontFamily: "'Geist', sans-serif" }}>
       <div className="mx-auto max-w-2xl px-4 py-0 sm:px-6 sm:py-0">
 
         {/* Header */}
