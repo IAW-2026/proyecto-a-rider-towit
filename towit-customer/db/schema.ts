@@ -8,14 +8,7 @@ export const customer = pgTable('Customer', {
   isActive: boolean('is_active').default(true).notNull(),
 });
 
-// 2. Tabla: Admin
-export const admin = pgTable('Admin', {
-  adminId: serial('admin_id').primaryKey(),
-  clerkId: varchar('clerk_id', { length: 255 }).unique().notNull(),
-  fullName: varchar('full_name', { length: 150 }).notNull(),
-});
-
-// 3. Tabla: Vehicle
+// 2. Tabla: Vehicle
 export const vehicle = pgTable('Vehicle', {
   vehicleId: serial('vehicle_id').primaryKey(),
   customerId: integer('customer_id')
@@ -27,7 +20,7 @@ export const vehicle = pgTable('Vehicle', {
   year: integer('year').notNull(),
 });
 
-// 4. Tabla: Trip
+// 3. Tabla: Trip
 export const trip = pgTable('Trip', {
   tripId: serial('trip_id').primaryKey(),
   customerId: integer('customer_id')

@@ -1,7 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { trip, customer, admin } from "@/db/schema";
+import { trip, customer } from "@/db/schema";
 import { eq, desc, ilike, gte, lte, and, or, sql, count, SQL } from "drizzle-orm";
 import Pagination from "@/components/ui/Pagination";
 import Link from "next/link";
@@ -12,8 +12,8 @@ export default async function AdminTripsPage(props: { searchParams?: Promise<{ q
   const user = await currentUser();
   if (!user) redirect("/admin");
 
-  const [adminRecord] = await db.select().from(admin).where(eq(admin.clerkId, user.id));
-  if (!adminRecord) redirect("/admin");
+  const role = user.publicMetadata?.role as string | undefined;
+  if (role !== "admin") redirect("/admin");
 
   const sp = await props.searchParams;
   const query = sp?.q?.trim() || "";

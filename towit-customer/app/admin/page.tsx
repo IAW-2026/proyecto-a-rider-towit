@@ -2,18 +2,14 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { SignIn, SignOutButton } from "@clerk/nextjs";
 import Link from "next/link";
-import { db } from "@/db";
-import { admin } from "@/db/schema";
-import { eq } from "drizzle-orm";
 
 export default async function AdminPage() {
   const user = await currentUser();
   let isUnauthorized = false;
   
   if (user) {
-    // Verificamos si el usuario activo es realmente un Administrador
-    const [adminRecord] = await db.select().from(admin).where(eq(admin.clerkId, user.id));
-    if (adminRecord) {
+    const role = user.publicMetadata?.role as string | undefined;
+    if (role === "admin") {
       redirect("/admin/dashboard");
     } else {
       isUnauthorized = true;

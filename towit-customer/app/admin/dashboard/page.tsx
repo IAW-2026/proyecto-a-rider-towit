@@ -1,7 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { trip, customer, vehicle, admin } from "@/db/schema";
+import { trip, customer, vehicle } from "@/db/schema";
 import { eq, desc, count } from "drizzle-orm";
 import Link from "next/link";
 
@@ -12,11 +12,8 @@ export default async function AdminDashboard() {
     redirect("/admin");
   }
 
-  // Verificar que el usuario exista en la tabla Admin de Neon
-  const [adminRecord] = await db.select().from(admin).where(eq(admin.clerkId, user.id));
-  
-  if (!adminRecord) {
-    // Si no está registrado como admin, redirigir a inicio o vista de cliente
+  const role = user.publicMetadata?.role as string | undefined;
+  if (role !== "admin") {
     redirect("/admin");
   }
 
