@@ -67,6 +67,7 @@ export default function FormStep({
   const [vehicleError, setVehicleError] = useState("");
 
   const handleAddVehicle = async (formData: FormData) => {
+    if (loadingVehicle) return;
     setLoadingVehicle(true);
     setVehicleError("");
     const result = await onAddVehicle(formData);

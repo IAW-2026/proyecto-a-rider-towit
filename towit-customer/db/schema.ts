@@ -47,8 +47,6 @@ export const trip = pgTable('Trip', {
   destinationLng: decimal('destination_lng', { precision: 9, scale: 6 }).notNull(),
   
   feedbackId: varchar('feedback_id', { length: 50 }),
-  paymentStatus: varchar('payment_status', { length: 50 }),
-  transactionId: varchar('transaction_id', { length: 255 }),
   date: date('date').notNull(),
   time: time('time').notNull(),
   status: varchar('status', { length: 50 }).notNull(),

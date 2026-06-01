@@ -26,6 +26,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
   const handleEditClick = (v: Vehicle) => { setEditingVehicle(v); setShowForm(true); };
 
   const handleSubmit = async (formData: FormData) => {
+    if (loading) return;
     setLoading(true);
     setError("");
     let result;
