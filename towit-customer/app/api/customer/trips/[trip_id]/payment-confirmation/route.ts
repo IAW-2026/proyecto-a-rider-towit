@@ -32,10 +32,7 @@ export async function POST(
 
     await db
       .update(trip)
-      .set({
-        transactionId: transaction_id,
-        paymentStatus: status,
-      })
+      .set({})
       .where(eq(trip.tripId, Number(trip_id)))
 
     return Response.json({})

@@ -14,7 +14,6 @@ export async function GET(
       where: eq(trip.tripId, Number(trip_id)),
       columns: {
         tripId: true,
-        paymentStatus: true,
       },
     })
 
@@ -27,7 +26,7 @@ export async function GET(
 
     return Response.json({
       trip_id: String(tripRecord.tripId),
-      payment_status: tripRecord.paymentStatus ?? 'pending',
+      payment_status: 'pending',
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error'
