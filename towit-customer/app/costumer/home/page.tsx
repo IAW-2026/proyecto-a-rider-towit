@@ -32,10 +32,11 @@ export default async function CostumerHome() {
           <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
             Iniciá una nueva solicitud de grúa. Te conectaremos con el conductor más cercano en minutos.
           </p>
-          <Link href="/costumer/request-ride" className="block">
-            <button className="w-full rounded-xl bg-brand-yellow py-3 text-[15px] font-bold text-black shadow-[0_2px_12px_rgba(245,197,24,0.3)] transition-all hover:bg-brand-yellow-hover active:scale-95 cursor-pointer">
-              Pedir Grúa Ahora
-            </button>
+          <Link
+            href="/costumer/request-ride"
+            className="block w-full rounded-xl bg-brand-yellow py-3 text-center text-[15px] font-bold text-black shadow-[0_2px_12px_rgba(245,197,24,0.3)] transition-all hover:bg-brand-yellow-hover active:scale-95"
+          >
+            Pedir Grúa Ahora
           </Link>
         </div>
 
@@ -47,10 +48,11 @@ export default async function CostumerHome() {
           <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
             Consultá el historial de tus viajes anteriores y revisá los detalles de cada servicio completado.
           </p>
-          <Link href="/costumer/history" className="block">
-            <button className="w-full rounded-xl border-2 border-border py-3 text-[15px] font-semibold text-foreground transition-all hover:border-border hover:bg-muted active:scale-95 cursor-pointer">
-              Ver Historial
-            </button>
+          <Link
+            href="/costumer/history"
+            className="block w-full rounded-xl border-2 border-border py-3 text-center text-[15px] font-semibold text-foreground transition-all hover:border-border hover:bg-muted active:scale-95"
+          >
+            Ver Historial
           </Link>
         </div>
 
@@ -61,10 +63,11 @@ export default async function CostumerHome() {
           <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
             Agregá los datos de tu vehículo para agilizar el pedido. Gestioná altas, bajas y modificaciones.
           </p>
-          <Link href="/costumer/vehicles" className="block">
-            <button className="w-full rounded-xl border-2 border-border py-3 text-[15px] font-semibold text-foreground transition-all hover:border-border hover:bg-muted active:scale-95 cursor-pointer">
-              Gestionar Vehículos
-            </button>
+          <Link
+            href="/costumer/vehicles"
+            className="block w-full rounded-xl border-2 border-border py-3 text-center text-[15px] font-semibold text-foreground transition-all hover:border-border hover:bg-muted active:scale-95"
+          >
+            Gestionar Vehículos
           </Link>
         </div>
 

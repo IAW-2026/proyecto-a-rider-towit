@@ -113,7 +113,7 @@ export default function AddressSearch({ label, placeholder, id, onSelect }: Addr
       />
       
       {isOpen && (
-        <ul className="absolute z-10 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <ul role="listbox" className="absolute z-10 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {loading && <li className="px-4 py-2 text-foreground">Buscando...</li>}
           {!loading && results.length === 0 && <li className="px-4 py-2 text-foreground">No se encontraron resultados</li>}
           {!loading && results.map((result, idx) => {
@@ -121,7 +121,10 @@ export default function AddressSearch({ label, placeholder, id, onSelect }: Addr
             return (
               <li 
                 key={idx} 
+                role="option"
+                tabIndex={0}
                 onClick={() => handleSelect(result)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleSelect(result); } }}
                 className="px-4 py-3 text-foreground hover:bg-muted cursor-pointer border-b border-border last:border-0 truncate"
               >
                 {formatted}

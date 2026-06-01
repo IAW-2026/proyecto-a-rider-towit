@@ -38,6 +38,9 @@ export default function RootLayout({
         <ClerkProvider
           localization={esES}
           appearance={{
+            elements: {
+              modalBackdrop: { background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" },
+            },
             variables: {
               colorBackground: "#1C1C20",
               colorForeground: "#FFFFFF",

@@ -46,6 +46,7 @@ export default function CompletedFeedbackStep({ tripId, onSubmitFeedback, onFeed
               <button
                 key={s}
                 type="button"
+                aria-label={`Calificar ${s} estrella${s !== 1 ? "s" : ""}`}
                 onMouseEnter={() => setHoverRating(s)}
                 onMouseLeave={() => setHoverRating(0)}
                 onClick={() => setRating(s)}

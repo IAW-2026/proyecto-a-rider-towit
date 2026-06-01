@@ -97,16 +97,17 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
             <form action={handleSubmit} className="px-4 pb-4 pt-4 space-y-3.5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { label: "Marca", name: "brand", placeholder: "Toyota", type: "text", val: editingVehicle?.brand, req: true },
-                  { label: "Modelo", name: "model", placeholder: "Corolla", type: "text", val: editingVehicle?.model, req: true },
-                  { label: "Año", name: "year", placeholder: "2020", type: "number", val: editingVehicle?.year, req: true },
-                  { label: "Peso (ton)", name: "weight", placeholder: "1.5", type: "number", val: editingVehicle?.weight, req: true },
-                ].map(({ label, name, placeholder, type, val, req }) => (
+                  { label: "Marca", name: "brand", id: "vehicle-brand", placeholder: "Toyota", type: "text", val: editingVehicle?.brand, req: true },
+                  { label: "Modelo", name: "model", id: "vehicle-model", placeholder: "Corolla", type: "text", val: editingVehicle?.model, req: true },
+                  { label: "Año", name: "year", id: "vehicle-year", placeholder: "2020", type: "number", val: editingVehicle?.year, req: true },
+                  { label: "Peso (ton)", name: "weight", id: "vehicle-weight", placeholder: "1.5", type: "number", val: editingVehicle?.weight, req: true },
+                ].map(({ label, name, id, placeholder, type, val, req }) => (
                   <div key={name}>
-                    <label className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                    <label htmlFor={id} className="mb-1 block text-[11px] font-semibold text-muted-foreground">
                       {label} {req && <span className="text-brand-yellow-dark">*</span>}
                     </label>
                     <input
+                      id={id}
                       type={type}
                       name={name}
                       defaultValue={val as string | number | undefined}

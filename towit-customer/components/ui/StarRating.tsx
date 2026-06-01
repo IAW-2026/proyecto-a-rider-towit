@@ -9,7 +9,7 @@ export function StarRatingDisplay({
   size?: string
 }) {
   return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-0.5" role="img" aria-label={`${rating} de 5 estrellas`}>
       {[1, 2, 3, 4, 5].map((s) => (
         <FontAwesomeIcon
           key={s}

@@ -70,6 +70,12 @@ body {
   scrollbar-color: #3f3f46 transparent;
 }
 
+/* Clerk modal backdrop */
+.cl-modalBackdrop {
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
 /* Leaflet dark theme overrides */
 .leaflet-control-zoom {
   border: 1px solid var(--border) !important;

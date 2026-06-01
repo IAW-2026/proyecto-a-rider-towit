@@ -125,9 +125,12 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                   }`}
                 >
                   {/* Summary row — tap target generoso */}
-                  <div
+                  <button
+                    type="button"
                     onClick={() => toggle(trip.id)}
-                    className="flex cursor-pointer select-none items-center gap-3 px-4 py-3.5"
+                    aria-expanded={isExpanded}
+                    aria-label={`${trip.vehicleBrand} ${trip.vehicleModel}, ${trip.status}, ${formatDate(trip.date)}. ${isExpanded ? "Colapsar" : "Expandir"} detalles`}
+                    className="flex w-full text-left cursor-pointer select-none items-center gap-3 px-4 py-3.5"
                   >
                     {/* Icon */}
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
@@ -169,7 +172,7 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                         className={`h-3 w-3 text-gray-500 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
                       />
                     </div>
-                  </div>
+                  </button>
 
                   {/* Expanded detail */}
                   {isExpanded && (
