@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { customer, admin } from "@/db/schema";
-import { eq, desc, like, or, sql, count } from "drizzle-orm";
+import { eq, desc, ilike, or, sql, count } from "drizzle-orm";
 import Pagination from "@/components/ui/Pagination";
 import Link from "next/link";
 import { toggleCustomerActive } from "@/app/admin/dashboard/actions";
@@ -45,9 +45,9 @@ export default async function AdminCustomersPage(props: { searchParams?: Promise
     const q = `%${query}%`;
     conditions.push(
       or(
-        like(customer.fullName, q),
-        like(customer.clerkId, q),
-        like(sql`CAST(${customer.customerId} AS TEXT)`, q),
+        ilike(customer.fullName, q),
+        ilike(customer.clerkId, q),
+        ilike(sql`CAST(${customer.customerId} AS TEXT)`, q),
       )
     );
   }

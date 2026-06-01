@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { vehicle, customer, admin } from "@/db/schema";
-import { eq, desc, like, or, sql, count } from "drizzle-orm";
+import { eq, desc, ilike, or, sql, count } from "drizzle-orm";
 import Pagination from "@/components/ui/Pagination";
 import Link from "next/link";
 
@@ -24,11 +24,11 @@ export default async function AdminVehiclesPage(props: { searchParams?: Promise<
     const q = `%${query}%`;
     conditions.push(
       or(
-        like(vehicle.brand, q),
-        like(vehicle.model, q),
-        like(customer.fullName, q),
-        like(sql`CAST(${vehicle.year} AS TEXT)`, q),
-        like(sql`CAST(${vehicle.vehicleId} AS TEXT)`, q),
+        ilike(vehicle.brand, q),
+        ilike(vehicle.model, q),
+        ilike(customer.fullName, q),
+        ilike(sql`CAST(${vehicle.year} AS TEXT)`, q),
+        ilike(sql`CAST(${vehicle.vehicleId} AS TEXT)`, q),
       )
     );
   }
