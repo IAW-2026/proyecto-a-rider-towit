@@ -190,9 +190,7 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                             </p>
                           </div>
                           <div>
-                            <p className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-                              <p className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Destino</p>
-                            </p>
+                            <span className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Destino</span>
                             <p className="text-[13px] leading-snug text-foreground/80">
                               {trip.DestinationChar && !trip.DestinationChar.startsWith("Lat:")
                                 ? trip.DestinationChar

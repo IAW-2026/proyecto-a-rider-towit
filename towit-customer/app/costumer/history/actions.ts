@@ -3,9 +3,11 @@
 import { db } from "@/db";
 import { trip, customer, vehicle } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 import { getTowerDriverInfo } from "@/services/towerService";
 import { getTripRating } from "@/services/feedbackService";
+
+const PAGE_SIZE = 10;
 
 async function getOrCreateCustomer() {
   const user = await currentUser();
@@ -28,13 +30,22 @@ async function getOrCreateCustomer() {
   return customerRecord;
 }
 
-export async function getTripsAction() {
+export async function getTripsAction(page: number = 1) {
   try {
     const customerRecord = await getOrCreateCustomer();
     const user = await currentUser();
     const userId = user?.id || "";
 
-    // Obtener los viajes del usuario actual, ordenados por fecha/hora descendente
+    const whereFilter = eq(trip.customerId, customerRecord.customerId);
+
+    const [totalResult] = await db
+      .select({ value: count() })
+      .from(trip)
+      .where(whereFilter);
+
+    const totalItems = Number(totalResult.value);
+    const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
     const rawTrips = await db
       .select({
         tripId: trip.tripId,
@@ -54,10 +65,11 @@ export async function getTripsAction() {
       })
       .from(trip)
       .leftJoin(vehicle, eq(trip.vehicleId, vehicle.vehicleId))
-      .where(eq(trip.customerId, customerRecord.customerId))
-      .orderBy(desc(trip.date), desc(trip.time));
+      .where(whereFilter)
+      .orderBy(desc(trip.date), desc(trip.time))
+      .limit(PAGE_SIZE)
+      .offset((page - 1) * PAGE_SIZE);
 
-    // Enriquecer cada viaje con datos mock de Tower y Feedback
     const userTrips = await Promise.all(rawTrips.map(async (t) => {
       let towerInfo = null;
       let tripRating = null;
@@ -85,9 +97,10 @@ export async function getTripsAction() {
       };
     }));
 
-    return { trips: userTrips };
-  } catch (error: any) {
-    return { error: error.message || "Error al obtener el historial de viajes." };
+    return { trips: userTrips, totalItems, totalPages, currentPage: page };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Error al obtener el historial de viajes."
+    return { error: message };
   }
 }
 

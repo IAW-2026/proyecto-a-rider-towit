@@ -1,22 +1,21 @@
-import Navbar from "@/components/layout/Navbar";
 import BackButton from "@/components/ui/BackButton";
 import Footer from "@/components/ui/Footer";
+import Pagination from "@/components/ui/Pagination";
 import HistoryClient from "./HistoryClient";
 import { getTripsAction } from "./actions";
 
-export default async function HistoryPage() {
-  const result = await getTripsAction();
-  const trips = result.trips || [];
+type RawTrip = NonNullable<Awaited<ReturnType<typeof getTripsAction>>['trips']>[number];
 
-  const formattedTrips = trips.map((t: any) => ({
+function formatTrip(t: RawTrip) {
+  return {
     id: t.tripId.toString(),
     date: t.date,
     time: t.time,
     status: t.status,
     vehicleBrand: t.vehicleBrand || "Vehículo desconocido",
     vehicleModel: t.vehicleModel || "",
-    originChar: t.originChar,
-    DestinationChar: t.DestinationChar,
+    originChar: t.originChar ?? undefined,
+    DestinationChar: t.DestinationChar ?? undefined,
     originLat: Number(t.originLat),
     originLng: Number(t.originLng),
     destinationLat: Number(t.destinationLat),
@@ -24,22 +23,41 @@ export default async function HistoryPage() {
     towerInfo: t.towerInfo || null,
     tripRating: t.tripRating ?? null,
     price: t.status !== "cancelado" && t.status !== "pendiente pago" ? 12000 + (t.tripId * 137) % 15000 : null,
-  }));
+  }
+}
+
+export default async function HistoryPage(props: { searchParams?: Promise<{ page?: string }> }) {
+  const sp = await props.searchParams;
+  const currentPage = Math.max(1, Number(sp?.page) || 1);
+
+  const result = await getTripsAction(currentPage);
+  const trips = result.trips || [];
+
+  const formattedTrips = trips.map(formatTrip);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <Navbar />
-      
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 pt-6">
-          <BackButton />
-        </div>
+    <>
+    <main className="flex-1">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-6">
+        <BackButton />
+      </div>
 
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-10">
-          <HistoryClient trips={formattedTrips} />
-        </div>
-      </main>
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-10">
+        <HistoryClient trips={formattedTrips} />
+
+        {"totalPages" in result && typeof result.totalPages === "number" && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={result.totalPages}
+              totalItems={result.totalItems ?? 0}
+              basePath="/costumer/history"
+            />
+          </div>
+        )}
+      </div>
+    </main>
       <Footer />
-    </div>
+    </>
   );
 }

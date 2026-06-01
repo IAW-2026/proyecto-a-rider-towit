@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { trip, customer, vehicle, admin } from "@/db/schema";
 import { eq, desc, count } from "drizzle-orm";
-import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
@@ -41,10 +40,7 @@ export default async function AdminDashboard() {
     .limit(20);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Navbar variant="admin" />
-
-      <main className="max-w-7xl mx-auto px-6 py-8">
+    <main className="max-w-7xl mx-auto px-6 py-8">
         <h1 className="text-3xl font-bold text-foreground mb-8">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -118,6 +114,5 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </main>
-    </div>
   );
 }
