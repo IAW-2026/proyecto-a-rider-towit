@@ -155,9 +155,14 @@ export default function HistoryClient({ trips = [] }: { trips: Trip[] }) {
                     {/* Right: price + chevron */}
                     <div className="flex shrink-0 items-center gap-2">
                       {trip.price !== null && (
-                        <span className="text-[14px] font-bold text-foreground">
-                          {formatPrice(trip.price)}
-                        </span>
+                        <div className="text-right">
+                          <span className="text-[14px] font-bold text-foreground">
+                            {formatPrice(trip.price)}
+                          </span>
+                          {trip.status === "cancelado" && (
+                            <p className="text-[10px] font-semibold text-muted-foreground leading-tight">Reembolso</p>
+                          )}
+                        </div>
                       )}
                       <FontAwesomeIcon
                         icon={faChevronDown}

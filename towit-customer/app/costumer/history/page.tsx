@@ -22,7 +22,7 @@ function formatTrip(t: RawTrip) {
     destinationLng: Number(t.destinationLng),
     towerInfo: t.towerInfo || null,
     tripRating: t.tripRating ?? null,
-    price: t.status !== "cancelado" && t.status !== "pendiente pago" ? 12000 + (t.tripId * 137) % 15000 : null,
+    price: t.status !== "pendiente pago" ? 12000 + (t.tripId * 137) % 15000 : null,
   }
 }
 

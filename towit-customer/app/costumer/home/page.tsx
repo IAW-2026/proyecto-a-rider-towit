@@ -25,8 +25,8 @@ export default async function CostumerHome() {
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
 
         <div className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-brand-yellow bg-card p-6 shadow-[0_4px_24px_rgba(245,197,24,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_36px_rgba(245,197,24,0.28)]">
-          <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl">
-            <img src="/images/logo/tow.svg" alt="Tow It" width="56" height="56" />
+          <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl">
+            <img src="/images/logo/tow.svg" alt="Tow It" width="32" height="32" />
           </div>
           <h2 className="mb-2 text-[18px] font-bold text-foreground">Solicitar un Remolque</h2>
           <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
@@ -40,8 +40,8 @@ export default async function CostumerHome() {
         </div>
 
         <div className="group flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-md">
-          <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl">
-            <FontAwesomeIcon icon={faClockRotateLeft} className="text-[44px] text-muted-foreground transition-colors group-hover:text-brand-yellow" />
+          <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl">
+            <FontAwesomeIcon icon={faClockRotateLeft} className="text-[28px] text-muted-foreground transition-colors group-hover:text-brand-yellow" />
           </div>
           <h2 className="mb-2 text-[18px] font-bold text-foreground">Mis Viajes</h2>
           <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
@@ -55,8 +55,8 @@ export default async function CostumerHome() {
         </div>
 
         <div className="group flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-md">
-          <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl">
-            <FontAwesomeIcon icon={faCarSide} className="text-[44px] text-muted-foreground transition-colors group-hover:text-brand-yellow" /></div>
+          <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl">
+            <FontAwesomeIcon icon={faCarSide} className="text-[28px] text-muted-foreground transition-colors group-hover:text-brand-yellow" /></div>
           <h2 className="mb-2 text-[18px] font-bold text-foreground">Mis Vehículos</h2>
           <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">
             Agregá los datos de tu vehículo para agilizar el pedido. Gestioná altas, bajas y modificaciones.
