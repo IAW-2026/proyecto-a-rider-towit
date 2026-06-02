@@ -120,6 +120,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const startPolling = useCallback((tripId: number) => {
     intervalsRef.current.polling = setInterval(async () => {
       const res = await getTowerRequestStatus(String(tripId));
+      if (!res) return;
       if (res.location) {
         setTowLocation([parseFloat(res.location.lat), parseFloat(res.location.long)]);
       }
