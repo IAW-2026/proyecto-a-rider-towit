@@ -1,5 +1,3 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { customer } from "@/db/schema";
 import { desc, ilike, or, sql, count } from "drizzle-orm";
@@ -30,12 +28,6 @@ function ToggleButton({ customerId, isActive }: { customerId: number; isActive: 
 }
 
 export default async function AdminCustomersPage(props: { searchParams?: Promise<{ q?: string; page?: string }> }) {
-  const user = await currentUser();
-  if (!user) redirect("/admin");
-
-  const role = user.publicMetadata?.role as string | undefined;
-  if (role !== "admin") redirect("/admin");
-
   const sp = await props.searchParams;
   const query = sp?.q?.trim() || "";
   const currentPage = Math.max(1, Number(sp?.page) || 1);

@@ -1,15 +1,24 @@
 "use client";
 
-import { SignIn, SignOutButton, useAuth } from "@clerk/nextjs";
+import { useEffect } from "react";
+import { useUser, SignIn, SignOutButton } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
-export default function AdminAuth({ user }: { user: unknown }) {
-  const { isLoaded, isSignedIn } = useAuth();
+export default function AdminAuth() {
+  const { isLoaded, isSignedIn, user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user?.publicMetadata?.role === "admin") {
+      router.push("/admin/dashboard");
+    }
+  }, [isLoaded, isSignedIn, user, router]);
 
   if (!isLoaded) {
     return <p className="text-muted-foreground">Cargando...</p>;
   }
 
-  if (user || isSignedIn) {
+  if (isSignedIn && user?.publicMetadata?.role !== "admin") {
     return (
       <div className="bg-muted border-l-4 border-red-500 text-red-400 p-6 mb-8 text-left rounded shadow-sm">
         <p className="font-bold text-lg mb-2">Acceso Denegado</p>
@@ -25,12 +34,16 @@ export default function AdminAuth({ user }: { user: unknown }) {
     );
   }
 
-  return (
-    <>
-      <p className="text-lg text-muted-foreground mb-8">Ingresa con tus credenciales asignadas para acceder al panel de control.</p>
-      <div className="flex flex-col items-center">
-        <SignIn forceRedirectUrl="/admin/dashboard" routing="hash" />
-      </div>
-    </>
-  );
+  if (!isSignedIn) {
+    return (
+      <>
+        <p className="text-lg text-muted-foreground mb-8">Ingresa con tus credenciales asignadas para acceder al panel de control.</p>
+        <div className="flex flex-col items-center">
+          <SignIn forceRedirectUrl="/admin/dashboard" routing="hash" />
+        </div>
+      </>
+    );
+  }
+
+  return <p className="text-muted-foreground">Redirigiendo al panel...</p>;
 }

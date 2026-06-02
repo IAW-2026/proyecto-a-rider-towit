@@ -1,22 +1,9 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { trip, customer, vehicle } from "@/db/schema";
 import { eq, desc, count } from "drizzle-orm";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
-  const user = await currentUser();
-  
-  if (!user) {
-    redirect("/admin");
-  }
-
-  const role = user.publicMetadata?.role as string | undefined;
-  if (role !== "admin") {
-    redirect("/admin");
-  }
-
   const [tripCount] = await db.select({ value: count() }).from(trip);
   const [customerCount] = await db.select({ value: count() }).from(customer);
   const [vehicleCount] = await db.select({ value: count() }).from(vehicle);

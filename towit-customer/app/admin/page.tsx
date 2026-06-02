@@ -1,15 +1,7 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminAuth from "./AdminAuth";
 
-export default async function AdminPage() {
-  const user = await currentUser();
-
-  if (user?.publicMetadata?.role === "admin") {
-    redirect("/admin/dashboard");
-  }
-
+export default function AdminPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -26,7 +18,7 @@ export default async function AdminPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="max-w-md w-full text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Acceso Administrativo</h1>
-          <AdminAuth user={user} />
+          <AdminAuth />
         </div>
       </div>
     </div>
