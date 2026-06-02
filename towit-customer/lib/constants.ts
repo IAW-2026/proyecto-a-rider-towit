@@ -25,8 +25,6 @@ export const EARTH_RADIUS_KM = 6371
 
 export const ANIMATION_POINTS_TO_ORIGIN = 20
 export const ANIMATION_POINTS_TO_DEST = 30
-export const ANIMATION_INTERVAL_ARRIVE_MS = 600
-export const ANIMATION_INTERVAL_TO_DEST_MS = 800
 export const SEARCH_DELAY_MS = 3000
 export const MOCK_ETA_MINUTES = 7
 

@@ -1,6 +1,30 @@
 import { useMocks } from "@/lib/service-utils";
 import { delay } from "@/lib/utils";
 
+interface MockTripProgress {
+  pointsToOrigin: [number, number][];
+  pointsToDest: [number, number][];
+  step: number;
+  phase: "arriving" | "traveling";
+}
+
+const mockProgressStore = new Map<string, MockTripProgress>();
+
+export function initMockTripProgress(
+  tripId: string,
+  pointsToOrigin: [number, number][],
+  pointsToDest: [number, number][],
+  startStep = 0,
+  startPhase: "arriving" | "traveling" = "arriving",
+) {
+  if (!useMocks()) return;
+  mockProgressStore.set(tripId, { pointsToOrigin, pointsToDest, step: startStep, phase: startPhase });
+}
+
+export function clearMockTripProgress(tripId: string) {
+  mockProgressStore.delete(tripId);
+}
+
 // 1. Obtener datos de vehículo de Tower
 export async function getTowerVehicle(vehicleId: string) {
   if (useMocks()) {
@@ -53,14 +77,30 @@ export async function requestTowerForTrip(payload: TowerRequestPayload) {
 // 3. Consultar estado de tower asignado
 export async function getTowerRequestStatus(tripId: string) {
   if (useMocks()) {
-    console.log(`[MOCK - Tower App] Consultando estado del viaje #${tripId}...`);
-    await delay(1000);
-    return {
-      status: "en_camino", // simulamos que ya viene
-      location: {
-        lat: "-38.719",
-        long: "-62.268"
+    const progress = mockProgressStore.get(tripId);
+    if (!progress) {
+      return { status: "en_camino", location: null };
+    }
+
+    const points = progress.phase === "arriving" ? progress.pointsToOrigin : progress.pointsToDest;
+
+    if (progress.step >= points.length) {
+      if (progress.phase === "arriving") {
+        progress.phase = "traveling";
+        progress.step = 0;
+        return { status: "recogiendo", location: null };
       }
+      return { status: "finalizado", location: null };
+    }
+
+    const location = points[progress.step];
+    progress.step++;
+
+    return {
+      status: progress.phase === "arriving" ? "en_camino" : "en_viaje",
+      location: { lat: String(location[0]), long: String(location[1]) },
+      totalPoints: points.length,
+      currentStep: progress.step,
     };
   }
 

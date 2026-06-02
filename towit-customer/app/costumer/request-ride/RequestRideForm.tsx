@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { calculateDistance, fetchOsrmRoute, subsampleRoute } from "@/lib/utils";
-import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, ANIMATION_INTERVAL_ARRIVE_MS, ANIMATION_INTERVAL_TO_DEST_MS, SEARCH_DELAY_MS, MOCK_ETA_MINUTES } from "@/lib/constants";
+import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
 import { createTripAction, cancelTripAction, finishTripAction } from "@/app/costumer/request-ride/actions";
 import { addVehicleAction } from "@/app/costumer/vehicles/actions";
+import { initMockTripProgress, getTowerRequestStatus, clearMockTripProgress } from "@/services/towerService";
 import FormStep from "@/components/steps/FormStep";
 import SearchingStep from "@/components/steps/SearchingStep";
 import FoundStep from "@/components/steps/FoundStep";
@@ -20,14 +21,6 @@ interface Vehicle {
   model: string;
   year: number;
   weight: number;
-}
-
-interface AnimationData {
-  pointsToOrigin: [number, number][];
-  pointsToDest: [number, number][];
-  phase: "arriving" | "traveling";
-  stepIndex: number;
-  tripId: number;
 }
 
 const craneTypeLabels: Record<string, string> = {
@@ -88,7 +81,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       if (saved.tripState) setTripState(saved.tripState as typeof tripState);
       if (saved.towLocation) setTowLocation(saved.towLocation as [number, number]);
       if (saved.eta !== undefined) setEta(saved.eta as number);
-      if (saved.animationData) animDataRef.current = saved.animationData as AnimationData;
+      if (saved.mockProgress) mockProgressRef.current = saved.mockProgress as { step: number; phase: "arriving" | "traveling" };
     }
     setHydrated(true);
   }, []);
@@ -118,79 +111,33 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const [originText, setOriginText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
   const [currentTripId, setCurrentTripId] = useState<number | null>(null);
-  const intervalsRef = useRef<{ arrive?: NodeJS.Timeout; toDest?: NodeJS.Timeout; searchTimeout?: NodeJS.Timeout }>({});
-  const animDataRef = useRef<AnimationData | null>(null);
+  const intervalsRef = useRef<{ polling?: NodeJS.Timeout; searchTimeout?: NodeJS.Timeout }>({});
+  const mockProgressRef = useRef<{ step: number; phase: "arriving" | "traveling" } | null>(null);
+  const tripStateRef = useRef(tripState);
+  tripStateRef.current = tripState;
   const persistedOnce = useRef(false);
 
-  const startArriveInterval = useCallback((points: [number, number][], startStep: number, tripId: number, destPoints: [number, number][]) => {
-    let step = startStep;
-    if (step >= points.length) {
-      setTowLocation(origin);
-      setTripState("in_progress");
-      if (destPoints.length > 0) {
-        startToDestInterval(destPoints, 0, tripId);
+  const startPolling = useCallback((tripId: number) => {
+    intervalsRef.current.polling = setInterval(async () => {
+      const res = await getTowerRequestStatus(String(tripId));
+      if (res.location) {
+        setTowLocation([parseFloat(res.location.lat), parseFloat(res.location.long)]);
       }
-      return;
-    }
-    setTowLocation(points[step]);
-    setEta(Math.max(1, Math.floor(7 * (1 - step / points.length))));
-
-    intervalsRef.current.arrive = setInterval(() => {
-      step++;
-      if (step >= points.length) {
-        clearInterval(intervalsRef.current.arrive);
-        setTowLocation(origin);
+      if (res.totalPoints && res.currentStep) {
+        setEta(Math.max(1, Math.floor(7 * (1 - res.currentStep / res.totalPoints))));
+      }
+      if (res.status === "en_viaje" && tripStateRef.current === "found") {
         setTripState("in_progress");
-        if (destPoints.length > 0) {
-          startToDestInterval(destPoints, 0, tripId);
-        }
-      } else {
-        setTowLocation(points[step]);
-        setEta(Math.max(1, Math.floor(7 * (1 - step / points.length))));
-        if (animDataRef.current) {
-          animDataRef.current = { ...animDataRef.current, stepIndex: step, phase: "arriving" };
-        }
       }
-    }, ANIMATION_INTERVAL_ARRIVE_MS);
-  }, [origin]);
-
-  const startToDestInterval = useCallback((points: [number, number][], startStep: number, tripId: number) => {
-    let step = startStep;
-    if (step >= points.length) {
-      setTowLocation(destination);
-      setTripState("completed");
-      finishTripAction(tripId).catch(console.error);
-      return;
-    }
-    setTowLocation(points[step]);
-
-    intervalsRef.current.toDest = setInterval(() => {
-      step++;
-      if (step >= points.length) {
-        clearInterval(intervalsRef.current.toDest);
+      if (res.status === "finalizado") {
+        clearInterval(intervalsRef.current.polling);
         setTowLocation(destination);
         setTripState("completed");
         finishTripAction(tripId).catch(console.error);
-      } else {
-        setTowLocation(points[step]);
-        if (animDataRef.current) {
-          animDataRef.current = { ...animDataRef.current, stepIndex: step, phase: "traveling" };
-        }
+        clearMockTripProgress(String(tripId));
       }
-    }, ANIMATION_INTERVAL_TO_DEST_MS);
+    }, 800);
   }, [destination]);
-
-  const resumeAnimation = useCallback(async () => {
-    const anim = animDataRef.current;
-    if (!anim || !currentTripId) return;
-
-    if (anim.phase === "arriving") {
-      startArriveInterval(anim.pointsToOrigin, anim.stepIndex, anim.tripId, anim.pointsToDest);
-    } else if (anim.phase === "traveling") {
-      setTowLocation(origin);
-      startToDestInterval(anim.pointsToDest, anim.stepIndex, anim.tripId);
-    }
-  }, [currentTripId, origin, startArriveInterval, startToDestInterval]);
 
   useEffect(() => {
     if ((tripState === "completed" || tripState === "cancelled") && !isExpanded) {
@@ -203,7 +150,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       persistedOnce.current = true;
       return;
     }
-    const toPersist: Record<string, unknown> = {
+    persistState({
       origin,
       destination,
       selectedVehicleId,
@@ -215,47 +162,49 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       originText,
       destinationText,
       currentTripId,
-    };
-    if (animDataRef.current) {
-      toPersist.animationData = animDataRef.current;
-    }
-    persistState(toPersist);
+      ...(mockProgressRef.current ? { mockProgress: mockProgressRef.current } : {}),
+    });
   }, [origin, destination, selectedVehicleId, selectedCraneType, isExpanded, tripState, towLocation, eta, originText, destinationText, currentTripId]);
 
-  // Restore animation after hydration
+  // Restore mock progress after hydration and start polling
   useEffect(() => {
     if (!hydrated) return;
-    const anim = animDataRef.current;
-    if (tripState === "searching" && origin && destination && currentTripId) {
-      const fakeStartLat = origin[0] + 0.015;
-      const fakeStartLng = origin[1] + 0.015;
-      const fakeStart: [number, number] = [fakeStartLat, fakeStartLng];
+    if (!currentTripId || !origin || !destination) return;
 
-      Promise.all([
-        fetchOsrmRoute(fakeStart, origin),
-        fetchOsrmRoute(origin, destination),
-      ]).then(([routeToOrigin, routeToDest]) => {
-        const pointsToOrigin = subsampleRoute(routeToOrigin, ANIMATION_POINTS_TO_ORIGIN);
-        const pointsToDest = subsampleRoute(routeToDest, ANIMATION_POINTS_TO_DEST);
-        const animData: AnimationData = {
-          pointsToOrigin,
-          pointsToDest,
-          phase: "arriving",
-          stepIndex: 0,
-          tripId: currentTripId,
-        };
-        animDataRef.current = animData;
+    const savedProgress = mockProgressRef.current;
 
+    const fakeStartLat = origin[0] + 0.015;
+    const fakeStartLng = origin[1] + 0.015;
+    const fakeStart: [number, number] = [fakeStartLat, fakeStartLng];
+
+    Promise.all([
+      fetchOsrmRoute(fakeStart, origin),
+      fetchOsrmRoute(origin, destination),
+    ]).then(([routeToOrigin, routeToDest]) => {
+      const pointsToOrigin = subsampleRoute(routeToOrigin, ANIMATION_POINTS_TO_ORIGIN);
+      const pointsToDest = subsampleRoute(routeToDest, ANIMATION_POINTS_TO_DEST);
+
+      initMockTripProgress(
+        String(currentTripId),
+        pointsToOrigin,
+        pointsToDest,
+        savedProgress?.step ?? 0,
+        savedProgress?.phase ?? "arriving",
+      );
+
+      if (tripState === "searching") {
         intervalsRef.current.searchTimeout = setTimeout(() => {
           setTripState("found");
           setEta(MOCK_ETA_MINUTES);
-          setTowLocation(pointsToOrigin[0]);
-          startArriveInterval(pointsToOrigin, 0, currentTripId, pointsToDest);
+          setTowLocation(pointsToOrigin[savedProgress?.step ?? 0]);
+          startPolling(currentTripId);
         }, SEARCH_DELAY_MS);
-      });
-    } else if (anim && (tripState === "found" || tripState === "in_progress")) {
-      resumeAnimation();
-    }
+      } else if (tripState === "found" || tripState === "in_progress") {
+        setTowLocation(pointsToOrigin[savedProgress?.step ?? 0] ?? origin);
+        startPolling(currentTripId);
+      }
+    });
+
     return () => {
       if (intervalsRef.current.searchTimeout) {
         clearTimeout(intervalsRef.current.searchTimeout);
@@ -364,28 +313,21 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     const pointsToOrigin = subsampleRoute(routeToOrigin, ANIMATION_POINTS_TO_ORIGIN);
     const pointsToDest = subsampleRoute(routeToDest, ANIMATION_POINTS_TO_DEST);
 
-    const animData: AnimationData = {
-      pointsToOrigin,
-      pointsToDest,
-      phase: "arriving",
-      stepIndex: 0,
-      tripId: createdTripId!,
-    };
-    animDataRef.current = animData;
+    mockProgressRef.current = { step: 0, phase: "arriving" };
+
+    initMockTripProgress(String(createdTripId!), pointsToOrigin, pointsToDest);
 
     intervalsRef.current.searchTimeout = setTimeout(() => {
       setTripState("found");
       setEta(MOCK_ETA_MINUTES);
       setTowLocation(pointsToOrigin[0]);
-
-      startArriveInterval(pointsToOrigin, 0, createdTripId!, pointsToDest);
+      startPolling(createdTripId!);
     }, SEARCH_DELAY_MS);
   };
 
   const handleCancelTrip = async () => {
     if (!currentTripId) return;
-    if (intervalsRef.current.arrive) clearInterval(intervalsRef.current.arrive);
-    if (intervalsRef.current.toDest) clearInterval(intervalsRef.current.toDest);
+    if (intervalsRef.current.polling) clearInterval(intervalsRef.current.polling);
     if (intervalsRef.current.searchTimeout) clearTimeout(intervalsRef.current.searchTimeout);
     setIsRequesting(true);
     const res = await cancelTripAction(currentTripId);
@@ -394,7 +336,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       alert("Error al cancelar: " + res.error);
       return;
     }
-    animDataRef.current = null;
+    clearMockTripProgress(String(currentTripId));
+    mockProgressRef.current = null;
     setTripState("cancelled");
     setTowLocation(null);
     setCurrentTripId(null);

@@ -1,24 +1,17 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { SignIn, SignOutButton } from "@clerk/nextjs";
 import Link from "next/link";
+import AdminAuth from "./AdminAuth";
 
 export default async function AdminPage() {
   const user = await currentUser();
-  let isUnauthorized = false;
-  
-  if (user) {
-    const role = user.publicMetadata?.role as string | undefined;
-    if (role === "admin") {
-      redirect("/admin/dashboard");
-    } else {
-      isUnauthorized = true;
-    }
+
+  if (user?.publicMetadata?.role === "admin") {
+    redirect("/admin/dashboard");
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      {/* Navbar estilo similar a la principal */}
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 cursor-pointer">
@@ -30,32 +23,10 @@ export default async function AdminPage() {
         </div>
       </nav>
 
-      {/* Controles de Inicio de Sesión / Error */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="max-w-md w-full text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Acceso Administrativo</h1>
-
-          {isUnauthorized ? (
-            <div className="bg-muted border-l-4 border-red-500 text-red-400 p-6 mb-8 text-left rounded shadow-sm">
-              <p className="font-bold text-lg mb-2">Acceso Denegado</p>
-              <p className="mb-4">Tu cuenta actual no tiene privilegios de administrador para acceder a este portal.</p>
-              <div className="mt-4 flex justify-center">
-                <SignOutButton redirectUrl="/admin">
-                  <button className="px-6 py-3 bg-muted-foreground/20 text-foreground font-bold rounded-xl hover:bg-muted-foreground/30 transition text-base duration-200 border border-border cursor-pointer">
-                    Volver al inicio de sesión
-                  </button>
-                </SignOutButton>
-              </div>
-            </div>
-          ) : (
-            <>
-              <p className="text-lg text-muted-foreground mb-8">Ingresa con tus credenciales asignadas para acceder al panel de control.</p>
-              <div className="flex flex-col items-center">
-                <SignIn forceRedirectUrl="/admin/dashboard" routing="hash" />
-              </div>
-            </>
-          )}
-
+          <AdminAuth user={user} />
         </div>
       </div>
     </div>
