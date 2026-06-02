@@ -26,7 +26,7 @@ export default async function CostumerHome() {
 
         <div className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-brand-yellow bg-card p-6 shadow-[0_4px_24px_rgba(245,197,24,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_36px_rgba(245,197,24,0.28)]">
           <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl">
-            <img src="/images/logo/tow.svg" alt="Tow It" width="32" height="32" />
+            <img src="/images/towicon/tow.svg" alt="Tow It" width="32" height="32" />
           </div>
           <h2 className="mb-2 text-[18px] font-bold text-foreground">Solicitar un Remolque</h2>
           <p className="mb-6 flex-1 text-[14px] leading-relaxed text-muted-foreground">

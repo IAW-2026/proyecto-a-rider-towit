@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faPencil, faTrash, faCar, faWeightHanging, faCalendar, faTruck } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faPencil, faTrash, faCar, faWeightHanging, faCalendar } from "@fortawesome/free-solid-svg-icons";
 import { addVehicleAction, deleteVehicleAction, editVehicleAction } from "./actions";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
@@ -150,7 +150,7 @@ export default function VehiclesClient({ initialVehicles = [] }: { initialVehicl
         {!showForm && initialVehicles.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card py-16 text-center">
             <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-yellow/10">
-              <FontAwesomeIcon icon={faTruck} className="h-6 w-6 text-brand-yellow-dark" />
+              <FontAwesomeIcon icon={faCar} className="h-6 w-6 text-brand-yellow-dark" />
             </div>
             <p className="mb-1 text-[15px] font-bold text-foreground">Ningún vehículo registrado</p>
             <p className="text-[13px] text-muted-foreground max-w-[200px]">

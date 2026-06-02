@@ -100,7 +100,7 @@ function getCarIcon(craneType: string) {
     });
   }
   return L.divIcon({
-    html: '<img src="/images/logo/tow4.svg" alt="TowIt" style="width:34px;height:34px;" />',
+    html: '<img src="/images/towicon/tow4.svg" alt="TowIt" style="width:34px;height:34px;" />',
     className: 'bg-transparent border-none',
     iconSize: [40, 40],
     iconAnchor: [20, 20],
