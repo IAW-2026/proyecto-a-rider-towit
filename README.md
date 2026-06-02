@@ -18,7 +18,7 @@ Aplicación de solicitud de remolques (grúas) para el rol de **Rider** — Proy
   - Código de acceso: 424242
 
 ### Cliente (usuario final)
-- Crear cuenta desde la pantalla de inicio (`/auth/sign-up`) o iniciar sesión (`/auth/sign-in`).
+- Crear cuenta desde la pantalla de inicio o iniciar sesión.
 - Accede a: home, solicitar viaje, historial de viajes, gestión de vehículos.
 
 ### Administrador
