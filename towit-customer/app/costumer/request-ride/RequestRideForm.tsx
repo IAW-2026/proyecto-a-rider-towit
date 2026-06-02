@@ -25,7 +25,7 @@ interface Vehicle {
 
 const craneTypeLabels: Record<string, string> = {
   medium: "Mediana",
-  large: "Pesada",
+  large: "Grande",
   conventional: "Convencional",
 };
 
@@ -236,10 +236,19 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   );
 
   useEffect(() => {
-    if (selectedVehicleId && availableCraneTypes.length > 0 && !availableCraneTypes.includes(selectedCraneType as keyof typeof WEIGHT_LIMITS)) {
+    if (!selectedVehicleId || availableCraneTypes.length === 0) return;
+    if (!availableCraneTypes.includes(selectedCraneType as keyof typeof WEIGHT_LIMITS)) {
       setSelectedCraneType(availableCraneTypes[0]);
     }
   }, [selectedVehicleId, selectedWeight, availableCraneTypes, selectedCraneType]);
+
+  const prevVehicleRef = useRef(selectedVehicleId);
+  useEffect(() => {
+    if (prevVehicleRef.current && prevVehicleRef.current !== selectedVehicleId && availableCraneTypes.length > 0) {
+      setSelectedCraneType(availableCraneTypes[0]);
+    }
+    prevVehicleRef.current = selectedVehicleId;
+  }, [selectedVehicleId, availableCraneTypes]);
 
   const handleOriginSelect = (coords: [number, number], display_name?: string) => {
     setOrigin(coords);
