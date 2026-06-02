@@ -59,7 +59,6 @@ export async function createTripAction(data: {
       date: currentDate,
       time: currentTime,
       towerId: null,
-      feedbackId: null,
     }).returning();
 
     const createdTrip = newTrip[0];
@@ -194,8 +193,8 @@ export async function submitFeedbackAction(data: {
 
     const v = parsed.data;
     const feedbackResult = await submitRating({
-      trip_id: String(v.tripId),
-      customer_id: user.id,
+      trip_id: v.tripId,
+      customer_id: customerRecord.customerId,
       rating: v.rating,
       comment: v.comment
     });
@@ -206,12 +205,8 @@ export async function submitFeedbackAction(data: {
 
     console.log("Feedback enviado exitosamente:", feedbackResult);
 
-    await db.update(trip)
-      .set({ feedbackId: feedbackResult.feedback_id })
-      .where(eq(trip.tripId, v.tripId));
-
     revalidatePath("/costumer/history");
-    return { success: true, feedbackId: feedbackResult.feedback_id };
+    return { success: true, rating: feedbackResult.rating };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Hubo un error al enviar la calificación."
     console.error("Error enviando feedback:", error);

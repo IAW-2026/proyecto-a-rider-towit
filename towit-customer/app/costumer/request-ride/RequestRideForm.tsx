@@ -5,13 +5,12 @@ import { calculateDistance, fetchOsrmRoute, subsampleRoute } from "@/lib/utils";
 import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, ANIMATION_INTERVAL_ARRIVE_MS, ANIMATION_INTERVAL_TO_DEST_MS, SEARCH_DELAY_MS, MOCK_ETA_MINUTES } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
-import { createTripAction, cancelTripAction, finishTripAction, submitFeedbackAction } from "@/app/costumer/request-ride/actions";
+import { createTripAction, cancelTripAction, finishTripAction } from "@/app/costumer/request-ride/actions";
 import { addVehicleAction } from "@/app/costumer/vehicles/actions";
 import FormStep from "@/components/steps/FormStep";
 import SearchingStep from "@/components/steps/SearchingStep";
 import FoundStep from "@/components/steps/FoundStep";
 import InProgressStep from "@/components/steps/InProgressStep";
-import CompletedFeedbackStep from "@/components/steps/CompletedFeedbackStep";
 import FeedbackSubmittedStep from "@/components/steps/FeedbackSubmittedStep";
 import CancelledStep from "@/components/steps/CancelledStep";
 
@@ -86,7 +85,6 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       if (saved.originText) setOriginText(saved.originText as string);
       if (saved.destinationText) setDestinationText(saved.destinationText as string);
       if (saved.currentTripId) setCurrentTripId(saved.currentTripId as number);
-      if (saved.feedbackSubmitted !== undefined) setFeedbackSubmitted(saved.feedbackSubmitted as boolean);
       if (saved.tripState) setTripState(saved.tripState as typeof tripState);
       if (saved.towLocation) setTowLocation(saved.towLocation as [number, number]);
       if (saved.eta !== undefined) setEta(saved.eta as number);
@@ -120,7 +118,6 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const [originText, setOriginText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
   const [currentTripId, setCurrentTripId] = useState<number | null>(null);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const intervalsRef = useRef<{ arrive?: NodeJS.Timeout; toDest?: NodeJS.Timeout; searchTimeout?: NodeJS.Timeout }>({});
   const animDataRef = useRef<AnimationData | null>(null);
   const persistedOnce = useRef(false);
@@ -218,13 +215,12 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       originText,
       destinationText,
       currentTripId,
-      feedbackSubmitted,
     };
     if (animDataRef.current) {
       toPersist.animationData = animDataRef.current;
     }
     persistState(toPersist);
-  }, [origin, destination, selectedVehicleId, selectedCraneType, isExpanded, tripState, towLocation, eta, originText, destinationText, currentTripId, feedbackSubmitted]);
+  }, [origin, destination, selectedVehicleId, selectedCraneType, isExpanded, tripState, towLocation, eta, originText, destinationText, currentTripId]);
 
   // Restore animation after hydration
   useEffect(() => {
@@ -270,13 +266,13 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
   // Clear storage on terminal states
   useEffect(() => {
-    if (tripState === "completed" && feedbackSubmitted) {
+    if (tripState === "completed") {
       clearPersistedState();
     }
     if (tripState === "cancelled") {
       clearPersistedState();
     }
-  }, [tripState, feedbackSubmitted]);
+  }, [tripState]);
 
   const estimatedDistance = origin && destination
     ? calculateDistance(origin[0], origin[1], destination[0], destination[1])
@@ -409,16 +405,6 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     return await addVehicleAction(formData);
   };
 
-  const handleSubmitFeedback = async (tripId: number, rating: number) => {
-    const res = await submitFeedbackAction({ tripId, rating, comment: "" });
-    if ("error" in res) return { success: false, error: res.error };
-    return { success: true };
-  };
-
-  const handleFeedbackDone = () => {
-    setFeedbackSubmitted(true);
-  };
-
   const renderStep = () => {
     switch (tripState) {
       case "idle":
@@ -459,15 +445,6 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       case "in_progress":
         return <InProgressStep />;
       case "completed":
-        if (!feedbackSubmitted && currentTripId) {
-          return (
-            <CompletedFeedbackStep
-              tripId={currentTripId}
-              onSubmitFeedback={handleSubmitFeedback}
-              onFeedbackDone={handleFeedbackDone}
-            />
-          );
-        }
         return <FeedbackSubmittedStep />;
       case "cancelled":
         return <CancelledStep />;
@@ -479,7 +456,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   return (
     <div className="absolute inset-0 w-full h-full">
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
-        {(tripState === "idle" || tripState === "cancelled" || (tripState === "completed" && feedbackSubmitted)) && (
+        {(tripState === "idle" || tripState === "cancelled" || tripState === "completed") && (
           <div className="absolute top-[10px] left-[10px] lg:left-[calc(450px+10px)] xl:left-[calc(500px+10px)] pointer-events-auto">
             <BackButton />
           </div>

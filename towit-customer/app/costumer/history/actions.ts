@@ -33,8 +33,6 @@ async function getOrCreateCustomer() {
 export async function getTripsAction(page: number = 1) {
   try {
     const customerRecord = await getOrCreateCustomer();
-    const user = await currentUser();
-    const userId = user?.id || "";
 
     const whereFilter = eq(trip.customerId, customerRecord.customerId);
 
@@ -61,7 +59,6 @@ export async function getTripsAction(page: number = 1) {
         vehicleBrand: vehicle.brand,
         vehicleModel: vehicle.model,
         towerId: trip.towerId,
-        feedbackId: trip.feedbackId,
       })
       .from(trip)
       .leftJoin(vehicle, eq(trip.vehicleId, vehicle.vehicleId))
@@ -82,9 +79,9 @@ export async function getTripsAction(page: number = 1) {
         }
       }
 
-      if (t.feedbackId) {
+      if (t.status === "finalizado") {
         try {
-          tripRating = await getTripRating(String(t.tripId), userId);
+          tripRating = await getTripRating(t.tripId, customerRecord.customerId);
         } catch (e) {
           console.error("Error fetching trip rating:", e);
         }

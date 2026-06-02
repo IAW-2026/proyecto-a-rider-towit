@@ -39,7 +39,6 @@ export const trip = pgTable('Trip', {
   destinationLat: decimal('destination_lat', { precision: 9, scale: 6 }).notNull(),
   destinationLng: decimal('destination_lng', { precision: 9, scale: 6 }).notNull(),
   
-  feedbackId: varchar('feedback_id', { length: 50 }),
   date: date('date').notNull(),
   time: time('time').notNull(),
   status: varchar('status', { length: 50 }).notNull(),
