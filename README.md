@@ -9,13 +9,13 @@ Aplicación de solicitud de remolques (grúas) para el rol de **Rider** — Proy
 ## Tipos de usuario y acceso
 
 - Admin:
-- - Mail: admin_rider+clerk_test@iaw.com
-- - Contraseña: iawuser#
-- - Código de acceso: 424242
+  - Mail: admin_rider+clerk_test@iaw.com
+  - Contraseña: iawuser#
+  - Código de acceso: 424242
 - Rider: 
-- - Mail: rider+clerk_test@iaw.com
-- - Contraseña: iawuser#
-- - Código de acceso: 424242
+  - Mail: rider+clerk_test@iaw.com
+  - Contraseña: iawuser#
+  - Código de acceso: 424242
 
 ### Cliente (usuario final)
 - Crear cuenta desde la pantalla de inicio (`/auth/sign-up`) o iniciar sesión (`/auth/sign-in`).
