@@ -22,33 +22,35 @@ export async function GET(
       )
     }
 
-    const tripRecord = await db.query.trip.findFirst({
+    const tripRecords = await db.query.trip.findMany({
       where: eq(trip.customerId, customerRecord.customerId),
       orderBy: [desc(trip.date), desc(trip.time)],
     })
 
-    if (!tripRecord) {
+    if (!tripRecords.length) {
       return Response.json(
         { error: 'No trips found for this customer' },
         { status: 404 }
       )
     }
 
-    return Response.json({
-      trip_id: String(tripRecord.tripId),
-      customer_id: String(tripRecord.customerId),
-      tower_id: tripRecord.towerId ?? '',
+    const trips = tripRecords.map(t => ({
+      trip_id: String(t.tripId),
+      customer_id: String(t.customerId),
+      tower_id: t.towerId ?? '',
       origin: {
-        lat: String(tripRecord.originLat),
-        long: String(tripRecord.originLng),
+        lat: String(t.originLat),
+        long: String(t.originLng),
       },
       destination: {
-        lat: String(tripRecord.destinationLat),
-        long: String(tripRecord.destinationLng),
+        lat: String(t.destinationLat),
+        long: String(t.destinationLng),
       },
-      status: tripRecord.status,
-      date: String(tripRecord.date),
-    })
+      status: t.status,
+      date: String(t.date),
+    }))
+
+    return Response.json(trips)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error'
     return Response.json(
