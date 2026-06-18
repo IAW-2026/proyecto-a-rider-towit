@@ -2,18 +2,20 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { calculateDistance, fetchOsrmRoute, subsampleRoute } from "@/lib/utils";
-import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES } from "@/lib/constants";
+import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES, PAYMENT_APP_URL } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
-import { createTripAction, cancelTripAction, finishTripAction } from "@/app/costumer/request-ride/actions";
+import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction } from "@/app/costumer/request-ride/actions";
 import { addVehicleAction } from "@/app/costumer/vehicles/actions";
 import { initMockTripProgress, getTowerRequestStatus, clearMockTripProgress } from "@/services/towerService";
+import { getPaymentUrl } from "@/services/paymentService";
 import FormStep from "@/components/steps/FormStep";
 import SearchingStep from "@/components/steps/SearchingStep";
 import FoundStep from "@/components/steps/FoundStep";
 import InProgressStep from "@/components/steps/InProgressStep";
 import FeedbackSubmittedStep from "@/components/steps/FeedbackSubmittedStep";
 import CancelledStep from "@/components/steps/CancelledStep";
+import PaymentFailedStep from "@/components/steps/PaymentFailedStep";
 
 interface Vehicle {
   id: string;
@@ -57,7 +59,13 @@ function clearPersistedState() {
   }
 }
 
-export default function RequestRideForm({ initialVehicles = [] }: { initialVehicles?: Vehicle[] }) {
+interface PaymentResultProp {
+  status: string;
+  tripId?: number;
+  transactionId?: string;
+}
+
+export default function RequestRideForm({ initialVehicles = [], paymentResult }: { initialVehicles?: Vehicle[]; paymentResult?: PaymentResultProp }) {
   const [origin, setOrigin] = useState<[number, number] | null>(null);
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
@@ -66,6 +74,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const [hydrated, setHydrated] = useState(false);
+  const [paymentHandled, setPaymentHandled] = useState(false);
 
   useEffect(() => {
     const saved = loadPersistedState();
@@ -105,7 +114,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
 
   const [formErrors, setFormErrors] = useState<{ origin?: string; destination?: string; vehicle?: string }>({});
   const [isRequesting, setIsRequesting] = useState(false);
-  const [tripState, setTripState] = useState<"idle" | "searching" | "found" | "in_progress" | "completed" | "cancelled">("idle");
+  const [tripState, setTripState] = useState<"idle" | "searching" | "found" | "in_progress" | "completed" | "cancelled" | "payment_failed">("idle");
   const [towLocation, setTowLocation] = useState<[number, number] | null>(null);
   const [eta, setEta] = useState<number | null>(null);
   const [originText, setOriginText] = useState<string>("");
@@ -116,6 +125,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
   const tripStateRef = useRef(tripState);
   tripStateRef.current = tripState;
   const persistedOnce = useRef(false);
+  const useMocksRef = useRef(true);
 
   const startPolling = useCallback((tripId: number) => {
     intervalsRef.current.polling = setInterval(async () => {
@@ -264,6 +274,35 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
     setFormErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
+  const startSearchFlow = useCallback(async (tripId: number) => {
+    if (useMocksRef.current) {
+      const fakeStartLat = origin![0] + 0.015;
+      const fakeStartLng = origin![1] + 0.015;
+      const fakeStart: [number, number] = [fakeStartLat, fakeStartLng];
+
+      const [routeToOrigin, routeToDest] = await Promise.all([
+        fetchOsrmRoute(fakeStart, origin!),
+        fetchOsrmRoute(origin!, destination!),
+      ]);
+
+      const pointsToOrigin = subsampleRoute(routeToOrigin, ANIMATION_POINTS_TO_ORIGIN);
+      const pointsToDest = subsampleRoute(routeToDest, ANIMATION_POINTS_TO_DEST);
+
+      mockProgressRef.current = { step: 0, phase: "arriving" };
+
+      initMockTripProgress(String(tripId), pointsToOrigin, pointsToDest);
+    }
+
+    setTripState("searching");
+
+    intervalsRef.current.searchTimeout = setTimeout(() => {
+      setTripState("found");
+      setEta(MOCK_ETA_MINUTES);
+      setTowLocation(origin);
+      startPolling(tripId);
+    }, SEARCH_DELAY_MS);
+  }, [origin, destination, startPolling]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: { origin?: string; destination?: string; vehicle?: string } = {};
@@ -304,36 +343,55 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
       return;
     }
 
-    let createdTripId: number | null = null;
-    if (result.trip) {
-      createdTripId = result.trip.tripId;
-      setCurrentTripId(createdTripId);
+    const createdTripId = result.trip!.tripId;
+    setCurrentTripId(createdTripId);
+
+    if (result.useMocks) {
+      useMocksRef.current = true;
+      startSearchFlow(createdTripId);
+    } else {
+      useMocksRef.current = false;
+      const returnUrl = encodeURIComponent(`${window.location.origin}/costumer/request-ride?payment_status=`);
+      const paymentUrl = getPaymentUrl(createdTripId, returnUrl);
+      window.location.href = paymentUrl;
     }
-
-    setTripState("searching");
-    setIsRequesting(false);
-
-    const fakeStartLat = origin![0] + 0.015;
-    const fakeStartLng = origin![1] + 0.015;
-    const fakeStart: [number, number] = [fakeStartLat, fakeStartLng];
-
-    const routeToOrigin = await fetchOsrmRoute(fakeStart, origin!);
-    const routeToDest = await fetchOsrmRoute(origin!, destination!);
-
-    const pointsToOrigin = subsampleRoute(routeToOrigin, ANIMATION_POINTS_TO_ORIGIN);
-    const pointsToDest = subsampleRoute(routeToDest, ANIMATION_POINTS_TO_DEST);
-
-    mockProgressRef.current = { step: 0, phase: "arriving" };
-
-    initMockTripProgress(String(createdTripId!), pointsToOrigin, pointsToDest);
-
-    intervalsRef.current.searchTimeout = setTimeout(() => {
-      setTripState("found");
-      setEta(MOCK_ETA_MINUTES);
-      setTowLocation(pointsToOrigin[0]);
-      startPolling(createdTripId!);
-    }, SEARCH_DELAY_MS);
   };
+
+  const handleRetryPayment = () => {
+    if (!currentTripId) return;
+    const returnUrl = encodeURIComponent(`${window.location.origin}/costumer/request-ride?payment_status=`);
+    window.location.href = `${PAYMENT_APP_URL}/payments/${currentTripId}?return_url=${returnUrl}`;
+  };
+
+  // Handle payment result when redirected back from Payment App
+  useEffect(() => {
+    if (!paymentResult || paymentHandled) return;
+
+    setPaymentHandled(true);
+
+    const tripId = paymentResult.tripId;
+    if (!tripId) return;
+    setCurrentTripId(tripId);
+
+    if (paymentResult.status === "success") {
+      useMocksRef.current = false;
+      setIsRequesting(true);
+      confirmPaymentAction(tripId).then((res) => {
+        setIsRequesting(false);
+        if (res.success) {
+          window.history.replaceState({}, "", "/costumer/request-ride");
+          startSearchFlow(tripId);
+        } else {
+          setTripState("payment_failed");
+        }
+      });
+    } else if (paymentResult.status === "failure") {
+      setTripState("payment_failed");
+    } else if (paymentResult.status === "pending") {
+      setTripState("searching");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentResult]);
 
   const handleCancelTrip = async () => {
     if (!currentTripId) return;
@@ -401,6 +459,8 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
         return <FeedbackSubmittedStep />;
       case "cancelled":
         return <CancelledStep />;
+      case "payment_failed":
+        return <PaymentFailedStep onRetry={handleRetryPayment} />;
       default:
         return null;
     }
@@ -454,7 +514,7 @@ export default function RequestRideForm({ initialVehicles = [] }: { initialVehic
               <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm">
                 {renderStep()}
               </div>
-              {(tripState === "searching" || tripState === "found") && (
+              {(tripState === "searching" || tripState === "found" || tripState === "payment_failed") && (
                 <div className="w-full max-w-sm pb-6 shrink-0">
                   <button
                     onClick={handleCancelTrip}

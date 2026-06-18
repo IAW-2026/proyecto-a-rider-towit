@@ -7,56 +7,59 @@ import { useMocks } from "@/lib/service-utils";
 import { delay } from "@/lib/utils";
 
 export interface PaymentPayload {
-  trip_id: number;
-  clerk_id: string;
+  tripId: string;
+  clerkId: string;
   amount: number;
 }
 
 export interface RefundPayload {
-  trip_id: string;
-  clerk_id: string;
-  reason: string;
-  refund_type: string;
+  tripId: string;
+  clerkId: string;
+  refundType: "TOTAL" | "PARTIAL";
 }
 
-// 1. Generar el pago a realizarse asociado a un viaje
+const PAYMENTS_API_URL = process.env.PAYMENTS_API_URL || "https://payments-towit-six.vercel.app";
+
+// URL para redirigir al usuario a la Payment App a procesar el pago
+export function getPaymentUrl(tripId: number, returnUrl: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_PAYMENT_APP_URL || "https://payments-towit-six.vercel.app";
+  const params = new URLSearchParams({ return_url: returnUrl });
+  return `${baseUrl}/payments/${tripId}?${params.toString()}`;
+}
+
+// 1. Registrar pago en Payments App (server-to-server)
 export async function generatePayment(payload: PaymentPayload) {
   if (useMocks()) {
-    console.log(`[MOCK - Payments App] Procesando pago por $${payload.amount} del viaje #${payload.trip_id}...`);
+    console.log(`[MOCK - Payments App] Registrando pago por $${payload.amount} del viaje #${payload.tripId}...`);
     await delay(2000);
-    // Retorna el mismo formato de la documentación
-    return { 
-      transaction_id: "txn_mock_123456789" 
-    };
+    return {};
   }
 
-  /*
-  const res = await fetch(`${process.env.PAYMENTS_API_URL}/api/payments/`, {
+  const res = await fetch(`${PAYMENTS_API_URL}/api/payments`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    redirect: "follow",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_API_PAYMENT_SECRET}` },
+    body: JSON.stringify(payload),
   });
+  console.log("Payment API response status:", res.status, "Mensaje:", await res.text());
+  if (!res.ok) throw new Error(`Payment API error: ${res.status}`);
   return res.json();
-  */
 }
 
 // 2. Reembolsar dinero de un viaje cancelado
 export async function refundPayment(payload: RefundPayload) {
   if (useMocks()) {
-    console.log(`[MOCK - Payments App] Generando reembolso para el viaje #${payload.trip_id}. Motivo: ${payload.reason}...`);
+    console.log(`[MOCK - Payments App] Generando reembolso ${payload.refundType} para el viaje #${payload.tripId}...`);
     await delay(1500);
-    // Retorna el ID de la transacción de reembolso
-    return { 
-      transaction_id: "ref_mock_987654321" 
-    };
+    return { message: "Reembolso exitoso (mock)" };
   }
 
-  /*
-  const res = await fetch(`${process.env.PAYMENTS_API_URL}/api/payments/cancellations/`, {
+  const res = await fetch(`${PAYMENTS_API_URL}/api/refunds`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    redirect: "follow",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_API_PAYMENT_SECRET}` },
+    body: JSON.stringify(payload),
   });
+  if (!res.ok) throw new Error(`Payment refund API error: ${res.status}`);
   return res.json();
-  */
 }

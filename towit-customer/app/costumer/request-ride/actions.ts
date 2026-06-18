@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation";
 
+import { useMocks } from "@/lib/service-utils";
 import { generatePayment, refundPayment } from "@/services/paymentService";
 import { requestTowerForTrip, cancelTowerRequest } from "@/services/towerService";
 import { submitRating } from "@/services/feedbackService";
@@ -64,45 +65,70 @@ export async function createTripAction(data: {
     const createdTrip = newTrip[0];
 
     try {
-      const paymentResult = await generatePayment({
-        trip_id: createdTrip.tripId,
-        clerk_id: user.id,
-        amount: v.estimatedPrice
+      await generatePayment({
+        tripId: (createdTrip.tripId).toString(),
+        clerkId: user.id,
+        amount: data.estimatedPrice,
       });
-      console.log("Pago exitoso simulado:", paymentResult);
-
-      await db.update(trip).set({ status: "en proceso" }).where(eq(trip.tripId, createdTrip.tripId));
-      createdTrip.status = "en proceso";
     } catch (e) {
-      console.error("Error al cobrar:", e);
-    }
-
-    try {
-      const towerResult = await requestTowerForTrip({
-        customer_id: user.id,
-        trip: {
-          id: String(createdTrip.tripId),
-          origin: { lat: v.originLat.toString(), long: v.originLng.toString() },
-          destination: { lat: v.destinationLat.toString(), long: v.destinationLng.toString() },
-        },
-        vehicle_data: { brand: "", model: "", year: 0 },
-      });
-
-      if (towerResult?.tower_id) {
-        await db.update(trip)
-          .set({ towerId: towerResult.tower_id })
-          .where(eq(trip.tripId, createdTrip.tripId));
-        createdTrip.towerId = towerResult.tower_id;
-      }
-    } catch (e) {
-      console.error("Error al asignar tower:", e);
+      console.error("Error al registrar pago en Payments App:", e);
     }
 
     revalidatePath("/costumer/request-ride");
-    return { success: true, trip: createdTrip };
+
+    return { success: true, trip: createdTrip, useMocks: useMocks() };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Hubo un error al crear la solicitud de grúa."
     console.error("Error creating trip:", error);
+    return { error: message };
+  }
+}
+
+export async function confirmPaymentAction(tripId: number) {
+  try {
+    const parsed = tripIdSchema.safeParse(tripId);
+    if (!parsed.success) {
+      return { error: "ID de viaje inválido" };
+    }
+
+    const user = await currentUser();
+    if (!user) {
+      return { error: "Acceso denegado." };
+    }
+
+    const tripRecord = await db.query.trip.findFirst({
+      where: eq(trip.tripId, tripId),
+    });
+
+    if (!tripRecord) {
+      return { error: "Viaje no encontrado." };
+    }
+
+    const towerResult = await requestTowerForTrip({
+      customer_id: user.id,
+      trip: {
+        id: String(tripId),
+        origin: { lat: tripRecord.originLat, long: tripRecord.originLng },
+        destination: { lat: tripRecord.destinationLat, long: tripRecord.destinationLng },
+      },
+      vehicle_data: { brand: "", model: "", year: 0 },
+    });
+
+    if (towerResult?.tower_id) {
+      await db.update(trip)
+        .set({ towerId: towerResult.tower_id, status: "en proceso" })
+        .where(eq(trip.tripId, tripId));
+    } else {
+      await db.update(trip)
+        .set({ status: "en proceso" })
+        .where(eq(trip.tripId, tripId));
+    }
+
+    revalidatePath("/costumer/request-ride");
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Error al confirmar el pago."
+    console.error("Error confirming payment:", error);
     return { error: message };
   }
 }
@@ -122,12 +148,11 @@ export async function cancelTripAction(tripId: number) {
     console.log(`Iniciando cancelación del viaje #${tripId}`);
 
     const refundResult = await refundPayment({
-      trip_id: String(tripId),
-      clerk_id: user.id,
-      reason: "Cancelación por el usuario desde la UI",
-      refund_type: "full"
+      tripId: String(tripId),
+      clerkId: user.id,
+      refundType: "TOTAL",
     });
-    console.log("Reembolso simulado exitoso:", refundResult);
+    console.log("Reembolso exitoso:", refundResult);
 
     const cancelResult = await cancelTowerRequest(String(tripId));
     console.log("Cancelación desde la app de la grúa exitosa:", cancelResult);

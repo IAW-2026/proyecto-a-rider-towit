@@ -1,20 +1,21 @@
 import { useMocks } from "@/lib/service-utils";
 import { delay } from "@/lib/utils";
 
+const FEEDBACK_API_URL = process.env.FEEDBACK_API_URL || "https://proyecto-a-feedback2-towit.vercel.app";
+
 export async function getTripRating(tripId: number, customerId: number) {
   if (useMocks()) {
     console.log(`[MOCK - Feedback App] Obteniendo calificación del viaje #${tripId} para customer #${customerId}...`);
     return { rating: 4 };
   }
 
-  /*
-  const res = await fetch(`${process.env.FEEDBACK_API_URL}/api/feedback`, {
+  const res = await fetch(`${FEEDBACK_API_URL}/api/feedback`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ customer_id: customerId, trip_id: tripId })
+    body: JSON.stringify({ customer_id: customerId, trip_id: tripId }),
   });
+  if (!res.ok) throw new Error(`Feedback API error: ${res.status}`);
   return res.json();
-  */
 }
 
 export interface SubmitRatingPayload {
@@ -31,14 +32,13 @@ export async function submitRating(payload: SubmitRatingPayload) {
     return { rating: payload.rating };
   }
 
-  /*
-  const res = await fetch(`${process.env.FEEDBACK_API_URL}/api/feedback`, {
+  const res = await fetch(`${FEEDBACK_API_URL}/api/feedback`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
+  if (!res.ok) throw new Error(`Feedback submit API error: ${res.status}`);
   return res.json();
-  */
 }
 
 export async function getAvgRating(userId: string) {
@@ -47,8 +47,7 @@ export async function getAvgRating(userId: string) {
     return { avg_rating: 4.8 };
   }
 
-  /*
-  const res = await fetch(`${process.env.FEEDBACK_API_URL}/api/feedback/avg_rating/${userId}`);
+  const res = await fetch(`${FEEDBACK_API_URL}/api/feedback/avg_rating/${userId}`);
+  if (!res.ok) throw new Error(`Feedback avg rating API error: ${res.status}`);
   return res.json();
-  */
 }

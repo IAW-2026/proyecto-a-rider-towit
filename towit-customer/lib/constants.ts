@@ -1,5 +1,7 @@
 export const OSRM_BASE_URL = "https://router.project-osrm.org/route/v1/driving"
 
+export const PAYMENT_APP_URL = process.env.NEXT_PUBLIC_PAYMENT_APP_URL || "https://payments-towit-six.vercel.app"
+
 export const NOMINATIM_SEARCH_URL = "https://nominatim.openstreetmap.org/search"
 export const NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
 

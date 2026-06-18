@@ -1,6 +1,8 @@
 import { useMocks } from "@/lib/service-utils";
 import { delay } from "@/lib/utils";
 
+const TOWER_API_URL = process.env.TOWER_API_URL || "https://proyecto-a-driver2-towit.vercel.app";
+
 interface MockTripProgress {
   pointsToOrigin: [number, number][];
   pointsToDest: [number, number][];
@@ -39,10 +41,9 @@ export async function getTowerVehicle(vehicleId: string) {
     };
   }
 
-  /*
-  const res = await fetch(`${process.env.TOWER_API_URL}/api/tower/vehicles/${vehicleId}`);
+  const res = await fetch(`${TOWER_API_URL}/api/tower/vehicles/${vehicleId}`);
+  if (!res.ok) throw new Error(`Tower API error: ${res.status}`);
   return res.json();
-  */
 }
 
 // 2. Solicitar tower para viaje
@@ -64,14 +65,13 @@ export async function requestTowerForTrip(payload: TowerRequestPayload) {
     return { tower_id: "tow_mock_001" };
   }
 
-  /*
-  const res = await fetch(`${process.env.TOWER_API_URL}/api/tower/requests`, {
+  const res = await fetch(`${TOWER_API_URL}/api/tower/requests`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
+  if (!res.ok) throw new Error(`Tower request API error: ${res.status}`);
   return res.json();
-  */
 }
 
 // 3. Consultar estado de tower asignado
@@ -104,10 +104,9 @@ export async function getTowerRequestStatus(tripId: string) {
     };
   }
 
-  /*
-  const res = await fetch(`${process.env.TOWER_API_URL}/api/tower/requests/${tripId}`);
+  const res = await fetch(`${TOWER_API_URL}/api/tower/requests/${tripId}`);
+  if (!res.ok) throw new Error(`Tower status API error: ${res.status}`);
   return res.json();
-  */
 }
 
 // 4. Obtener datos del conductor/tower asignado
@@ -125,10 +124,9 @@ export async function getTowerDriverInfo(towerId: string) {
     };
   }
 
-  /*
-  const res = await fetch(`${process.env.TOWER_API_URL}/api/tower/drivers/${towerId}`);
+  const res = await fetch(`${TOWER_API_URL}/api/tower/drivers/${towerId}`);
+  if (!res.ok) throw new Error(`Tower driver API error: ${res.status}`);
   return res.json();
-  */
 }
 
 // 5. Cancelar pedido de tower
@@ -136,15 +134,14 @@ export async function cancelTowerRequest(tripId: string) {
   if (useMocks()) {
     console.log(`[MOCK - Tower App] Cancelando solicitud para el viaje #${tripId}...`);
     await delay(1500);
-    return {}; // Según docs, la respuesta es vacía
+    return {};
   }
 
-  /*
-  const res = await fetch(`${process.env.TOWER_API_URL}/api/tower/requests/${tripId}`, {
+  const res = await fetch(`${TOWER_API_URL}/api/tower/requests/${tripId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({})
+    body: JSON.stringify({}),
   });
+  if (!res.ok) throw new Error(`Tower cancel API error: ${res.status}`);
   return res.json();
-  */
 }

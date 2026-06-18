@@ -4,7 +4,14 @@ import { db } from "@/db";
 import { customer, vehicle } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export default async function RequestRidePage() {
+interface SearchParams {
+  payment_status?: string;
+  trip_id?: string;
+  transaction_id?: string;
+}
+
+export default async function RequestRidePage(props: { searchParams: Promise<SearchParams> }) {
+  const searchParams = await props.searchParams;
   const user = await currentUser();
   let vehiclesData: { vehicleId: number; brand: string; model: string; year: number; weight: string | null }[] = [];
 
@@ -28,10 +35,21 @@ export default async function RequestRidePage() {
     weight: v.weight ? parseFloat(v.weight) : 0,
   }));
 
+  const paymentResult = searchParams.payment_status
+    ? {
+        status: searchParams.payment_status,
+        tripId: searchParams.trip_id ? Number(searchParams.trip_id) : undefined,
+        transactionId: searchParams.transaction_id,
+      }
+    : undefined;
+
   return (
     <div className="flex flex-col flex-1 bg-background text-foreground overflow-hidden">
       <main className="flex-1 relative w-full overflow-hidden">
-        <RequestRideForm initialVehicles={userVehicles} />
+        <RequestRideForm
+          initialVehicles={userVehicles}
+          paymentResult={paymentResult}
+        />
       </main>
     </div>
   )
