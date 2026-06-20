@@ -38,6 +38,7 @@ export async function GET(
     const trips = tripRecords.map(t => ({
       trip_id: String(t.tripId),
       customer_id: String(t.customerId),
+      vehicle_id: t.vehicleId ?? null,
       tower_id: t.towerId ?? '',
       origin: {
         lat: String(t.originLat),
