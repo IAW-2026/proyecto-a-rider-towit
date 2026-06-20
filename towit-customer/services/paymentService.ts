@@ -22,7 +22,7 @@ const PAYMENTS_API_URL = process.env.PAYMENTS_API_URL || "https://payments-towit
 
 // URL para redirigir al usuario a la Payment App a procesar el pago
 export function getPaymentUrl(tripId: number, returnUrl: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_PAYMENT_APP_URL || "https://payments-towit-six.vercel.app";
+  const baseUrl = process.env.PAYMENTS_API_URL || "https://payments-towit-six.vercel.app";
   const params = new URLSearchParams({ return_url: returnUrl });
   return `${baseUrl}/payments/${tripId}?${params.toString()}`;
 }
@@ -38,7 +38,7 @@ export async function generatePayment(payload: PaymentPayload) {
   const res = await fetch(`${PAYMENTS_API_URL}/api/payments`, {
     method: "POST",
     redirect: "follow",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_SECRET}` },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_API_SECRET}` },
     body: JSON.stringify(payload),
   });
   console.log("Payment API response status:", res.status, "Mensaje:", await res.text());
@@ -57,7 +57,7 @@ export async function refundPayment(payload: RefundPayload) {
   const res = await fetch(`${PAYMENTS_API_URL}/api/refunds`, {
     method: "POST",
     redirect: "follow",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_SECRET}` },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_API_SECRET}` },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`Payment refund API error: ${res.status}`);
