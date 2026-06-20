@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { calculateDistance, fetchOsrmRoute, subsampleRoute } from "@/lib/utils";
-import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES, PAYMENT_APP_URL } from "@/lib/constants";
+import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES, PAYMENT_APP_URL, FEEDBACK_APP_URL } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/customer/request-ride/map-components/DynamicMap";
 import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction } from "@/app/customer/request-ride/actions";
@@ -142,10 +142,10 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
       }
       if (res.status === "finalizado") {
         clearInterval(intervalsRef.current.polling);
-        setTowLocation(destination);
-        setTripState("completed");
-        finishTripAction(tripId).catch(console.error);
         clearMockTripProgress(String(tripId));
+        await finishTripAction(tripId);
+        const returnUrl = encodeURIComponent(`${window.location.origin}/customer/home`);
+        window.location.href = `${FEEDBACK_APP_URL}/rate/${tripId}?return_url=${returnUrl}`;
       }
     }, 800);
   }, [destination]);
@@ -275,23 +275,21 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
   };
 
   const startSearchFlow = useCallback(async (tripId: number) => {
-    if (useMocksRef.current) {
-      const fakeStartLat = origin![0] + 0.015;
-      const fakeStartLng = origin![1] + 0.015;
-      const fakeStart: [number, number] = [fakeStartLat, fakeStartLng];
+    const fakeStartLat = origin![0] + 0.015;
+    const fakeStartLng = origin![1] + 0.015;
+    const fakeStart: [number, number] = [fakeStartLat, fakeStartLng];
 
-      const [routeToOrigin, routeToDest] = await Promise.all([
-        fetchOsrmRoute(fakeStart, origin!),
-        fetchOsrmRoute(origin!, destination!),
-      ]);
+    const [routeToOrigin, routeToDest] = await Promise.all([
+      fetchOsrmRoute(fakeStart, origin!),
+      fetchOsrmRoute(origin!, destination!),
+    ]);
 
-      const pointsToOrigin = subsampleRoute(routeToOrigin, ANIMATION_POINTS_TO_ORIGIN);
-      const pointsToDest = subsampleRoute(routeToDest, ANIMATION_POINTS_TO_DEST);
+    const pointsToOrigin = subsampleRoute(routeToOrigin, ANIMATION_POINTS_TO_ORIGIN);
+    const pointsToDest = subsampleRoute(routeToDest, ANIMATION_POINTS_TO_DEST);
 
-      mockProgressRef.current = { step: 0, phase: "arriving" };
+    mockProgressRef.current = { step: 0, phase: "arriving" };
 
-      initMockTripProgress(String(tripId), pointsToOrigin, pointsToDest);
-    }
+    initMockTripProgress(String(tripId), pointsToOrigin, pointsToDest);
 
     setTripState("searching");
 

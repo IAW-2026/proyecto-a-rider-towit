@@ -3,7 +3,7 @@
  * Maneja la comunicación de Customer App hacia Payments App.
  */
 
-import { useMocks } from "@/lib/service-utils";
+import { USE_MOCK_PAYMENT } from "@/lib/service-utils";
 import { delay } from "@/lib/utils";
 
 export interface PaymentPayload {
@@ -29,7 +29,7 @@ export function getPaymentUrl(tripId: number, returnUrl: string) {
 
 // 1. Registrar pago en Payments App (server-to-server)
 export async function generatePayment(payload: PaymentPayload) {
-  if (useMocks()) {
+  if (USE_MOCK_PAYMENT()) {
     console.log(`[MOCK - Payments App] Registrando pago por $${payload.amount} del viaje #${payload.tripId}...`);
     await delay(2000);
     return {};
@@ -48,7 +48,7 @@ export async function generatePayment(payload: PaymentPayload) {
 
 // 2. Reembolsar dinero de un viaje cancelado
 export async function refundPayment(payload: RefundPayload) {
-  if (useMocks()) {
+  if (USE_MOCK_PAYMENT()) {
     console.log(`[MOCK - Payments App] Generando reembolso ${payload.refundType} para el viaje #${payload.tripId}...`);
     await delay(1500);
     return { message: "Reembolso exitoso (mock)" };

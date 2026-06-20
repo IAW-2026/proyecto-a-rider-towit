@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation";
 
-import { useMocks } from "@/lib/service-utils";
+import { USE_MOCK_PAYMENT } from "@/lib/service-utils";
 import { generatePayment, refundPayment } from "@/services/paymentService";
 import { requestTowerForTrip, cancelTowerRequest } from "@/services/towerService";
 import { submitRating } from "@/services/feedbackService";
@@ -76,7 +76,7 @@ export async function createTripAction(data: {
 
     revalidatePath("/customer/request-ride");
 
-    return { success: true, trip: createdTrip, useMocks: useMocks() };
+    return { success: true, trip: createdTrip, useMocks: USE_MOCK_PAYMENT() };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Hubo un error al crear la solicitud de grúa."
     console.error("Error creating trip:", error);
