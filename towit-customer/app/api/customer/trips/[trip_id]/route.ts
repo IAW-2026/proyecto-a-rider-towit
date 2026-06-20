@@ -1,35 +1,36 @@
 import { NextRequest } from 'next/server'
 import { db } from '@/db'
 import { trip, customer } from '@/db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { eq, or, desc } from 'drizzle-orm'
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ trip_id: string }> }
 ) {
   try {
-    const { trip_id } = await params
+    const { trip_id: clerk_id } = await params
 
     const customerRecord = await db.query.customer.findFirst({
-      where: eq(customer.clerkId, trip_id),
+      where: eq(customer.clerkId, clerk_id),
       columns: { customerId: true },
     })
 
-    if (!customerRecord) {
-      return Response.json(
-        { error: 'Customer not found for the given clerk_id' },
-        { status: 404 }
-      )
+    const filters = []
+
+    if (customerRecord) {
+      filters.push(eq(trip.customerId, customerRecord.customerId))
     }
 
+    filters.push(eq(trip.towerId, clerk_id))
+
     const tripRecords = await db.query.trip.findMany({
-      where: eq(trip.customerId, customerRecord.customerId),
+      where: or(...filters),
       orderBy: [desc(trip.date), desc(trip.time)],
     })
 
     if (!tripRecords.length) {
       return Response.json(
-        { error: 'No trips found for this customer' },
+        { error: 'No trips found for the given clerk_id' },
         { status: 404 }
       )
     }
