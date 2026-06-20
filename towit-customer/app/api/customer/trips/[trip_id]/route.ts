@@ -23,10 +23,25 @@ export async function GET(
 
     filters.push(eq(trip.towerId, clerk_id))
 
-    const tripRecords = await db.query.trip.findMany({
-      where: or(...filters),
-      orderBy: [desc(trip.date), desc(trip.time)],
-    })
+    const tripRecords = await db
+      .select({
+        tripId: trip.tripId,
+        customerId: trip.customerId,
+        vehicleId: trip.vehicleId,
+        towerId: trip.towerId,
+        originLat: trip.originLat,
+        originLng: trip.originLng,
+        destinationLat: trip.destinationLat,
+        destinationLng: trip.destinationLng,
+        date: trip.date,
+        time: trip.time,
+        status: trip.status,
+        customerClerkId: customer.clerkId,
+      })
+      .from(trip)
+      .leftJoin(customer, eq(trip.customerId, customer.customerId))
+      .where(or(...filters))
+      .orderBy(desc(trip.date), desc(trip.time))
 
     if (!tripRecords.length) {
       return Response.json(
@@ -38,6 +53,7 @@ export async function GET(
     const trips = tripRecords.map(t => ({
       trip_id: String(t.tripId),
       customer_id: String(t.customerId),
+      customer_clerk_id: t.customerClerkId ?? '',
       vehicle_id: t.vehicleId ?? null,
       tower_id: t.towerId ?? '',
       origin: {
