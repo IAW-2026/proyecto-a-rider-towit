@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { trip, customer } from "@/db/schema";
 import { eq, desc, ilike, gte, lte, and, or, sql, count, SQL } from "drizzle-orm";
 import Pagination from "@/components/ui/Pagination";
+import AdminSearchForm from "@/components/ui/AdminSearchForm";
 import Link from "next/link";
 
 const PAGE_SIZE = 15;
@@ -74,46 +75,14 @@ export default async function AdminTripsPage(props: { searchParams?: Promise<{ q
         </Link>
       </div>
 
-      <form className="mb-6">
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              name="q"
-              defaultValue={query}
-              placeholder="Buscar por ID, cliente, origen, destino, estado..."
-              className="w-full px-4 py-3 pr-10 border-2 border-border rounded-xl text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card"
-            />
-            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex gap-3 items-center">
-            <label className="text-sm text-muted-foreground font-medium shrink-0">Desde:</label>
-            <input
-              type="date"
-              name="from"
-              defaultValue={from}
-              className="px-3 py-3 border-2 border-border rounded-xl text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card w-full md:w-auto"
-            />
-            <label className="text-sm text-muted-foreground font-medium shrink-0">Hasta:</label>
-            <input
-              type="date"
-              name="to"
-              defaultValue={to}
-              className="px-3 py-3 border-2 border-border rounded-xl text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card w-full md:w-auto"
-            />
-            <Link
-              href="/admin/dashboard/trips"
-              className="px-4 py-3 text-sm text-muted-foreground font-semibold hover:text-foreground transition shrink-0"
-            >
-              Limpiar
-            </Link>
-          </div>
-        </div>
-      </form>
+      <AdminSearchForm
+        basePath="/admin/dashboard/trips"
+        initialQuery={query}
+        initialFrom={from}
+        initialTo={to}
+        placeholder="Buscar por ID, cliente, origen, destino, estado..."
+        showDateRange
+      />
 
       <div className="bg-card rounded-xl shadow-xl overflow-hidden border border-border">
         <div className="overflow-x-auto">

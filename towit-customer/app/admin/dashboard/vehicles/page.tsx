@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { vehicle, customer } from "@/db/schema";
 import { eq, desc, ilike, or, sql, count } from "drizzle-orm";
 import Pagination from "@/components/ui/Pagination";
+import AdminSearchForm from "@/components/ui/AdminSearchForm";
 import Link from "next/link";
 
 const PAGE_SIZE = 15;
@@ -64,22 +65,11 @@ export default async function AdminVehiclesPage(props: { searchParams?: Promise<
         </Link>
       </div>
 
-      <form className="mb-6">
-        <div className="relative max-w-md">
-          <input
-            type="text"
-            name="q"
-            defaultValue={query}
-            placeholder="Buscar por marca, modelo, año, cliente..."
-            className="w-full px-4 py-3 pr-10 border-2 border-border rounded-xl text-sm focus:ring-brand-yellow focus:border-brand-yellow outline-none text-foreground bg-card"
-          />
-          <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-        </div>
-      </form>
+      <AdminSearchForm
+        basePath="/admin/dashboard/vehicles"
+        initialQuery={query}
+        placeholder="Buscar por marca, modelo, año, cliente..."
+      />
 
       <div className="bg-card rounded-xl shadow-xl overflow-hidden border border-border">
         <div className="overflow-x-auto">
