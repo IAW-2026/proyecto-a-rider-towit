@@ -38,7 +38,7 @@ export async function generatePayment(payload: PaymentPayload) {
   const res = await fetch(`${PAYMENTS_API_URL}/api/payments`, {
     method: "POST",
     redirect: "follow",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_API_PAYMENT_SECRET}` },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_SECRET}` },
     body: JSON.stringify(payload),
   });
   console.log("Payment API response status:", res.status, "Mensaje:", await res.text());
@@ -57,7 +57,7 @@ export async function refundPayment(payload: RefundPayload) {
   const res = await fetch(`${PAYMENTS_API_URL}/api/refunds`, {
     method: "POST",
     redirect: "follow",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_API_PAYMENT_SECRET}` },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_SECRET}` },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`Payment refund API error: ${res.status}`);

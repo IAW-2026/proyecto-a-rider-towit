@@ -16,7 +16,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
     getAvgRating(user.id).then(r => setUserRating(r?.avg_rating ?? null)).catch(console.error);
   }, [user, variant]);
 
-  const brandLink = variant === "admin" ? "/admin/dashboard" : user ? "/costumer/home" : "/";
+  const brandLink = variant === "admin" ? "/admin/dashboard" : user ? "/customer/home" : "/";
   const brandName = variant === "admin" ? "TowIt Admin" : "TowIt";
 
   if (!isLoaded) {
@@ -55,12 +55,12 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
           </div>
         ) : (
           <div className="hidden md:flex gap-4">
-            <SignInButton mode="modal" forceRedirectUrl="/costumer/home">
+            <SignInButton mode="modal" forceRedirectUrl="/customer/home">
               <button className="px-6 py-2 text-brand-yellow font-semibold hover:text-brand-yellow-dark transition cursor-pointer">
                 Iniciar Sesión
               </button>
             </SignInButton>
-            <SignUpButton mode="modal" forceRedirectUrl="/costumer/home">
+            <SignUpButton mode="modal" forceRedirectUrl="/customer/home">
               <button className="px-6 py-2 bg-brand-yellow text-black font-semibold rounded-lg hover:bg-brand-yellow-hover transition cursor-pointer">
                 Crear Cuenta
               </button>

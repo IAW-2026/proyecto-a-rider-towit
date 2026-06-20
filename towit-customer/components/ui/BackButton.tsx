@@ -2,7 +2,7 @@ import Link from "next/link"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
 
-export default function BackButton({ href = "/costumer/home" }: { href?: string }) {
+export default function BackButton({ href = "/customer/home" }: { href?: string }) {
   return (
     <Link
       href={href}

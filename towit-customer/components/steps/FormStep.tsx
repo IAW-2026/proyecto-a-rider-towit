@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCar, faCarSide, faPlus, faTruckPickup } from "@fortawesome/free-solid-svg-icons";
 import { formatPrice } from "@/lib/utils";
 import { CRANE_TYPES, CRANE_RATES } from "@/lib/constants";
-import AddressSearch from "@/app/costumer/request-ride/map-components/AddressSearch";
+import AddressSearch from "@/app/customer/request-ride/map-components/AddressSearch";
 
 interface Vehicle {
   id: string;

@@ -46,8 +46,8 @@ export async function addVehicleAction(formData: FormData) {
       weight: weight ? weight.toString() : null,
     }).returning();
 
-    revalidatePath("/costumer/vehicles");
-    revalidatePath("/costumer/request-ride");
+    revalidatePath("/customer/vehicles");
+    revalidatePath("/customer/request-ride");
     return { success: true, vehicle: newVehicle[0] };
   } catch (error) {
     console.error("Error al guardar el vehículo:", error);
@@ -81,7 +81,7 @@ export async function deleteVehicleAction(vehicleId: number) {
         )
       );
 
-    revalidatePath("/costumer/vehicles");
+    revalidatePath("/customer/vehicles");
     return { success: true };
   } catch (error) {
     console.error("Error al eliminar:", error);
@@ -113,7 +113,7 @@ export async function editVehicleAction(formData: FormData) {
         )
       );
 
-    revalidatePath("/costumer/vehicles");
+    revalidatePath("/customer/vehicles");
     return { success: true };
   } catch (error) {
     console.error("Error al editar el vehículo:", error);

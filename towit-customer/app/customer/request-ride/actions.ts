@@ -74,7 +74,7 @@ export async function createTripAction(data: {
       console.error("Error al registrar pago en Payments App:", e);
     }
 
-    revalidatePath("/costumer/request-ride");
+    revalidatePath("/customer/request-ride");
 
     return { success: true, trip: createdTrip, useMocks: useMocks() };
   } catch (error: unknown) {
@@ -124,7 +124,7 @@ export async function confirmPaymentAction(tripId: number) {
         .where(eq(trip.tripId, tripId));
     }
 
-    revalidatePath("/costumer/request-ride");
+    revalidatePath("/customer/request-ride");
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Error al confirmar el pago."
@@ -159,7 +159,7 @@ export async function cancelTripAction(tripId: number) {
 
     await db.update(trip).set({ status: "cancelado" }).where(eq(trip.tripId, tripId));
 
-    revalidatePath("/costumer/history");
+    revalidatePath("/customer/history");
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Hubo un error al cancelar el viaje."
@@ -183,7 +183,7 @@ export async function finishTripAction(tripId: number) {
     console.log(`Marcando el viaje #${tripId} como finalizado`);
     await db.update(trip).set({ status: "finalizado" }).where(eq(trip.tripId, tripId));
 
-    revalidatePath("/costumer/history");
+    revalidatePath("/customer/history");
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Hubo un error al finalizar el viaje."
@@ -230,7 +230,7 @@ export async function submitFeedbackAction(data: {
 
     console.log("Feedback enviado exitosamente:", feedbackResult);
 
-    revalidatePath("/costumer/history");
+    revalidatePath("/customer/history");
     return { success: true, rating: feedbackResult.rating };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Hubo un error al enviar la calificación."

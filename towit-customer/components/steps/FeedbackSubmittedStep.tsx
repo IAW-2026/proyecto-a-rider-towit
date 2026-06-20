@@ -24,7 +24,7 @@ export default function FeedbackSubmittedStep() {
 
       <div>
         <Link
-          href="/costumer/home"
+          href="/customer/home"
           className="block w-full max-w-sm px-6 py-4 mb-4 bg-brand-yellow text-black font-bold rounded-xl hover:bg-brand-yellow/80 transition text-base duration-200 shadow-md text-center"
         >
           Volver al inicio

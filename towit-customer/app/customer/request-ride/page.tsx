@@ -1,4 +1,4 @@
-import RequestRideForm from "@/app/costumer/request-ride/RequestRideForm";
+import RequestRideForm from "@/app/customer/request-ride/RequestRideForm";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { customer, vehicle } from "@/db/schema";

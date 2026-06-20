@@ -13,7 +13,7 @@ export default function Page() {
   const router = useRouter()
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) router.replace("/costumer/home")
+    if (isLoaded && isSignedIn) router.replace("/customer/home")
   }, [isLoaded, isSignedIn, router])
 
   return (
@@ -31,12 +31,12 @@ export default function Page() {
 
           {/* Nav actions */}
           <div className="flex items-center gap-2">
-            <SignInButton mode="modal" forceRedirectUrl="/costumer/home">
+            <SignInButton mode="modal" forceRedirectUrl="/customer/home">
               <button className="rounded-lg px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white cursor-pointer">
                 Iniciar Sesión
               </button>
             </SignInButton>
-            <SignUpButton mode="modal" forceRedirectUrl="/costumer/home">
+            <SignUpButton mode="modal" forceRedirectUrl="/customer/home">
               <button className="rounded-lg bg-brand-yellow px-4 py-2 text-sm font-semibold text-black transition-all hover:bg-brand-yellow-hover active:scale-95 cursor-pointer">
                 Crear Cuenta
               </button>
@@ -71,12 +71,12 @@ export default function Page() {
 
           {/* CTAs */}
           <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-            <SignInButton mode="modal" forceRedirectUrl="/costumer/home">
+            <SignInButton mode="modal" forceRedirectUrl="/customer/home">
               <button className="rounded-xl bg-brand-yellow px-8 py-3.5 text-[15px] font-bold text-black shadow-[0_4px_24px_rgba(245,197,24,0.35)] transition-all hover:bg-brand-yellow-hover hover:shadow-[0_6px_30px_rgba(245,197,24,0.45)] active:scale-95 cursor-pointer">
                 Iniciar Sesión
               </button>
             </SignInButton>
-            <SignUpButton mode="modal" forceRedirectUrl="/costumer/home">
+            <SignUpButton mode="modal" forceRedirectUrl="/customer/home">
               <button className="rounded-xl border-2 border-border bg-card px-8 py-3.5 text-[15px] font-semibold text-foreground transition-all hover:border-border hover:bg-muted active:scale-95 cursor-pointer">
                 Crear Cuenta
               </button>

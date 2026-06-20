@@ -4,9 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { calculateDistance, fetchOsrmRoute, subsampleRoute } from "@/lib/utils";
 import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES, PAYMENT_APP_URL } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
-import DynamicMap from "@/app/costumer/request-ride/map-components/DynamicMap";
-import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction } from "@/app/costumer/request-ride/actions";
-import { addVehicleAction } from "@/app/costumer/vehicles/actions";
+import DynamicMap from "@/app/customer/request-ride/map-components/DynamicMap";
+import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction } from "@/app/customer/request-ride/actions";
+import { addVehicleAction } from "@/app/customer/vehicles/actions";
 import { initMockTripProgress, getTowerRequestStatus, clearMockTripProgress } from "@/services/towerService";
 import { getPaymentUrl } from "@/services/paymentService";
 import FormStep from "@/components/steps/FormStep";
@@ -351,7 +351,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
       startSearchFlow(createdTripId);
     } else {
       useMocksRef.current = false;
-      const returnUrl = encodeURIComponent(`${window.location.origin}/costumer/request-ride?payment_status=`);
+      const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?payment_status=`);
       const paymentUrl = getPaymentUrl(createdTripId, returnUrl);
       window.location.href = paymentUrl;
     }
@@ -359,7 +359,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
 
   const handleRetryPayment = () => {
     if (!currentTripId) return;
-    const returnUrl = encodeURIComponent(`${window.location.origin}/costumer/request-ride?payment_status=`);
+    const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?payment_status=`);
     window.location.href = `${PAYMENT_APP_URL}/payments/${currentTripId}?return_url=${returnUrl}`;
   };
 
@@ -379,7 +379,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
       confirmPaymentAction(tripId).then((res) => {
         setIsRequesting(false);
         if (res.success) {
-          window.history.replaceState({}, "", "/costumer/request-ride");
+          window.history.replaceState({}, "", "/customer/request-ride");
           startSearchFlow(tripId);
         } else {
           setTripState("payment_failed");

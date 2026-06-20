@@ -25,7 +25,7 @@ export default function CancelledStep() {
         </button>
 
         <Link
-          href="/costumer/home"
+          href="/customer/home"
           className="flex items-center justify-center gap-2 w-full px-6 py-4 border-2 border-border text-foreground font-bold rounded-xl hover:bg-muted transition cursor-pointer"
         >
           <FontAwesomeIcon icon={faHouse} className="h-4 w-4" />

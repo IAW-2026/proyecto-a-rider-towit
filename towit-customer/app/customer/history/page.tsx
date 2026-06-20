@@ -51,7 +51,7 @@ export default async function HistoryPage(props: { searchParams?: Promise<{ page
               currentPage={currentPage}
               totalPages={result.totalPages}
               totalItems={result.totalItems ?? 0}
-              basePath="/costumer/history"
+              basePath="/customer/history"
             />
           </div>
         )}

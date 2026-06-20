@@ -12,7 +12,7 @@ type MapProps = {
 
 export default function DynamicMap({ origin, destination, towLocation, craneType }: MapProps) {
   const Map = useMemo(() => dynamic(
-    () => import('@/app/costumer/request-ride/map-components/Map'),
+    () => import('@/app/customer/request-ride/map-components/Map'),
     {
       loading: () => <div className="w-full h-full flex items-center justify-center bg-muted text-foreground">Cargando mapa...</div>,
       ssr: false
