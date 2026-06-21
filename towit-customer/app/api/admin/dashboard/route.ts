@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     .from(trip)
     .leftJoin(customer, eq(trip.customerId, customer.customerId))
     .orderBy(desc(trip.date), desc(trip.time))
-    .limit(5);
+    .limit(15);
 
   return NextResponse.json({
     tripCount: tripCount.count,
