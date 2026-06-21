@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { vehicle } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { authenticate } from "@/lib/api-auth";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const authError = authenticate(request)
+  if (authError) return authError.error
+
   const { id } = await params;
 
   const vehicleId = Number(id);

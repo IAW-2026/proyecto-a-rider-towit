@@ -2,11 +2,15 @@ import { NextRequest } from 'next/server'
 import { db } from '@/db'
 import { customer } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { authenticate } from '@/lib/api-auth'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ customer_id: string }> }
 ) {
+  const authError = authenticate(request)
+  if (authError) return authError.error
+
   try {
     const { customer_id } = await params
 

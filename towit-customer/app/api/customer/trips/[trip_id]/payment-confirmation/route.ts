@@ -2,11 +2,15 @@ import { NextRequest } from 'next/server'
 import { db } from '@/db'
 import { trip } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { authenticate } from '@/lib/api-auth'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ trip_id: string }> }
 ) {
+  const authError = authenticate(request)
+  if (authError) return authError.error
+
   try {
     const { trip_id } = await params
     const body = await request.json()

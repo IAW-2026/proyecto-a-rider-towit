@@ -2,11 +2,15 @@ import { NextRequest } from 'next/server'
 import { db } from '@/db'
 import { trip, customer } from '@/db/schema'
 import { eq, or, desc } from 'drizzle-orm'
+import { authenticate } from '@/lib/api-auth'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ trip_id: string }> }
 ) {
+  const authError = authenticate(request)
+  if (authError) return authError.error
+
   try {
     const { trip_id: clerk_id } = await params
 
@@ -82,6 +86,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ trip_id: string }> }
 ) {
+  const authError = authenticate(request)
+  if (authError) return authError.error
+
   try {
     const { trip_id } = await params
     const body = await request.json()
