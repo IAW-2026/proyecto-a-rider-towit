@@ -5,7 +5,7 @@ import { calculateDistance, fetchOsrmRoute, subsampleRoute } from "@/lib/utils";
 import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES, PAYMENT_APP_URL, FEEDBACK_APP_URL } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/customer/request-ride/map-components/DynamicMap";
-import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction } from "@/app/customer/request-ride/actions";
+import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction, getLatestActiveTripAction } from "@/app/customer/request-ride/actions";
 import { addVehicleAction } from "@/app/customer/vehicles/actions";
 import { initMockTripProgress, getTowerRequestStatus, clearMockTripProgress } from "@/services/towerService";
 import { getPaymentUrl } from "@/services/paymentService";
@@ -177,6 +177,42 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
     });
   }, [origin, destination, selectedVehicleId, selectedCraneType, isExpanded, tripState, towLocation, eta, originText, destinationText, currentTripId]);
 
+  const restoredFromDb = useRef(false);
+
+  useEffect(() => {
+    if (!hydrated || restoredFromDb.current) return;
+    restoredFromDb.current = true;
+
+    const saved = loadPersistedState();
+    if (saved?.currentTripId && saved?.origin && saved?.destination) {
+      if (saved.tripState !== "searching" && saved.tripState !== "found" && saved.tripState !== "in_progress") return;
+      return;
+    }
+
+    getLatestActiveTripAction().then((result) => {
+      if (!result.trip) return;
+
+      const t = result.trip;
+      const originCoords: [number, number] = [t.originLat, t.originLng];
+      const destCoords: [number, number] = [t.destinationLat, t.destinationLng];
+
+      setCurrentTripId(t.tripId);
+      setOrigin(originCoords);
+      setDestination(destCoords);
+
+      if (t.status === "pago confirmado") {
+        setTripState("searching");
+        confirmPaymentAction(t.tripId).then((res) => {
+          if (!res.success) {
+            setTripState("payment_failed");
+          }
+        });
+      } else if (t.status === "en proceso") {
+        setTripState("found");
+      }
+    });
+  }, [hydrated]);
+
   // Restore mock progress after hydration and start polling
   useEffect(() => {
     if (!hydrated) return;
@@ -222,7 +258,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated]);
+  }, [hydrated, currentTripId]);
 
   // Clear storage on terminal states
   useEffect(() => {
@@ -349,7 +385,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
       startSearchFlow(createdTripId);
     } else {
       useMocksRef.current = false;
-      const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?payment_status=`);
+      const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?payment_status=&trip_id=${createdTripId}`);
       const paymentUrl = getPaymentUrl(createdTripId, returnUrl);
       window.location.href = paymentUrl;
     }
@@ -357,7 +393,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
 
   const handleRetryPayment = () => {
     if (!currentTripId) return;
-    const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?payment_status=`);
+    const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?payment_status=&trip_id=${currentTripId}`);
     window.location.href = `${PAYMENT_APP_URL}/payments/${currentTripId}?return_url=${returnUrl}`;
   };
 

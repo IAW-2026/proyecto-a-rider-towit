@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { trip, customer } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation";
 
@@ -189,6 +189,43 @@ export async function finishTripAction(tripId: number) {
     const message = error instanceof Error ? error.message : "Hubo un error al finalizar el viaje."
     console.error("Error finalizando el viaje:", error);
     return { error: message };
+  }
+}
+
+export async function getLatestActiveTripAction() {
+  try {
+    const user = await currentUser();
+    if (!user) return { trip: null };
+
+    const customerRecord = await db.query.customer.findFirst({
+      where: eq(customer.clerkId, user.id),
+    });
+
+    if (!customerRecord) return { trip: null };
+
+    const latestTrip = await db.query.trip.findFirst({
+      where: eq(trip.customerId, customerRecord.customerId),
+      orderBy: [desc(trip.date), desc(trip.time)],
+    });
+
+    if (!latestTrip) return { trip: null };
+
+    const terminalStatuses = ["finalizado", "cancelado"];
+    if (terminalStatuses.includes(latestTrip.status)) return { trip: null };
+
+    return {
+      trip: {
+        tripId: latestTrip.tripId,
+        status: latestTrip.status,
+        originLat: parseFloat(latestTrip.originLat),
+        originLng: parseFloat(latestTrip.originLng),
+        destinationLat: parseFloat(latestTrip.destinationLat),
+        destinationLng: parseFloat(latestTrip.destinationLng),
+        towerId: latestTrip.towerId,
+      },
+    };
+  } catch {
+    return { trip: null };
   }
 }
 
