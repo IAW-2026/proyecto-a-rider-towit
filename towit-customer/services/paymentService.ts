@@ -41,9 +41,10 @@ export async function generatePayment(payload: PaymentPayload) {
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.INTERNAL_API_SECRET}` },
     body: JSON.stringify(payload),
   });
-  console.log("Payment API response status:", res.status, "Mensaje:", await res.text());
+  const body = await res.text()
+  console.log("Payment API response status:", res.status, "Mensaje:", body);
   if (!res.ok) throw new Error(`Payment API error: ${res.status}`);
-  return res.json();
+  return JSON.parse(body);
 }
 
 // 2. Reembolsar dinero de un viaje cancelado

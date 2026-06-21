@@ -36,10 +36,10 @@ export async function POST(
 
     await db
       .update(trip)
-      .set({})
+      .set({ status: 'Pago Confirmado' })
       .where(eq(trip.tripId, Number(trip_id)))
 
-    return Response.json({})
+     return Response.json({ status: 'pago confirmado' })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error'
     return Response.json(
