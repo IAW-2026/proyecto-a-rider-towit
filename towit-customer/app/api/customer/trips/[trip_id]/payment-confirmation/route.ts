@@ -36,7 +36,7 @@ export async function POST(
 
     await db
       .update(trip)
-      .set({ status: 'Pago Confirmado' })
+      .set({ status: 'pago onfirmado' })
       .where(eq(trip.tripId, Number(trip_id)))
 
      return Response.json({ status: 'pago confirmado' })

@@ -385,7 +385,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
       startSearchFlow(createdTripId);
     } else {
       useMocksRef.current = false;
-      const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?payment_status=&trip_id=${createdTripId}`);
+      const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?trip_id=${createdTripId}`);
       const paymentUrl = getPaymentUrl(createdTripId, returnUrl);
       window.location.href = paymentUrl;
     }
@@ -393,7 +393,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
 
   const handleRetryPayment = () => {
     if (!currentTripId) return;
-    const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?payment_status=&trip_id=${currentTripId}`);
+    const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?trip_id=${currentTripId}`);
     window.location.href = `${PAYMENT_APP_URL}/payments/${currentTripId}?return_url=${returnUrl}`;
   };
 
