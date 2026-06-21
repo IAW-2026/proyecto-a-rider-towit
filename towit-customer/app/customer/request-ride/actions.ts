@@ -10,7 +10,7 @@ import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation
 import { USE_MOCK_PAYMENT } from "@/lib/service-utils";
 import { generatePayment, refundPayment } from "@/services/paymentService";
 import { requestTowerForTrip, cancelTowerRequest } from "@/services/towerService";
-import { submitRating } from "@/services/feedbackService";
+import { submitRating, getAvgRating } from "@/services/feedbackService";
 
 export async function createTripAction(data: {
   originLat: number;
@@ -241,6 +241,16 @@ export async function getLatestActiveTripAction() {
   }
 }
 
+export async function getAvgRatingAction() {
+  try {
+    const user = await currentUser();
+    if (!user) return { avg_rating: null };
+    return await getAvgRating(user.id);
+  } catch {
+    return { avg_rating: 5 };
+  }
+}
+
 export async function submitFeedbackAction(data: {
   tripId: number;
   rating: number;
@@ -268,7 +278,7 @@ export async function submitFeedbackAction(data: {
     const v = parsed.data;
     const feedbackResult = await submitRating({
       trip_id: v.tripId,
-      customer_id: customerRecord.customerId,
+      customer_id: user.id,
       rating: v.rating,
       comment: v.comment
     });

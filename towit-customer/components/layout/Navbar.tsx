@@ -4,7 +4,7 @@ import { UserButton, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
-import { getAvgRating } from "@/services/feedbackService";
+import { getAvgRatingAction } from "@/app/customer/request-ride/actions";
 import { useEffect, useState } from "react";
 
 export default function Navbar({ variant = "default" }: { variant?: "default" | "admin" }) {
@@ -13,7 +13,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
 
   useEffect(() => {
     if (!user || variant !== "default") return;
-    getAvgRating(user.id).then(r => setUserRating(r?.avg_rating ?? null)).catch(console.error);
+    getAvgRatingAction().then(r => setUserRating(r?.avg_rating ?? null));
   }, [user, variant]);
 
   const brandLink = variant === "admin" ? "/admin/dashboard" : user ? "/customer/home" : "/";

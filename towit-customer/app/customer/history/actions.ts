@@ -32,6 +32,9 @@ async function getOrCreateCustomer() {
 
 export async function getTripsAction(page: number = 1) {
   try {
+    const user = await currentUser();
+    if (!user) throw new Error("Acceso denegado.");
+
     const customerRecord = await getOrCreateCustomer();
 
     const whereFilter = eq(trip.customerId, customerRecord.customerId);
@@ -81,7 +84,7 @@ export async function getTripsAction(page: number = 1) {
 
       if (t.status === "finalizado") {
         try {
-          tripRating = await getTripRating(t.tripId, customerRecord.customerId);
+          tripRating = await getTripRating(t.tripId, user.id);
         } catch (e) {
           console.error("Error fetching trip rating:", e);
         }
