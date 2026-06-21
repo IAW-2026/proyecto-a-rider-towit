@@ -35,9 +35,9 @@ export default async function RequestRidePage(props: { searchParams: Promise<Sea
     weight: v.weight ? parseFloat(v.weight) : 0,
   }));
 
-  const paymentResult = searchParams.trip_id
+  const paymentResult = searchParams.trip_id && searchParams.payment_status
     ? {
-        status: searchParams.payment_status || 'pending',
+        status: searchParams.payment_status as "success" | "failure",
         tripId: Number(searchParams.trip_id),
         transactionId: searchParams.transaction_id,
       }

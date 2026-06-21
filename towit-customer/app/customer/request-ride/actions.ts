@@ -192,6 +192,18 @@ export async function finishTripAction(tripId: number) {
   }
 }
 
+export async function getTripPaymentStatusAction(tripId: number) {
+  try {
+    const tripRecord = await db.query.trip.findFirst({
+      where: eq(trip.tripId, tripId),
+      columns: { status: true },
+    });
+    return { confirmed: tripRecord?.status === "pago confirmado" };
+  } catch {
+    return { confirmed: false };
+  }
+}
+
 export async function getLatestActiveTripAction() {
   try {
     const user = await currentUser();
