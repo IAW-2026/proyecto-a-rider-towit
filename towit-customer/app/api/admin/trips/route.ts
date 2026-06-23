@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
       vehicleId: trip.vehicleId,
       originChar: trip.originChar,
       destinationChar: trip.DestinationChar,
+      estimatedPrice: trip.estimatedPrice,
       date: trip.date,
       time: trip.time,
       status: trip.status,

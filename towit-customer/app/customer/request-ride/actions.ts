@@ -60,6 +60,7 @@ export async function createTripAction(data: {
       date: currentDate,
       time: currentTime,
       towerId: null,
+      estimatedPrice: v.estimatedPrice.toString(),
     }).returning();
 
     const createdTrip = newTrip[0];
@@ -233,6 +234,7 @@ export async function getLatestActiveTripAction() {
         originLng: parseFloat(latestTrip.originLng),
         destinationLat: parseFloat(latestTrip.destinationLat),
         destinationLng: parseFloat(latestTrip.destinationLng),
+        estimatedPrice: latestTrip.estimatedPrice ? parseFloat(latestTrip.estimatedPrice) : null,
         towerId: latestTrip.towerId,
       },
     };

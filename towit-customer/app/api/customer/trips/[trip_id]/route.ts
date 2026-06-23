@@ -40,6 +40,7 @@ export async function GET(
         date: trip.date,
         time: trip.time,
         status: trip.status,
+        estimatedPrice: trip.estimatedPrice,
         customerClerkId: customer.clerkId,
       })
       .from(trip)
@@ -69,6 +70,7 @@ export async function GET(
         long: String(t.destinationLng),
       },
       status: t.status,
+      estimated_price: t.estimatedPrice ? Number(t.estimatedPrice) : null,
       date: String(t.date),
     }))
 
