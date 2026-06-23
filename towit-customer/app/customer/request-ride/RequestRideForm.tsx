@@ -440,11 +440,18 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
     if (paymentResult.status === "success") {
       useMocksRef.current = false;
       setIsRequesting(true);
-      confirmPaymentAction(tripId).then((res) => {
+      confirmPaymentAction(tripId).then(async (res) => {
         setIsRequesting(false);
         if (res.success) {
           window.history.replaceState({}, "", "/customer/request-ride");
-          startSearchFlow(tripId, { skipSearchDelay: true });
+
+          const latest = await getLatestActiveTripAction();
+          if (latest.trip) {
+            setOrigin([latest.trip.originLat, latest.trip.originLng]);
+            setDestination([latest.trip.destinationLat, latest.trip.destinationLng]);
+            setCurrentTripId(latest.trip.tripId);
+            setTripState("en_proceso");
+          }
         } else {
           setTripState("payment_failed");
         }
