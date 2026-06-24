@@ -44,5 +44,6 @@ export const trip = pgTable('Trip', {
   status: varchar('status', { length: 50 }).notNull(),
   estimatedPrice: decimal('estimated_price', { precision: 10, scale: 2 }),
   preferredTowType: varchar('preferred_tow_type', { length: 50 }),
+  isDeleted: boolean('is_deleted').default(false).notNull(),
 });
 
