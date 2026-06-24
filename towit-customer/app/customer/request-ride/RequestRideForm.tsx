@@ -16,6 +16,7 @@ import InProgressStep from "@/components/steps/InProgressStep";
 import FeedbackSubmittedStep from "@/components/steps/FeedbackSubmittedStep";
 import CancelledStep from "@/components/steps/CancelledStep";
 import PaymentFailedStep from "@/components/steps/PaymentFailedStep";
+import PaymentPendingStep from "@/components/steps/PaymentPendingStep";
 
 interface Vehicle {
   id: string;
@@ -116,7 +117,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
 
   const [formErrors, setFormErrors] = useState<{ origin?: string; destination?: string; vehicle?: string }>({});
   const [isRequesting, setIsRequesting] = useState(false);
-  const [tripState, setTripState] = useState<"idle" | "pago_confirmado" | "en_proceso" | "finalizado" | "cancelado" | "payment_failed">("idle");
+  const [tripState, setTripState] = useState<"idle" | "esperando_pago" | "pago_confirmado" | "en_proceso" | "finalizado" | "cancelado" | "payment_failed">("idle");
   const [towLocation, setTowLocation] = useState<[number, number] | null>(null);
   const [eta, setEta] = useState<number | null>(null);
   const [viajePhase, setViajePhase] = useState<"en_camino" | "en_viaje">("en_camino");
@@ -186,20 +187,6 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
     });
   }, [origin, destination, selectedVehicleId, selectedCraneType, isExpanded, tripState, viajePhase, towLocation, eta, originText, destinationText, currentTripId]);
 
-  const pollRef = useRef<NodeJS.Timeout | null>(null);
-
-  const pollTripStatus = useCallback((tripId: number) => {
-    pollRef.current = setInterval(async () => {
-      const result = await getTripByIdAction(tripId);
-      if (!result.trip) return;
-
-      if (result.trip.status === "en proceso") {
-        if (pollRef.current) clearInterval(pollRef.current);
-        setTripState("en_proceso");
-      }
-    }, 2000);
-  }, []);
-
   const restoredFromDb = useRef(false);
 
   useEffect(() => {
@@ -237,14 +224,34 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
             setTripState("payment_failed");
           }
         });
+      } else if (t.status === "pendiente pago" && tripIdFromUrl) {
+        setTripState("esperando_pago");
       } else if (t.status === "en proceso") {
         setTripState("en_proceso");
-      } else if (t.status === "pendiente pago") {
-        setTripState("idle");
-        pollTripStatus(tripIdFromUrl!);
       }
     });
   }, [hydrated]);
+
+  // Poll waiting for payment confirmation
+  useEffect(() => {
+    if (tripState !== "esperando_pago" || !currentTripId) return;
+
+    const id = setInterval(async () => {
+      const res = await getTripByIdAction(currentTripId);
+      if (res.trip?.status === "pago confirmado") {
+        clearInterval(id);
+        confirmPaymentAction(currentTripId).then((r) => {
+          if (r.success) {
+            setTripState("pago_confirmado");
+          } else {
+            setTripState("payment_failed");
+          }
+        });
+      }
+    }, 2000);
+
+    return () => clearInterval(id);
+  }, [tripState, currentTripId]);
 
   // Restore mock progress after hydration and start polling
   useEffect(() => {
@@ -304,16 +311,6 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, currentTripId]);
-
-  // Clear poll interval on trip state change
-  useEffect(() => {
-    if (tripState !== "idle") {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    }
-  }, [tripState]);
 
   // Clear storage on terminal states
   useEffect(() => {
@@ -545,6 +542,8 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
             selectedWeight={selectedWeight}
           />
         );
+      case "esperando_pago":
+        return <PaymentPendingStep />;
       case "pago_confirmado":
         return <SearchingStep />;
       case "en_proceso":
@@ -615,7 +614,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
               <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm">
                 {renderStep()}
               </div>
-              {(tripState === "pago_confirmado" || tripState === "en_proceso" || tripState === "payment_failed") && (
+              {(tripState === "esperando_pago" || tripState === "pago_confirmado" || tripState === "en_proceso" || tripState === "payment_failed") && (
                 <div className="w-full max-w-sm pb-6 shrink-0">
                   <button
                     onClick={handleCancelTrip}
