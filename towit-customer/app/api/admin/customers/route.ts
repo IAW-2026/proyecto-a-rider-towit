@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
       clerkId: customer.clerkId,
       fullName: customer.fullName,
       isActive: customer.isActive,
+      createdAt: customer.createdAt,
     })
     .from(customer)
     .where(where)
