@@ -150,6 +150,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
         clearInterval(intervalsRef.current.polling);
         clearMockTripProgress(String(tripId));
         await finishTripAction(tripId);
+        clearPersistedState();
         const returnUrl = encodeURIComponent(`${window.location.origin}/customer/home`);
         window.location.href = `${FEEDBACK_APP_URL}/rate/${tripId}?return_url=${returnUrl}`;
       }
