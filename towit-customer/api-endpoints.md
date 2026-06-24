@@ -101,12 +101,13 @@ Todas las rutas internas requieren `x-api-key` + `INTERNAL_API_SECRET` (excepto 
 
 ### Usados por Admin UI
 
-| Método       | Ruta                     | Para qué                             |
-| ------------- | ------------------------ | ------------------------------------- |
-| **GET** | `/api/admin/trips`     | Listar viajes (paginated, searchable) |
-| **GET** | `/api/admin/customers` | Listar clientes                       |
-| **GET** | `/api/admin/vehicles`  | Listar vehículos                     |
-| **GET** | `/api/admin/dashboard` | Estadísticas del dashboard           |
+| Método         | Ruta                          | Para qué                             |
+| --------------- | ----------------------------- | ------------------------------------- |
+| **GET**   | `/api/admin/trips`          | Listar viajes (paginated, searchable) |
+| **GET**   | `/api/admin/customers`      | Listar clientes                       |
+| **GET**   | `/api/admin/vehicles`       | Listar vehículos                     |
+| **GET**   | `/api/admin/dashboard`      | Estadísticas del dashboard           |
+| **PATCH** | `/api/admin/customers/[id]` | Habilitar o deshabilitar un customer  |
 
 ### Usados por Clerk
 
