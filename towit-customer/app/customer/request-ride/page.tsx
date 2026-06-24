@@ -5,9 +5,7 @@ import { customer, vehicle } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 interface SearchParams {
-  payment_status?: string;
   trip_id?: string;
-  transaction_id?: string;
 }
 
 export default async function RequestRidePage(props: { searchParams: Promise<SearchParams> }) {
@@ -35,20 +33,12 @@ export default async function RequestRidePage(props: { searchParams: Promise<Sea
     weight: v.weight ? parseFloat(v.weight) : 0,
   }));
 
-  const paymentResult = searchParams.trip_id && searchParams.payment_status
-    ? {
-        status: searchParams.payment_status as "success" | "failure",
-        tripId: Number(searchParams.trip_id),
-        transactionId: searchParams.transaction_id,
-      }
-    : undefined;
-
   return (
     <div className="flex flex-col flex-1 bg-background text-foreground overflow-hidden">
       <main className="flex-1 relative w-full overflow-hidden">
         <RequestRideForm
           initialVehicles={userVehicles}
-          paymentResult={paymentResult}
+          tripIdFromUrl={searchParams.trip_id ? Number(searchParams.trip_id) : undefined}
         />
       </main>
     </div>

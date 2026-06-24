@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation";
 
 import { USE_MOCK_PAYMENT } from "@/lib/service-utils";
+import { TRIP_STATUS, TERMINAL_STATUSES } from "@/lib/trip-status";
 import { generatePayment, refundPayment } from "@/services/paymentService";
 import { requestTowerForTrip, cancelTowerRequest } from "@/services/towerService";
 import { submitRating, getAvgRating } from "@/services/feedbackService";
@@ -56,7 +57,7 @@ export async function createTripAction(data: {
       originLng: v.originLng.toString(),
       destinationLat: v.destinationLat.toString(),
       destinationLng: v.destinationLng.toString(),
-      status: "pendiente pago",
+      status: TRIP_STATUS.PENDING_PAYMENT,
       date: currentDate,
       time: currentTime,
       towerId: null,
@@ -117,11 +118,11 @@ export async function confirmPaymentAction(tripId: number) {
 
     if (towerResult?.tower_id) {
       await db.update(trip)
-        .set({ towerId: towerResult.tower_id, status: "en proceso" })
+        .set({ towerId: towerResult.tower_id, status: TRIP_STATUS.IN_PROGRESS })
         .where(eq(trip.tripId, tripId));
     } else {
       await db.update(trip)
-        .set({ status: "en proceso" })
+        .set({ status: TRIP_STATUS.IN_PROGRESS })
         .where(eq(trip.tripId, tripId));
     }
 
@@ -158,7 +159,7 @@ export async function cancelTripAction(tripId: number) {
     const cancelResult = await cancelTowerRequest(String(tripId));
     console.log("Cancelación desde la app de la grúa exitosa:", cancelResult);
 
-    await db.update(trip).set({ status: "cancelado" }).where(eq(trip.tripId, tripId));
+    await db.update(trip).set({ status: TRIP_STATUS.CANCELLED }).where(eq(trip.tripId, tripId));
 
     revalidatePath("/customer/history");
     return { success: true };
@@ -176,7 +177,7 @@ export async function finishTripAction(tripId: number) {
       return { error: "ID de viaje inválido" };
     }
 
-    await db.update(trip).set({ status: "finalizado" }).where(eq(trip.tripId, tripId));
+    await db.update(trip).set({ status: TRIP_STATUS.COMPLETED }).where(eq(trip.tripId, tripId));
 
     revalidatePath("/customer/history");
     return { success: true };
@@ -235,7 +236,7 @@ export async function getTripPaymentStatusAction(tripId: number) {
       where: eq(trip.tripId, tripId),
       columns: { status: true },
     });
-    return { confirmed: tripRecord?.status === "pago confirmado" };
+    return { confirmed: tripRecord?.status === TRIP_STATUS.PAYMENT_CONFIRMED };
   } catch {
     return { confirmed: false };
   }
@@ -259,8 +260,7 @@ export async function getLatestActiveTripAction() {
 
     if (!latestTrip) return { trip: null };
 
-    const terminalStatuses = ["finalizado", "cancelado"];
-    if (terminalStatuses.includes(latestTrip.status)) return { trip: null };
+    if (TERMINAL_STATUSES.includes(latestTrip.status as typeof TERMINAL_STATUSES[number])) return { trip: null };
 
     return {
       trip: {

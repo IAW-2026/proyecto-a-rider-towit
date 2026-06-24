@@ -6,6 +6,7 @@ import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINT
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/customer/request-ride/map-components/DynamicMap";
 import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction, getLatestActiveTripAction, getTripByIdAction } from "@/app/customer/request-ride/actions";
+import { TRIP_STATUS, TERMINAL_STATUSES } from "@/lib/trip-status";
 import { addVehicleAction } from "@/app/customer/vehicles/actions";
 import { initMockTripProgress, getTowerRequestStatus, clearMockTripProgress } from "@/services/towerService";
 import { getPaymentUrl } from "@/services/paymentService";
@@ -60,13 +61,7 @@ function clearPersistedState() {
   }
 }
 
-interface PaymentResultProp {
-  status: "success" | "failure";
-  tripId?: number;
-  transactionId?: string;
-}
-
-export default function RequestRideForm({ initialVehicles = [], paymentResult, tripIdFromUrl }: { initialVehicles?: Vehicle[]; paymentResult?: PaymentResultProp; tripIdFromUrl?: number }) {
+export default function RequestRideForm({ initialVehicles = [], tripIdFromUrl }: { initialVehicles?: Vehicle[]; tripIdFromUrl?: number }) {
   const [origin, setOrigin] = useState<[number, number] | null>(null);
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
@@ -75,7 +70,6 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const [hydrated, setHydrated] = useState(false);
-  const [paymentHandled, setPaymentHandled] = useState(false);
 
   useEffect(() => {
     const saved = loadPersistedState();
@@ -147,7 +141,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
       if (res.phase === "en_viaje" && viajePhaseRef.current === "en_camino") {
         setViajePhase("en_viaje");
       }
-      if (res.status === "finalizado") {
+      if (res.status === TRIP_STATUS.COMPLETED) {
         clearInterval(intervalsRef.current.polling);
         clearMockTripProgress(String(tripId));
         await finishTripAction(tripId);
@@ -156,7 +150,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
         window.location.href = `${FEEDBACK_APP_URL}/rate/${tripId}?return_url=${returnUrl}`;
       }
     }, 800);
-  }, [destination]);
+  }, []);
 
   useEffect(() => {
     if ((tripState === "finalizado" || tripState === "cancelado") && !isExpanded) {
@@ -193,9 +187,6 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
     if (!hydrated || restoredFromDb.current) return;
     restoredFromDb.current = true;
 
-    // Si volvemos de payment, el paymentResult effect maneja el flujo
-    if (paymentResult) return;
-
     const saved = loadPersistedState();
     if (saved?.currentTripId && saved?.origin && saved?.destination) {
       if (saved.tripState !== "pago_confirmado" && saved.tripState !== "en_proceso") return;
@@ -217,16 +208,16 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
       setOrigin(originCoords);
       setDestination(destCoords);
 
-      if (t.status === "pago confirmado") {
+      if (t.status === TRIP_STATUS.PAYMENT_CONFIRMED) {
         setTripState("pago_confirmado");
         confirmPaymentAction(t.tripId).then((res) => {
           if (!res.success) {
             setTripState("payment_failed");
           }
         });
-      } else if (t.status === "pendiente pago" && tripIdFromUrl) {
+      } else if (t.status === TRIP_STATUS.PENDING_PAYMENT && tripIdFromUrl) {
         setTripState("esperando_pago");
-      } else if (t.status === "en proceso") {
+      } else if (t.status === TRIP_STATUS.IN_PROGRESS) {
         setTripState("en_proceso");
       }
     });
@@ -238,7 +229,7 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
 
     const id = setInterval(async () => {
       const res = await getTripByIdAction(currentTripId);
-      if (res.trip?.status === "pago confirmado") {
+      if (res.trip?.status === TRIP_STATUS.PAYMENT_CONFIRMED) {
         clearInterval(id);
         confirmPaymentAction(currentTripId).then((r) => {
           if (r.success) {
@@ -455,41 +446,6 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult, t
     const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?trip_id=${currentTripId}`);
     window.location.href = `${PAYMENT_APP_URL}/payments/${currentTripId}?return_url=${returnUrl}`;
   };
-
-  // Handle payment result when redirected back from Payment App
-  useEffect(() => {
-    if (!paymentResult || paymentHandled) return;
-
-    setPaymentHandled(true);
-
-    const tripId = paymentResult.tripId;
-    if (!tripId) return;
-    setCurrentTripId(tripId);
-
-    if (paymentResult.status === "success") {
-      useMocksRef.current = false;
-      setIsRequesting(true);
-      confirmPaymentAction(tripId).then(async (res) => {
-        setIsRequesting(false);
-        if (res.success) {
-          window.history.replaceState({}, "", "/customer/request-ride");
-
-          const latest = await getLatestActiveTripAction();
-          if (latest.trip) {
-            setOrigin([latest.trip.originLat, latest.trip.originLng]);
-            setDestination([latest.trip.destinationLat, latest.trip.destinationLng]);
-            setCurrentTripId(latest.trip.tripId);
-            setTripState("en_proceso");
-          }
-        } else {
-          setTripState("payment_failed");
-        }
-      });
-    } else {
-      setTripState("payment_failed");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentResult]);
 
   const handleCancelTrip = async () => {
     if (!currentTripId) return;

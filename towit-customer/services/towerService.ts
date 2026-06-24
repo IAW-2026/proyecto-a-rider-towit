@@ -1,4 +1,5 @@
 import { USE_MOCK_TOWER } from "@/lib/service-utils";
+import { TRIP_STATUS } from "@/lib/trip-status";
 import { delay } from "@/lib/utils";
 
 interface MockTripProgress {
@@ -52,7 +53,7 @@ export async function requestTowerForTrip(payload: TowerRequestPayload) {
 export async function getTowerRequestStatus(assignmentId: string) {
   const progress = mockProgressStore.get(assignmentId);
   if (!progress) {
-    return { status: "en_proceso", phase: "en_camino", location: null };
+    return { status: TRIP_STATUS.IN_PROGRESS, phase: "en_camino", location: null };
   }
 
   const points = progress.phase === "arriving" ? progress.pointsToOrigin : progress.pointsToDest;
@@ -61,16 +62,16 @@ export async function getTowerRequestStatus(assignmentId: string) {
     if (progress.phase === "arriving") {
       progress.phase = "traveling";
       progress.step = 0;
-      return { status: "en_proceso", phase: "recogiendo", location: null };
+      return { status: TRIP_STATUS.IN_PROGRESS, phase: "recogiendo", location: null };
     }
-    return { status: "finalizado", phase: "finalizado", location: null };
+    return { status: TRIP_STATUS.COMPLETED, phase: "finalizado", location: null };
   }
 
   const location = points[progress.step];
   progress.step++;
 
   return {
-    status: "en_proceso",
+    status: TRIP_STATUS.IN_PROGRESS,
     phase: progress.phase === "arriving" ? "en_camino" : "en_viaje",
     location: { lat: String(location[0]), long: String(location[1]) },
     totalPoints: points.length,

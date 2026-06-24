@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { trip } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { authenticate } from '@/lib/api-auth'
+import { TRIP_STATUS } from '@/lib/trip-status'
 
 export async function POST(
   request: NextRequest,
@@ -36,10 +37,10 @@ export async function POST(
 
     await db
       .update(trip)
-      .set({ status: 'pago confirmado' })
+      .set({ status: TRIP_STATUS.PAYMENT_CONFIRMED })
       .where(eq(trip.tripId, Number(trip_id)))
 
-     return Response.json({ status: 'pago confirmado' })
+     return Response.json({ status: TRIP_STATUS.PAYMENT_CONFIRMED })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error'
     return Response.json(
