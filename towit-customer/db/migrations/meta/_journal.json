@@ -15,6 +15,13 @@
       "when": 1782326967953,
       "tag": "0001_brief_ultimo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782327870269,
+      "tag": "0002_past_blade",
+      "breakpoints": true
     }
   ]
 }
