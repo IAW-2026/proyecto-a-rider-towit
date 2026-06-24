@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/api-auth";
 import { db } from "@/db";
 import { trip, customer } from "@/db/schema";
-import { eq, ilike, and, or, desc, sql, type SQL } from "drizzle-orm";
+import { eq, ilike, and, or, desc, asc, sql, type SQL } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const authError = authenticate(request)
@@ -13,6 +13,8 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 25));
   const search = searchParams.get("search") || undefined;
   const status = searchParams.get("status") || undefined;
+  const deleted = searchParams.get("deleted") || "ACTIVE";
+  const sort = searchParams.get("sort") || "newest";
 
   const conditions: SQL<unknown>[] = [];
   if (search) {
@@ -27,8 +29,17 @@ export async function GET(request: NextRequest) {
   if (status && status !== "ALL") {
     conditions.push(eq(trip.status, status));
   }
+  if (deleted === "ACTIVE") {
+    conditions.push(eq(trip.isDeleted, false));
+  } else if (deleted === "DELETED") {
+    conditions.push(eq(trip.isDeleted, true));
+  }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const orderBy = sort === "oldest"
+    ? [asc(trip.date), asc(trip.time)]
+    : [desc(trip.date), desc(trip.time)];
 
   const [totalResult] = await db
     .select({ count: sql<number>`count(*)` })
@@ -48,13 +59,14 @@ export async function GET(request: NextRequest) {
       date: trip.date,
       time: trip.time,
       status: trip.status,
+      isDeleted: trip.isDeleted,
     })
     .from(trip)
     .leftJoin(customer, eq(trip.customerId, customer.customerId))
     .where(where)
     .offset((page - 1) * limit)
     .limit(limit)
-    .orderBy(desc(trip.date), desc(trip.time));
+    .orderBy(...orderBy);
 
   return NextResponse.json({
     data,
