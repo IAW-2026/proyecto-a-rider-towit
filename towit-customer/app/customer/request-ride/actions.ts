@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { trip, customer } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation";
 
@@ -176,12 +176,6 @@ export async function finishTripAction(tripId: number) {
       return { error: "ID de viaje inválido" };
     }
 
-    const user = await currentUser();
-    if (!user) {
-      return { error: "Acceso denegado." };
-    }
-
-    console.log(`Marcando el viaje #${tripId} como finalizado`);
     await db.update(trip).set({ status: "finalizado" }).where(eq(trip.tripId, tripId));
 
     revalidatePath("/customer/history");
@@ -190,6 +184,48 @@ export async function finishTripAction(tripId: number) {
     const message = error instanceof Error ? error.message : "Hubo un error al finalizar el viaje."
     console.error("Error finalizando el viaje:", error);
     return { error: message };
+  }
+}
+
+export async function getTripByIdAction(tripId: number) {
+  try {
+    const parsed = tripIdSchema.safeParse(tripId);
+    if (!parsed.success) {
+      return { trip: null };
+    }
+
+    const user = await currentUser();
+    if (!user) return { trip: null };
+
+    const customerRecord = await db.query.customer.findFirst({
+      where: eq(customer.clerkId, user.id),
+    });
+
+    if (!customerRecord) return { trip: null };
+
+    const tripRecord = await db.query.trip.findFirst({
+      where: and(
+        eq(trip.tripId, tripId),
+        eq(trip.customerId, customerRecord.customerId),
+      ),
+    });
+
+    if (!tripRecord) return { trip: null };
+
+    return {
+      trip: {
+        tripId: tripRecord.tripId,
+        status: tripRecord.status,
+        originLat: parseFloat(tripRecord.originLat),
+        originLng: parseFloat(tripRecord.originLng),
+        destinationLat: parseFloat(tripRecord.destinationLat),
+        destinationLng: parseFloat(tripRecord.destinationLng),
+        estimatedPrice: tripRecord.estimatedPrice ? parseFloat(tripRecord.estimatedPrice) : null,
+        towerId: tripRecord.towerId,
+      },
+    };
+  } catch {
+    return { trip: null };
   }
 }
 

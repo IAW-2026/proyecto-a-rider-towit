@@ -14,11 +14,11 @@ export async function POST(
   try {
     const { trip_id } = await params
     const body = await request.json()
-    const { transaction_id, status } = body
+    const { status } = body
 
-    if (!transaction_id || !status) {
+    if (!status) {
       return Response.json(
-        { error: 'transaction_id and status are required' },
+        { error: 'status is required' },
         { status: 400 }
       )
     }

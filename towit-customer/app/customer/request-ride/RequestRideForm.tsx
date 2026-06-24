@@ -5,7 +5,7 @@ import { calculateDistance, fetchOsrmRoute, subsampleRoute } from "@/lib/utils";
 import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES, PAYMENT_APP_URL, FEEDBACK_APP_URL } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/customer/request-ride/map-components/DynamicMap";
-import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction, getLatestActiveTripAction } from "@/app/customer/request-ride/actions";
+import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction, getLatestActiveTripAction, getTripByIdAction } from "@/app/customer/request-ride/actions";
 import { addVehicleAction } from "@/app/customer/vehicles/actions";
 import { initMockTripProgress, getTowerRequestStatus, clearMockTripProgress } from "@/services/towerService";
 import { getPaymentUrl } from "@/services/paymentService";
@@ -65,7 +65,7 @@ interface PaymentResultProp {
   transactionId?: string;
 }
 
-export default function RequestRideForm({ initialVehicles = [], paymentResult }: { initialVehicles?: Vehicle[]; paymentResult?: PaymentResultProp }) {
+export default function RequestRideForm({ initialVehicles = [], paymentResult, tripIdFromUrl }: { initialVehicles?: Vehicle[]; paymentResult?: PaymentResultProp; tripIdFromUrl?: number }) {
   const [origin, setOrigin] = useState<[number, number] | null>(null);
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
@@ -185,6 +185,20 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
     });
   }, [origin, destination, selectedVehicleId, selectedCraneType, isExpanded, tripState, viajePhase, towLocation, eta, originText, destinationText, currentTripId]);
 
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
+
+  const pollTripStatus = useCallback((tripId: number) => {
+    pollRef.current = setInterval(async () => {
+      const result = await getTripByIdAction(tripId);
+      if (!result.trip) return;
+
+      if (result.trip.status === "en proceso") {
+        if (pollRef.current) clearInterval(pollRef.current);
+        setTripState("en_proceso");
+      }
+    }, 2000);
+  }, []);
+
   const restoredFromDb = useRef(false);
 
   useEffect(() => {
@@ -200,7 +214,11 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
       return;
     }
 
-    getLatestActiveTripAction().then((result) => {
+    const fetchTrip = tripIdFromUrl
+      ? getTripByIdAction(tripIdFromUrl)
+      : getLatestActiveTripAction();
+
+    fetchTrip.then((result) => {
       if (!result.trip) return;
 
       const t = result.trip;
@@ -220,6 +238,9 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
         });
       } else if (t.status === "en proceso") {
         setTripState("en_proceso");
+      } else if (t.status === "pendiente pago") {
+        setTripState("idle");
+        pollTripStatus(tripIdFromUrl!);
       }
     });
   }, [hydrated]);
@@ -282,6 +303,16 @@ export default function RequestRideForm({ initialVehicles = [], paymentResult }:
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, currentTripId]);
+
+  // Clear poll interval on trip state change
+  useEffect(() => {
+    if (tripState !== "idle") {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    }
+  }, [tripState]);
 
   // Clear storage on terminal states
   useEffect(() => {
