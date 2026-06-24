@@ -18,11 +18,23 @@ export async function PATCH(
     return NextResponse.json({ error: "ID de viaje inválido." }, { status: 400 });
   }
 
-  const body = await request.json();
-  const { isDeleted } = body;
+  let isDeleted: boolean;
 
-  if (typeof isDeleted !== "boolean") {
-    return NextResponse.json({ error: "isDeleted debe ser un booleano." }, { status: 400 });
+  try {
+    const body = await request.json();
+    const raw = body.isDeleted;
+
+    if (typeof raw === "boolean") {
+      isDeleted = raw;
+    } else if (typeof raw === "string") {
+      isDeleted = raw === "true" || raw === "1";
+    } else if (typeof raw === "number") {
+      isDeleted = raw === 1;
+    } else {
+      return NextResponse.json({ error: "isDeleted debe ser un booleano." }, { status: 400 });
+    }
+  } catch {
+    return NextResponse.json({ error: "Cuerpo de solicitud inválido. Se esperaba JSON con { isDeleted: boolean }." }, { status: 400 });
   }
 
   const [existing] = await db
