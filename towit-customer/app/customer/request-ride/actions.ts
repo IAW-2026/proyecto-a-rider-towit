@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { trip, customer } from "@/db/schema";
+import { trip, customer, vehicle } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -62,6 +62,7 @@ export async function createTripAction(data: {
       time: currentTime,
       towerId: null,
       estimatedPrice: v.estimatedPrice.toString(),
+      preferredTowType: v.craneType,
     }).returning();
 
     const createdTrip = newTrip[0];
@@ -106,6 +107,21 @@ export async function confirmPaymentAction(tripId: number) {
       return { error: "Viaje no encontrado." };
     }
 
+    let vehicleData = { brand: "", model: "", year: 0 };
+
+    if (tripRecord.vehicleId) {
+      const vehicleRecord = await db.query.vehicle.findFirst({
+        where: eq(vehicle.vehicleId, tripRecord.vehicleId),
+      });
+      if (vehicleRecord) {
+        vehicleData = {
+          brand: vehicleRecord.brand,
+          model: vehicleRecord.model,
+          year: vehicleRecord.year,
+        };
+      }
+    }
+
     const towerResult = await requestTowerForTrip({
       customer_id: user.id,
       trip: {
@@ -113,18 +129,18 @@ export async function confirmPaymentAction(tripId: number) {
         origin: { lat: tripRecord.originLat, long: tripRecord.originLng },
         destination: { lat: tripRecord.destinationLat, long: tripRecord.destinationLng },
       },
-      vehicle_data: { brand: "", model: "", year: 0 },
+      vehicle_data: vehicleData,
+      preferred_tow_type: tripRecord.preferredTowType || undefined,
     });
 
-    if (towerResult?.tower_id) {
-      await db.update(trip)
-        .set({ towerId: towerResult.tower_id, status: TRIP_STATUS.IN_PROGRESS })
-        .where(eq(trip.tripId, tripId));
-    } else {
-      await db.update(trip)
-        .set({ status: TRIP_STATUS.IN_PROGRESS })
-        .where(eq(trip.tripId, tripId));
+    const updateData: Partial<typeof trip.$inferSelect> & { status: string } = {
+      status: TRIP_STATUS.IN_PROGRESS,
+    };
+    const towerId = towerResult?.tower_id;
+    if (typeof towerId === "string") {
+      updateData.towerId = towerId;
     }
+    await db.update(trip).set(updateData).where(eq(trip.tripId, tripId));
 
     revalidatePath("/customer/request-ride");
     return { success: true };

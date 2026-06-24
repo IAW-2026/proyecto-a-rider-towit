@@ -43,5 +43,6 @@ export const trip = pgTable('Trip', {
   time: time('time').notNull(),
   status: varchar('status', { length: 50 }).notNull(),
   estimatedPrice: decimal('estimated_price', { precision: 10, scale: 2 }),
+  preferredTowType: varchar('preferred_tow_type', { length: 50 }),
 });
 
