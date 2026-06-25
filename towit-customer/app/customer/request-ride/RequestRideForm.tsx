@@ -61,13 +61,29 @@ function clearPersistedState() {
   }
 }
 
-export default function RequestRideForm({ initialVehicles = [], tripIdFromUrl }: { initialVehicles?: Vehicle[]; tripIdFromUrl?: number }) {
-  const [origin, setOrigin] = useState<[number, number] | null>(null);
-  const [destination, setDestination] = useState<[number, number] | null>(null);
+interface InitialTripData {
+  tripId: number;
+  status: string;
+  originLat: number;
+  originLng: number;
+  destinationLat: number;
+  destinationLng: number;
+  estimatedPrice: number | null;
+  towerId: string | null;
+}
+
+export default function RequestRideForm({ initialVehicles = [], initialTrip, tripIdFromUrl }: { initialVehicles?: Vehicle[]; initialTrip?: InitialTripData | null; tripIdFromUrl?: number }) {
+  const [origin, setOrigin] = useState<[number, number] | null>(
+    initialTrip ? [initialTrip.originLat, initialTrip.originLng] : null
+  );
+  const [destination, setDestination] = useState<[number, number] | null>(
+    initialTrip ? [initialTrip.destinationLat, initialTrip.destinationLng] : null
+  );
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
   const [selectedCraneType, setSelectedCraneType] = useState<string>("medium");
   const [isExpanded, setIsExpanded] = useState(true);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [currentTripId, setCurrentTripId] = useState<number | null>(initialTrip?.tripId ?? null);
 
   const [hydrated, setHydrated] = useState(false);
 
@@ -82,7 +98,9 @@ export default function RequestRideForm({ initialVehicles = [], tripIdFromUrl }:
       if (saved.originText) setOriginText(saved.originText as string);
       if (saved.destinationText) setDestinationText(saved.destinationText as string);
       if (saved.currentTripId) setCurrentTripId(saved.currentTripId as number);
-      if (saved.tripState) setTripState(saved.tripState as typeof tripState);
+      if (saved.tripState === "pago_confirmado" || saved.tripState === "en_proceso") {
+        setTripState(saved.tripState as typeof tripState);
+      }
       if (saved.towLocation) setTowLocation(saved.towLocation as [number, number]);
       if (saved.eta !== undefined) setEta(saved.eta as number);
       if (saved.viajePhase) setViajePhase(saved.viajePhase as "en_camino" | "en_viaje");
@@ -111,13 +129,17 @@ export default function RequestRideForm({ initialVehicles = [], tripIdFromUrl }:
 
   const [formErrors, setFormErrors] = useState<{ origin?: string; destination?: string; vehicle?: string }>({});
   const [isRequesting, setIsRequesting] = useState(false);
-  const [tripState, setTripState] = useState<"idle" | "esperando_pago" | "pago_confirmado" | "en_proceso" | "finalizado" | "cancelado" | "payment_failed">("idle");
+  const [tripState, setTripState] = useState<"idle" | "esperando_pago" | "pago_confirmado" | "en_proceso" | "finalizado" | "cancelado" | "payment_failed">(
+    initialTrip?.status === TRIP_STATUS.PAYMENT_CONFIRMED ? "pago_confirmado"
+    : initialTrip?.status === TRIP_STATUS.IN_PROGRESS ? "en_proceso"
+    : initialTrip?.status === TRIP_STATUS.PENDING_PAYMENT && tripIdFromUrl ? "esperando_pago"
+    : "idle"
+  );
   const [towLocation, setTowLocation] = useState<[number, number] | null>(null);
   const [eta, setEta] = useState<number | null>(null);
   const [viajePhase, setViajePhase] = useState<"en_camino" | "en_viaje">("en_camino");
   const [originText, setOriginText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
-  const [currentTripId, setCurrentTripId] = useState<number | null>(null);
   const intervalsRef = useRef<{ polling?: NodeJS.Timeout; searchTimeout?: NodeJS.Timeout }>({});
   const mockProgressRef = useRef<{ step: number; phase: "arriving" | "traveling" } | null>(null);
   const mockPointsRef = useRef<{ pointsToOrigin: [number, number][]; pointsToDest: [number, number][] } | null>(null);
@@ -187,42 +209,56 @@ export default function RequestRideForm({ initialVehicles = [], tripIdFromUrl }:
     if (!hydrated || restoredFromDb.current) return;
     restoredFromDb.current = true;
 
+    if (initialTrip) return;
+
     if (tripIdFromUrl) {
-      getTripByIdAction(tripIdFromUrl).then((result) => restoreTripFromDb(result));
+      getTripByIdAction(tripIdFromUrl).then(restoreTripFromDb);
       return;
     }
 
     const saved = loadPersistedState();
-    if (saved?.currentTripId && saved?.origin && saved?.destination) {
-      if (saved.tripState !== "pago_confirmado" && saved.tripState !== "en_proceso") return;
+    if (saved?.tripState === "pago_confirmado" || saved?.tripState === "en_proceso") {
       return;
     }
 
-    getLatestActiveTripAction().then((result) => restoreTripFromDb(result));
-  }, [hydrated, tripIdFromUrl]);
+    getLatestActiveTripAction().then((result) => {
+      if (result?.trip) {
+        restoreTripFromDb(result);
+      } else {
+        setTripState("idle");
+      }
+    });
+  }, [hydrated, tripIdFromUrl, initialTrip]);
+
+  useEffect(() => {
+    if (initialTrip?.status !== TRIP_STATUS.PAYMENT_CONFIRMED) return;
+    confirmPaymentAction(initialTrip.tripId).then((res) => {
+      if (!res.success) setTripState("payment_failed");
+    });
+  }, [initialTrip]);
 
   function restoreTripFromDb(result: Awaited<ReturnType<typeof getTripByIdAction>>) {
-    if (!result?.trip) return;
+    if (!result?.trip) {
+      setTripState("idle");
+      return;
+    }
 
     const t = result.trip;
-    const originCoords: [number, number] = [t.originLat, t.originLng];
-    const destCoords: [number, number] = [t.destinationLat, t.destinationLng];
-
     setCurrentTripId(t.tripId);
-    setOrigin(originCoords);
-    setDestination(destCoords);
+    setOrigin([t.originLat, t.originLng]);
+    setDestination([t.destinationLat, t.destinationLng]);
 
     if (t.status === TRIP_STATUS.PAYMENT_CONFIRMED) {
       setTripState("pago_confirmado");
       confirmPaymentAction(t.tripId).then((res) => {
-        if (!res.success) {
-          setTripState("payment_failed");
-        }
+        if (!res.success) setTripState("payment_failed");
       });
     } else if (t.status === TRIP_STATUS.PENDING_PAYMENT && tripIdFromUrl) {
       setTripState("esperando_pago");
     } else if (t.status === TRIP_STATUS.IN_PROGRESS) {
       setTripState("en_proceso");
+    } else {
+      setTripState("idle");
     }
   }
 
@@ -527,6 +563,9 @@ export default function RequestRideForm({ initialVehicles = [], tripIdFromUrl }:
 
   return (
     <div className="absolute inset-0 w-full h-full">
+      <div className="absolute inset-0 z-0 bg-muted">
+        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
+      </div>
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
         {(tripState === "idle" || tripState === "cancelado" || tripState === "finalizado") && (
           <div className="absolute top-[10px] left-[10px] lg:left-[calc(450px+10px)] xl:left-[calc(500px+10px)] pointer-events-auto">
@@ -534,64 +573,59 @@ export default function RequestRideForm({ initialVehicles = [], tripIdFromUrl }:
           </div>
         )}
       </div>
-
-      <div className="absolute inset-0 z-0 bg-muted">
-        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
-      </div>
-
       <div
-        className={`absolute bottom-0 left-0 right-0 lg:right-auto lg:left-0 lg:top-0 lg:h-full lg:w-[450px] xl:w-[500px] bg-card z-10 rounded-t-3xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] lg:shadow-[10px_0_40px_rgba(0,0,0,0.1)] flex flex-col transition-all duration-300 ease-in-out ${
-          isExpanded ? "h-[80vh]" : "h-[14vh] lg:h-full"
-        }`}
-      >
-        <div
-          className="w-full h-10 flex-none flex justify-center items-center cursor-pointer lg:hidden z-20"
-          onClick={() => setIsExpanded(!isExpanded)}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
+          className={`absolute bottom-0 left-0 right-0 lg:right-auto lg:left-0 lg:top-0 lg:h-full lg:w-[450px] xl:w-[500px] bg-card z-10 rounded-t-3xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] lg:shadow-[10px_0_40px_rgba(0,0,0,0.1)] flex flex-col transition-all duration-300 ease-in-out ${
+            isExpanded ? "h-[80vh]" : "h-[14vh] lg:h-full"
+          }`}
         >
-          <svg
-            className={`w-10 h-6 text-muted-foreground transition-transform duration-300 ease-in-out ${isExpanded ? "rotate-0" : "rotate-180"}`}
-            viewBox="0 0 24 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          <div
+            className="w-full h-10 flex-none flex justify-center items-center cursor-pointer lg:hidden z-20"
+            onClick={() => setIsExpanded(!isExpanded)}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
           >
-            <polyline points="1 4 12 14 23 4" />
-          </svg>
-        </div>
+            <svg
+              className={`w-10 h-6 text-muted-foreground transition-transform duration-300 ease-in-out ${isExpanded ? "rotate-0" : "rotate-180"}`}
+              viewBox="0 0 24 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="1 4 12 14 23 4" />
+            </svg>
+          </div>
 
-        <div
-          className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar px-6 ${
-            !isExpanded ? "hidden lg:block" : "block"
-          } ${tripState !== "idle" ? "items-center" : "pb-6 lg:pt-6"}`}
-        >
-          {tripState !== "idle" ? (
-            <>
-              <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm">
+          <div
+            className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar px-6 ${
+              !isExpanded ? "hidden lg:block" : "block"
+            } ${tripState !== "idle" ? "items-center" : "pb-6 lg:pt-6"}`}
+          >
+            {tripState !== "idle" ? (
+              <>
+                <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm">
+                  {renderStep()}
+                </div>
+                {(tripState === "esperando_pago" || tripState === "pago_confirmado" || tripState === "en_proceso" || tripState === "payment_failed") && (
+                  <div className="w-full max-w-sm pb-6 shrink-0">
+                    <button
+                      onClick={handleCancelTrip}
+                      disabled={isRequesting}
+                      className="w-full py-3 bg-red-900/30 hover:bg-red-900/50 text-red-400 font-bold rounded-xl border border-red-800 transition text-sm duration-200 disabled:opacity-50 cursor-pointer"
+                    >
+                      {isRequesting ? "Cancelando..." : "Cancelar Viaje"}
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="relative min-h-max flex flex-col pb-6 lg:pt-6">
                 {renderStep()}
               </div>
-              {(tripState === "esperando_pago" || tripState === "pago_confirmado" || tripState === "en_proceso" || tripState === "payment_failed") && (
-                <div className="w-full max-w-sm pb-6 shrink-0">
-                  <button
-                    onClick={handleCancelTrip}
-                    disabled={isRequesting}
-                    className="w-full py-3 bg-red-900/30 hover:bg-red-900/50 text-red-400 font-bold rounded-xl border border-red-800 transition text-sm duration-200 disabled:opacity-50 cursor-pointer"
-                  >
-                    {isRequesting ? "Cancelando..." : "Cancelar Viaje"}
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="relative min-h-max flex flex-col pb-6 lg:pt-6">
-              {renderStep()}
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
     </div>
   );
 }
