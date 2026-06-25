@@ -36,7 +36,16 @@ La **Tower App** debe llamar a este endpoint cuando un conductor acepta un viaje
     }
     ```
     *   `tower_id` (requerido): ID único de la torre/conductor que acepta el viaje.
-    *   `status` (requerido): Nuevo estado del viaje. Usualmente `"en proceso"`.
+    *   `status` (requerido): Nuevo estado del viaje (se mapea automáticamente):
+
+        | Valor TowerApp | Almacenado en DB |
+        |---|---|
+        | `"pending"` | `"pago confirmado"` |
+        | `"accepted"` | `"en proceso"` |
+        | `"completed"` | `"finalizado"` |
+        | `"cancelled"` / `"canceled"` | `"cancelado"` |
+
+        También se puede enviar el valor en español directamente (ej: `"en proceso"`, `"cancelado"`).
 
 *   **Respuestas Posibles:**
 

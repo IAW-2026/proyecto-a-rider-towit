@@ -3,6 +3,15 @@ import { db } from '@/db'
 import { trip, customer } from '@/db/schema'
 import { eq, or, desc } from 'drizzle-orm'
 import { authenticate } from '@/lib/api-auth'
+import { TRIP_STATUS } from '@/lib/trip-status'
+
+const TOWER_STATUS_MAP: Record<string, string> = {
+  pending: TRIP_STATUS.PAYMENT_CONFIRMED,
+  accepted: TRIP_STATUS.IN_PROGRESS,
+  completed: TRIP_STATUS.COMPLETED,
+  cancelled: TRIP_STATUS.CANCELLED,
+  canceled: TRIP_STATUS.CANCELLED,
+};
 
 export async function GET(
   request: NextRequest,
@@ -103,6 +112,8 @@ export async function PATCH(
       )
     }
 
+    const mappedStatus = TOWER_STATUS_MAP[status] || status;
+
     const existingTrip = await db.query.trip.findFirst({
       where: eq(trip.tripId, Number(trip_id)),
     })
@@ -116,7 +127,7 @@ export async function PATCH(
 
     await db
       .update(trip)
-      .set({ towerId: tower_id, status: status })
+      .set({ towerId: tower_id, status: mappedStatus })
       .where(eq(trip.tripId, Number(trip_id)))
 
     return Response.json({})

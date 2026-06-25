@@ -5,7 +5,7 @@ import { calculateDistance, fetchOsrmRoute, subsampleRoute } from "@/lib/utils";
 import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINTS_TO_DEST, SEARCH_DELAY_MS, MOCK_ETA_MINUTES, PAYMENT_APP_URL, FEEDBACK_APP_URL } from "@/lib/constants";
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/customer/request-ride/map-components/DynamicMap";
-import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction, getLatestActiveTripAction, getTripByIdAction } from "@/app/customer/request-ride/actions";
+import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction, getLatestActiveTripAction, getTripByIdAction, getDriverInfoAction } from "@/app/customer/request-ride/actions";
 import { TRIP_STATUS, TERMINAL_STATUSES } from "@/lib/trip-status";
 import { addVehicleAction } from "@/app/customer/vehicles/actions";
 import { initMockTripProgress, getTowerRequestStatus, clearMockTripProgress } from "@/services/towerService";
@@ -145,6 +145,8 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   const [viajePhase, setViajePhase] = useState<"en_camino" | "en_viaje">("en_camino");
   const [originText, setOriginText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
+  const [driverName, setDriverName] = useState<string>("");
+  const [driverRating, setDriverRating] = useState<number>(0);
   const intervalsRef = useRef<{ polling?: NodeJS.Timeout; searchTimeout?: NodeJS.Timeout }>({});
   const mockProgressRef = useRef<{ step: number; phase: "arriving" | "traveling" } | null>(null);
   const mockPointsRef = useRef<{ pointsToOrigin: [number, number][]; pointsToDest: [number, number][] } | null>(null);
@@ -394,8 +396,28 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       setOriginText("");
       setDestinationText("");
       setSelectedVehicleId("");
+      driverInfoFetched.current = false;
+      setDriverName("");
+      setDriverRating(0);
     }
   }, [tripState]);
+
+  const driverInfoFetched = useRef(false);
+
+  useEffect(() => {
+    if (tripState !== "en_proceso" || !currentTripId) return;
+    if (driverInfoFetched.current) return;
+    driverInfoFetched.current = true;
+
+    getTripByIdAction(currentTripId).then((res) => {
+      if (!res.trip?.towerId) return;
+      getDriverInfoAction(res.trip.towerId).then((info) => {
+        if (info.error) return;
+        setDriverName(info.driverName);
+        setDriverRating(info.driverRating);
+      });
+    });
+  }, [tripState, currentTripId]);
 
   const estimatedDistance = origin && destination
     ? calculateDistance(origin[0], origin[1], destination[0], destination[1])
@@ -619,6 +641,8 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       case "en_proceso":
         return viajePhase === "en_camino" ? (
           <FoundStep
+            driverName={driverName}
+            driverRating={driverRating}
             craneTypeLabel={craneTypeLabels[selectedCraneType] || selectedCraneType}
             eta={eta ?? 0}
           />

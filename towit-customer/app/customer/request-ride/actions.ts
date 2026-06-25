@@ -10,7 +10,7 @@ import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation
 import { USE_MOCK_PAYMENT, USE_MOCK_TOWER } from "@/lib/service-utils";
 import { TRIP_STATUS, TERMINAL_STATUSES } from "@/lib/trip-status";
 import { generatePayment, refundPayment } from "@/services/paymentService";
-import { requestTowerForTrip, cancelTowerRequest } from "@/services/towerService";
+import { requestTowerForTrip, cancelTowerRequest, getTowerDriverInfo } from "@/services/towerService";
 import { submitRating, getAvgRating } from "@/services/feedbackService";
 
 export async function createTripAction(data: {
@@ -364,6 +364,17 @@ export async function submitFeedbackAction(data: {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Hubo un error al enviar la calificación."
     console.error("Error enviando feedback:", error);
+    return { error: message };
+  }
+}
+
+export async function getDriverInfoAction(towerId: string) {
+  try {
+    const info = await getTowerDriverInfo(towerId);
+    return { success: true, driverName: info.driver_name, driverRating: info.driver_rating, driverPhone: info.driver_phone, vehicleBrand: info.vehicle_brand, vehicleModel: info.vehicle_model, vehicleYear: info.vehicle_year };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Error al obtener info del conductor."
+    console.error("Error fetching driver info:", error);
     return { error: message };
   }
 }
