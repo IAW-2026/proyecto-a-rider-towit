@@ -109,7 +109,8 @@ interface TowerRequestStatusResponse {
   success: boolean;
   data?: {
     status: string;
-    location: { lat: string; long: string } | null;
+    location: { lat: string; long?: string; lng?: string } | null;
+    tower_id?: string;
   };
   error?: string;
 }
@@ -176,6 +177,7 @@ export async function getTowerRequestStatus(tripId: string) {
     return {
       status: statusMap[data.status] || data.status,
       location: data.location,
+      towerId: data.tower_id || null,
     };
   } catch {
     return { status: "unknown", location: null };

@@ -366,6 +366,29 @@ export async function submitFeedbackAction(data: {
   }
 }
 
+export async function syncTripStatusAction(tripId: number, status: string, towerId: string | null) {
+  try {
+    const user = await currentUser();
+    if (!user) return { error: "Acceso denegado." };
+
+    const customerRecord = await db.query.customer.findFirst({
+      where: eq(customer.clerkId, user.id),
+    });
+    if (!customerRecord) return { error: "Cliente no encontrado." };
+
+    await db
+      .update(trip)
+      .set({ status, ...(towerId ? { towerId } : {}) })
+      .where(and(eq(trip.tripId, tripId), eq(trip.customerId, customerRecord.customerId)));
+
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Error al sincronizar estado del viaje."
+    console.error("Error syncing trip status:", error);
+    return { error: message };
+  }
+}
+
 export async function getDriverInfoAction(towerId: string) {
   try {
     const info = await getTowerDriverInfo(towerId);

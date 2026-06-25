@@ -8,30 +8,34 @@ import { OSRM_BASE_URL, DEFAULT_MAP_CENTER } from "@/lib/constants";
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, ZoomControl } from "react-leaflet";
 import L from "leaflet";
-function ChangeView({ origin, destination }: { origin: [number, number] | null, destination: [number, number] | null }) {
+function ChangeView({ origin, destination, towLocation }: { origin: [number, number] | null, destination: [number, number] | null, towLocation?: [number, number] | null }) {
   const map = useMap();
 
   useEffect(() => {
-    if (origin && destination) {
-      const bounds = L.latLngBounds([origin, destination]);
+    const points: [number, number][] = [];
+    if (origin) points.push(origin);
+    if (destination) points.push(destination);
+    if (towLocation) points.push(towLocation);
+
+    if (points.length >= 2) {
+      const bounds = L.latLngBounds(points);
       map.fitBounds(bounds, { padding: [50, 50] });
-    } else if (origin) {
-      map.setView(origin, 14);
-    } else if (destination) {
-      map.setView(destination, 14);
+    } else if (points.length === 1) {
+      map.setView(points[0], 14);
     }
-  }, [origin, destination, map]);
+  }, [origin, destination, towLocation, map]);
 
   return null;
 }
 
-function RoutingLine({ origin, destination }: { origin: [number, number]; destination: [number, number] }) {
+function RoutingLine({ origin, destination, towLocation }: { origin?: [number, number] | null; destination: [number, number]; towLocation?: [number, number] | null }) {
   const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null);
+  const start = (towLocation || origin)!;
 
   useEffect(() => {
     const fetchRoute = async () => {
       try {
-        const url = `${OSRM_BASE_URL}/${origin[1]},${origin[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson`;
+        const url = `${OSRM_BASE_URL}/${start[1]},${start[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson`;
         const res = await fetch(url);
         const data = await res.json();
 
@@ -47,7 +51,7 @@ function RoutingLine({ origin, destination }: { origin: [number, number]; destin
     };
 
     fetchRoute();
-  }, [origin, destination]);
+  }, [start, destination]);
 
   if (!routeCoords) return null;
 
@@ -84,9 +88,10 @@ type MapProps = {
   origin?: [number, number] | null;
   destination?: [number, number] | null;
   towLocation?: [number, number] | null;
+  followTower?: boolean;
 };
 
-export default function Map({ origin, destination, towLocation }: MapProps) {
+export default function Map({ origin, destination, towLocation, followTower }: MapProps) {
   const defaultPosition: [number, number] = DEFAULT_MAP_CENTER;
 
   return (
@@ -103,9 +108,9 @@ export default function Map({ origin, destination, towLocation }: MapProps) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      <ChangeView origin={origin || null} destination={destination || null} />
+      <ChangeView origin={origin || null} destination={destination || null} towLocation={towLocation} />
 
-      {origin && (
+      {origin && (!followTower || !towLocation) && (
         <Marker position={origin} icon={originIcon}>
           <Popup>Origen</Popup>
         </Marker>
@@ -127,7 +132,9 @@ export default function Map({ origin, destination, towLocation }: MapProps) {
         </Marker>
       )}
 
-      {origin && destination && <RoutingLine origin={origin} destination={destination} />}
+      {(origin || towLocation) && destination && (
+        <RoutingLine origin={followTower ? null : origin} destination={destination} towLocation={followTower ? towLocation : null} />
+      )}
     </MapContainer>
   );
 }

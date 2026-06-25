@@ -31,6 +31,7 @@ export const ANIMATION_POINTS_TO_ORIGIN = 20
 export const ANIMATION_POINTS_TO_DEST = 30
 export const SEARCH_DELAY_MS = 3000
 export const MOCK_ETA_MINUTES = 7
+export const AVG_SPEED_KM_MIN = 0.5
 
 export const ADDRESS_DEBOUNCE_MS = 600
 export const GEOCODE_QUEUE_DELAY_MS = 1000
