@@ -134,14 +134,12 @@ export async function confirmPaymentAction(tripId: number) {
       service_value: tripRecord.estimatedPrice ? parseFloat(tripRecord.estimatedPrice) : undefined,
     });
 
-    const updateData: Partial<typeof trip.$inferSelect> & { status: string } = {
-      status: TRIP_STATUS.IN_PROGRESS,
-    };
     const towerId = towerResult?.tower_id;
     if (typeof towerId === "string") {
-      updateData.towerId = towerId;
+      await db.update(trip).set({ status: TRIP_STATUS.IN_PROGRESS, towerId }).where(eq(trip.tripId, tripId));
+    } else {
+      await db.update(trip).set({ status: TRIP_STATUS.PAYMENT_CONFIRMED }).where(eq(trip.tripId, tripId));
     }
-    await db.update(trip).set(updateData).where(eq(trip.tripId, tripId));
 
     revalidatePath("/customer/request-ride");
     return { success: true };

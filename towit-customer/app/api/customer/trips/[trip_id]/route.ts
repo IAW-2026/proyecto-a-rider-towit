@@ -9,8 +9,10 @@ const TOWER_STATUS_MAP: Record<string, string> = {
   pending: TRIP_STATUS.PAYMENT_CONFIRMED,
   accepted: TRIP_STATUS.IN_PROGRESS,
   completed: TRIP_STATUS.COMPLETED,
+  finalizado: TRIP_STATUS.COMPLETED,
   cancelled: TRIP_STATUS.CANCELLED,
   canceled: TRIP_STATUS.CANCELLED,
+  cancelado: TRIP_STATUS.CANCELLED,
 };
 
 export async function GET(

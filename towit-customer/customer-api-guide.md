@@ -42,8 +42,8 @@ La **Tower App** debe llamar a este endpoint cuando un conductor acepta un viaje
         |---|---|
         | `"pending"` | `"pago confirmado"` |
         | `"accepted"` | `"en proceso"` |
-        | `"completed"` | `"finalizado"` |
-        | `"cancelled"` / `"canceled"` | `"cancelado"` |
+        | `"completed"` / `"finalizado"` | `"finalizado"` |
+        | `"cancelled"` / `"canceled"` / `"cancelado"` | `"cancelado"` |
 
         También se puede enviar el valor en español directamente (ej: `"en proceso"`, `"cancelado"`).
 

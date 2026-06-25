@@ -159,26 +159,36 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
 
   const startPolling = useCallback((tripId: number) => {
     intervalsRef.current.polling = setInterval(async () => {
-      const res = await getTowerRequestStatus(String(tripId));
-      if (!res) return;
-      if (res.location) {
-        setTowLocation([parseFloat(res.location.lat), parseFloat(res.location.long)]);
+      const towerRes = await getTowerRequestStatus(String(tripId));
+
+      // Check local DB for completion via TowerApp PATCH
+      const dbRes = await getTripByIdAction(tripId);
+      if (dbRes.trip?.status === TRIP_STATUS.COMPLETED) {
+        clearInterval(intervalsRef.current.polling);
+        await finishTripAction(tripId);
+        clearPersistedState();
+        const returnUrl = encodeURIComponent(`${window.location.origin}/customer/home`);
+        window.location.href = `${FEEDBACK_APP_URL}/rate/${tripId}?return_url=${returnUrl}`;
+        return;
       }
-      if (res.totalPoints && res.currentStep) {
-        setEta(Math.max(1, Math.floor(7 * (1 - res.currentStep / res.totalPoints))));
+
+      if (towerRes?.location) {
+        setTowLocation([parseFloat(towerRes.location.lat), parseFloat(towerRes.location.long)]);
       }
-      if (res.phase === "en_viaje" && viajePhaseRef.current === "en_camino") {
+      if (towerRes?.totalPoints && towerRes?.currentStep) {
+        setEta(Math.max(1, Math.floor(7 * (1 - towerRes.currentStep / towerRes.totalPoints))));
+      }
+      if (towerRes?.phase === "en_viaje" && viajePhaseRef.current === "en_camino") {
         setViajePhase("en_viaje");
       }
-      if (res.status === TRIP_STATUS.COMPLETED) {
+      if (towerRes?.status === TRIP_STATUS.COMPLETED) {
         clearInterval(intervalsRef.current.polling);
-        clearMockTripProgress(String(tripId));
         await finishTripAction(tripId);
         clearPersistedState();
         const returnUrl = encodeURIComponent(`${window.location.origin}/customer/home`);
         window.location.href = `${FEEDBACK_APP_URL}/rate/${tripId}?return_url=${returnUrl}`;
       }
-    }, 800);
+    }, 2000);
   }, []);
 
   useEffect(() => {
@@ -304,14 +314,23 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     if (isMockTower) return;
 
     const id = setInterval(async () => {
-      const res = await getTowerRequestStatus(String(currentTripId));
-      if (!res) return;
+      const towerRes = await getTowerRequestStatus(String(currentTripId));
 
-      if (res.status === TRIP_STATUS.IN_PROGRESS) {
+      // Check local DB for status change via TowerApp PATCH
+      const dbRes = await getTripByIdAction(currentTripId);
+      if (dbRes.trip?.status === TRIP_STATUS.IN_PROGRESS && dbRes.trip?.towerId) {
         clearInterval(id);
         setTripState("en_proceso");
-        if (res.location) {
-          setTowLocation([parseFloat(res.location.lat), parseFloat(res.location.long)]);
+        startPolling(currentTripId);
+        return;
+      }
+
+      // Fallback: check TowerApp GET directly
+      if (towerRes?.status === TRIP_STATUS.IN_PROGRESS) {
+        clearInterval(id);
+        setTripState("en_proceso");
+        if (towerRes.location) {
+          setTowLocation([parseFloat(towerRes.location.lat), parseFloat(towerRes.location.long)]);
         }
         startPolling(currentTripId);
       }
