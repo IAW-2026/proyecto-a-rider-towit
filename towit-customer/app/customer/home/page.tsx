@@ -81,10 +81,6 @@ export default async function CustomerHome() {
           </span>
           Servicio operativo
         </div>
-        <div className="h-4 w-px bg-border hidden sm:block" />
-        <p className="text-sm text-muted-foreground">
-          Tiempo promedio de respuesta: <span className="font-semibold text-foreground">8 minutos</span>
-        </p>
       </div>
 
     </main>

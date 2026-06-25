@@ -11,6 +11,7 @@ import { USE_MOCK_PAYMENT, USE_MOCK_TOWER } from "@/lib/service-utils";
 import { TRIP_STATUS, TERMINAL_STATUSES } from "@/lib/trip-status";
 import { generatePayment, refundPayment } from "@/services/paymentService";
 import { requestTowerForTrip, cancelTowerRequest, getTowerDriverInfo } from "@/services/towerService";
+import type { TowerRequestPayload } from "@/services/towerService";
 import { submitRating, getAvgRating } from "@/services/feedbackService";
 
 export async function createTripAction(data: {
@@ -122,23 +123,33 @@ export async function confirmPaymentAction(tripId: number) {
       }
     }
 
-    const towerResult = await requestTowerForTrip({
-      customer_id: user.id,
-      trip: {
-        id: String(tripId),
-        origin: { lat: tripRecord.originLat, long: tripRecord.originLng, address: tripRecord.originChar ?? undefined },
-        destination: { lat: tripRecord.destinationLat, long: tripRecord.destinationLng, address: tripRecord.DestinationChar ?? undefined },
-      },
-      vehicle_data: vehicleData,
-      preferred_tow_type: tripRecord.preferredTowType || undefined,
-      service_value: tripRecord.estimatedPrice ? parseFloat(tripRecord.estimatedPrice) : undefined,
-    });
+    // Always set DB to PAYMENT_CONFIRMED — payment is already confirmed at this point
+    // TowerApp request is best-effort; if it fails, the trip stays in PAYMENT_CONFIRMED
+    // and will be retried via polling / picked up when TowerApp assigns a tower.
+    await db.update(trip).set({ status: TRIP_STATUS.PAYMENT_CONFIRMED }).where(eq(trip.tripId, tripId));
 
-    const towerId = towerResult?.tower_id;
-    if (typeof towerId === "string") {
-      await db.update(trip).set({ status: TRIP_STATUS.IN_PROGRESS, towerId }).where(eq(trip.tripId, tripId));
-    } else {
-      await db.update(trip).set({ status: TRIP_STATUS.PAYMENT_CONFIRMED }).where(eq(trip.tripId, tripId));
+    try {
+      const towerPayload: TowerRequestPayload = {
+        trip_id: String(tripId),
+        customer_id: user.id,
+        trip: {
+          id: String(tripId),
+          origin: { lat: tripRecord.originLat, long: tripRecord.originLng, address: tripRecord.originChar ?? undefined },
+          destination: { lat: tripRecord.destinationLat, long: tripRecord.destinationLng, address: tripRecord.DestinationChar ?? undefined },
+        },
+        vehicle_data: vehicleData,
+        preferred_tow_type: tripRecord.preferredTowType || undefined,
+        service_value: tripRecord.estimatedPrice ? parseFloat(tripRecord.estimatedPrice) : undefined,
+      };
+      console.log("requestTowerForTrip payload:", JSON.stringify(towerPayload));
+      const towerResult = await requestTowerForTrip(towerPayload);
+
+      const towerId = towerResult?.tower_id;
+      if (typeof towerId === "string") {
+        await db.update(trip).set({ status: TRIP_STATUS.IN_PROGRESS, towerId }).where(eq(trip.tripId, tripId));
+      }
+    } catch (error: unknown) {
+      console.error("Tower request failed (trip stays PAYMENT_CONFIRMED):", error);
     }
 
     revalidatePath("/customer/request-ride");
@@ -146,13 +157,6 @@ export async function confirmPaymentAction(tripId: number) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Error al confirmar el pago."
     console.error("Error confirming payment:", error);
-
-    // No towers available — cancel the trip so it doesn't get restored on reload
-    if (message.includes("No se pudieron encontrar towers")) {
-      await db.update(trip).set({ status: TRIP_STATUS.CANCELLED }).where(eq(trip.tripId, tripId));
-      return { error: "no_towers_available" };
-    }
-
     return { error: message };
   }
 }
@@ -395,6 +399,7 @@ export async function getDriverInfoAction(towerId: string) {
       getTowerDriverInfo(towerId),
       getAvgRating(towerId),
     ]);
+    console.log(`[getAvgRating] towerId=${towerId} response=`, avgRating);
     return { success: true, driverName: info.driver_name, driverRating: avgRating.avg_rating, driverPhone: info.driver_phone, vehicleBrand: info.vehicle_brand, vehicleModel: info.vehicle_model, vehicleYear: info.vehicle_year };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Error al obtener info del conductor."
