@@ -126,8 +126,8 @@ export async function confirmPaymentAction(tripId: number) {
       customer_id: user.id,
       trip: {
         id: String(tripId),
-        origin: { lat: tripRecord.originLat, long: tripRecord.originLng },
-        destination: { lat: tripRecord.destinationLat, long: tripRecord.destinationLng },
+        origin: { lat: tripRecord.originLat, long: tripRecord.originLng, address: tripRecord.originChar ?? undefined },
+        destination: { lat: tripRecord.destinationLat, long: tripRecord.destinationLng, address: tripRecord.DestinationChar ?? undefined },
       },
       vehicle_data: vehicleData,
       preferred_tow_type: tripRecord.preferredTowType || undefined,

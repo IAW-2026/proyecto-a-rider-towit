@@ -45,7 +45,11 @@ export async function getTowerVehicle(_vehicleId: string) {
 export interface TowerRequestPayload {
   trip_id?: string;
   customer_id?: string;
-  trip?: { id: string; origin: { lat: string; long: string }; destination: { lat: string; long: string } };
+  trip?: {
+    id: string;
+    origin: { lat: string; long: string; address?: string };
+    destination: { lat: string; long: string; address?: string };
+  };
   vehicle_data?: { brand: string; model: string; year: number };
   preferred_tow_type?: string;
 }
