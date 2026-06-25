@@ -639,7 +639,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   return (
     <div className="absolute inset-0 w-full h-full">
       <div className="absolute inset-0 z-0 bg-muted">
-        <DynamicMap key={currentTripId ?? 'new'} origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
+        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
       </div>
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
         {(tripState === "idle" || tripState === "cancelado" || tripState === "finalizado") && (
