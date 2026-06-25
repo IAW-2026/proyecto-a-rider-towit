@@ -88,6 +88,10 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    if (!initialTrip && !tripIdFromUrl) {
+      clearPersistedState();
+    }
+
     const saved = loadPersistedState();
     if (saved) {
       if (saved.origin) setOrigin(saved.origin as [number, number]);
@@ -128,6 +132,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   };
 
   const [formErrors, setFormErrors] = useState<{ origin?: string; destination?: string; vehicle?: string }>({});
+  const [formMessage, setFormMessage] = useState<string | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
   const [tripState, setTripState] = useState<"idle" | "esperando_pago" | "pago_confirmado" | "en_proceso" | "finalizado" | "cancelado" | "payment_failed">(
     initialTrip?.status === TRIP_STATUS.PAYMENT_CONFIRMED ? "pago_confirmado"
@@ -245,19 +250,25 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
 
     const t = result.trip;
     setCurrentTripId(t.tripId);
-    setOrigin([t.originLat, t.originLng]);
-    setDestination([t.destinationLat, t.destinationLng]);
 
     if (t.status === TRIP_STATUS.PAYMENT_CONFIRMED) {
+      setOrigin([t.originLat, t.originLng]);
+      setDestination([t.destinationLat, t.destinationLng]);
       setTripState("pago_confirmado");
       confirmPaymentAction(t.tripId).then((res) => {
         if (!res.success) setTripState("payment_failed");
       });
     } else if (t.status === TRIP_STATUS.PENDING_PAYMENT && tripIdFromUrl) {
+      setOrigin([t.originLat, t.originLng]);
+      setDestination([t.destinationLat, t.destinationLng]);
       setTripState("esperando_pago");
     } else if (t.status === TRIP_STATUS.IN_PROGRESS) {
+      setOrigin([t.originLat, t.originLng]);
+      setDestination([t.destinationLat, t.destinationLng]);
       setTripState("en_proceso");
     } else {
+      setOrigin(null);
+      setDestination(null);
       setTripState("idle");
     }
   }
@@ -283,10 +294,42 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     return () => clearInterval(id);
   }, [tripState, currentTripId]);
 
+  // Poll real TowerApp during search (when tower mock is OFF)
+  useEffect(() => {
+    if (tripState !== "pago_confirmado" || !currentTripId) return;
+
+    const isMockTower = process.env.NEXT_PUBLIC_MOCK_TOWER !== "false";
+    if (isMockTower) return;
+
+    const id = setInterval(async () => {
+      const res = await getTowerRequestStatus(String(currentTripId));
+      if (!res) return;
+
+      if (res.status === TRIP_STATUS.IN_PROGRESS) {
+        clearInterval(id);
+        setTripState("en_proceso");
+        if (res.location) {
+          setTowLocation([parseFloat(res.location.lat), parseFloat(res.location.long)]);
+        }
+        startPolling(currentTripId);
+      }
+    }, 2000);
+
+    return () => clearInterval(id);
+  }, [tripState, currentTripId, startPolling]);
+
   // Restore mock progress after hydration and start polling
   useEffect(() => {
     if (!hydrated) return;
     if (!currentTripId || !origin || !destination) return;
+
+    const isMockTower = process.env.NEXT_PUBLIC_MOCK_TOWER !== "false";
+    if (!isMockTower) {
+      if (tripState === "en_proceso") {
+        startPolling(currentTripId);
+      }
+      return;
+    }
 
     const savedProgress = mockProgressRef.current;
     const savedPoints = mockPointsRef.current;
@@ -342,13 +385,15 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, currentTripId]);
 
-  // Clear storage on terminal states
+  // Clear storage and map state on terminal states
   useEffect(() => {
-    if (tripState === "finalizado") {
+    if (tripState === "finalizado" || tripState === "cancelado") {
       clearPersistedState();
-    }
-    if (tripState === "cancelado") {
-      clearPersistedState();
+      setOrigin(null);
+      setDestination(null);
+      setOriginText("");
+      setDestinationText("");
+      setSelectedVehicleId("");
     }
   }, [tripState]);
 
@@ -472,11 +517,21 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     if (result.useMocks) {
       useMocksRef.current = true;
       const confirmRes = await confirmPaymentAction(createdTripId);
+      if (confirmRes.error === "no_towers_available") {
+        setCurrentTripId(null);
+        setFormMessage("No hay conductores disponibles en este momento. Por favor, intentá de nuevo más tarde.");
+        setTripState("idle");
+        return;
+      }
       if (confirmRes.error) {
         alert(confirmRes.error);
         return;
       }
-      startSearchFlow(createdTripId);
+      if (result.useMockTower) {
+        startSearchFlow(createdTripId);
+      } else {
+        setTripState("pago_confirmado");
+      }
     } else {
       useMocksRef.current = false;
       const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?trip_id=${createdTripId}`);
@@ -504,6 +559,12 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     }
     clearMockTripProgress(String(currentTripId));
     mockProgressRef.current = null;
+    clearPersistedState();
+    setOrigin(null);
+    setDestination(null);
+    setOriginText("");
+    setDestinationText("");
+    setSelectedVehicleId("");
     setTripState("cancelado");
     setTowLocation(null);
     setCurrentTripId(null);
@@ -518,7 +579,15 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     switch (tripState) {
       case "idle":
         return (
-          <FormStep
+          <>
+            {formMessage && (
+              <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 mb-4 text-red-300 text-sm flex items-start gap-3">
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div className="flex-1">{formMessage}</div>
+                <button onClick={() => setFormMessage(null)} className="text-red-400 hover:text-red-300 shrink-0 cursor-pointer">✕</button>
+              </div>
+            )}
+            <FormStep
             origin={origin}
             destination={destination}
             onOriginSelect={handleOriginSelect}
@@ -541,6 +610,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
             onTouchMove={handleTouchMove}
             selectedWeight={selectedWeight}
           />
+          </>
         );
       case "esperando_pago":
         return <PaymentPendingStep />;
@@ -569,7 +639,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   return (
     <div className="absolute inset-0 w-full h-full">
       <div className="absolute inset-0 z-0 bg-muted">
-        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
+        <DynamicMap key={currentTripId ?? 'new'} origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
       </div>
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
         {(tripState === "idle" || tripState === "cancelado" || tripState === "finalizado") && (

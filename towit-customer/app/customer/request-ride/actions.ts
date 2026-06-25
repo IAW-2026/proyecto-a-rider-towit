@@ -7,7 +7,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createTripSchema, tripIdSchema, feedbackSchema } from "@/lib/validation";
 
-import { USE_MOCK_PAYMENT } from "@/lib/service-utils";
+import { USE_MOCK_PAYMENT, USE_MOCK_TOWER } from "@/lib/service-utils";
 import { TRIP_STATUS, TERMINAL_STATUSES } from "@/lib/trip-status";
 import { generatePayment, refundPayment } from "@/services/paymentService";
 import { requestTowerForTrip, cancelTowerRequest } from "@/services/towerService";
@@ -79,7 +79,7 @@ export async function createTripAction(data: {
 
     revalidatePath("/customer/request-ride");
 
-    return { success: true, trip: createdTrip, useMocks: USE_MOCK_PAYMENT() };
+    return { success: true, trip: createdTrip, useMocks: USE_MOCK_PAYMENT(), useMockTower: USE_MOCK_TOWER() };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Hubo un error al crear la solicitud de grúa."
     console.error("Error creating trip:", error);
@@ -131,6 +131,7 @@ export async function confirmPaymentAction(tripId: number) {
       },
       vehicle_data: vehicleData,
       preferred_tow_type: tripRecord.preferredTowType || undefined,
+      service_value: tripRecord.estimatedPrice ? parseFloat(tripRecord.estimatedPrice) : undefined,
     });
 
     const updateData: Partial<typeof trip.$inferSelect> & { status: string } = {
@@ -147,6 +148,13 @@ export async function confirmPaymentAction(tripId: number) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Error al confirmar el pago."
     console.error("Error confirming payment:", error);
+
+    // No towers available — cancel the trip so it doesn't get restored on reload
+    if (message.includes("No se pudieron encontrar towers")) {
+      await db.update(trip).set({ status: TRIP_STATUS.CANCELLED }).where(eq(trip.tripId, tripId));
+      return { error: "no_towers_available" };
+    }
+
     return { error: message };
   }
 }
@@ -165,15 +173,23 @@ export async function cancelTripAction(tripId: number) {
 
     console.log(`Iniciando cancelación del viaje #${tripId}`);
 
-    const refundResult = await refundPayment({
-      tripId: String(tripId),
-      clerkId: user.id,
-      refundType: "TOTAL",
-    });
-    console.log("Reembolso exitoso:", refundResult);
+    try {
+      const refundResult = await refundPayment({
+        tripId: String(tripId),
+        clerkId: user.id,
+        refundType: "TOTAL",
+      });
+      console.log("Reembolso exitoso:", refundResult);
+    } catch (e) {
+      console.error("Error al reembolsar:", e);
+    }
 
-    const cancelResult = await cancelTowerRequest(String(tripId));
-    console.log("Cancelación desde la app de la grúa exitosa:", cancelResult);
+    try {
+      const cancelResult = await cancelTowerRequest(String(tripId));
+      console.log("Cancelación desde la app de la grúa exitosa:", cancelResult);
+    } catch (e) {
+      console.error("Error cancelando en TowerApp:", e);
+    }
 
     await db.update(trip).set({ status: TRIP_STATUS.CANCELLED }).where(eq(trip.tripId, tripId));
 

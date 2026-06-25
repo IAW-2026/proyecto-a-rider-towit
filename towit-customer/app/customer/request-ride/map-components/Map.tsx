@@ -27,15 +27,10 @@ function ChangeView({ origin, destination }: { origin: [number, number] | null, 
   return null;
 }
 
-function RoutingLine({ origin, destination }: { origin: [number, number] | null, destination: [number, number] | null }) {
+function RoutingLine({ origin, destination }: { origin: [number, number]; destination: [number, number] }) {
   const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null);
 
   useEffect(() => {
-    if (!origin || !destination) {
-      setRouteCoords(null);
-      return;
-    }
-
     const fetchRoute = async () => {
       try {
         const url = `${OSRM_BASE_URL}/${origin[1]},${origin[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson`;
@@ -157,7 +152,7 @@ export default function Map({ origin, destination, towLocation, craneType = "con
         </Marker>
       )}
 
-      <RoutingLine origin={origin || null} destination={destination || null} />
+      {origin && destination && <RoutingLine origin={origin} destination={destination} />}
     </MapContainer>
   );
 }

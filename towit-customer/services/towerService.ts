@@ -52,6 +52,7 @@ export interface TowerRequestPayload {
   };
   vehicle_data?: { brand: string; model: string; year: number };
   preferred_tow_type?: string;
+  service_value?: number;
 }
 
 interface TowerRequestResponse {
@@ -81,6 +82,9 @@ export async function requestTowerForTrip(payload: TowerRequestPayload): Promise
   if (payload.preferred_tow_type) {
     body.preferred_tow_type = payload.preferred_tow_type;
   }
+  if (payload.service_value !== undefined) {
+    body.service_value = payload.service_value;
+  }
 
   const res = await fetch(TOWER_REQUESTS_URL, {
     method: "POST",
@@ -94,7 +98,8 @@ export async function requestTowerForTrip(payload: TowerRequestPayload): Promise
   const response: TowerRequestResponse = await res.json();
 
   if (!res.ok) {
-    throw new Error(response.error || `Error al solicitar tower: ${res.status}`);
+    const details = response.details ? ` Detalles: ${JSON.stringify(response.details)}` : "";
+    throw new Error((response.error || `Error al solicitar tower: ${res.status}`) + details);
   }
 
   return (response.data ?? {}) as TowerResponse;
