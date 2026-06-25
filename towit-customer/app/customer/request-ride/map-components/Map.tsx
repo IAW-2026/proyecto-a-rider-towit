@@ -5,11 +5,9 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import "leaflet-defaulticon-compatibility";
 import { OSRM_BASE_URL, DEFAULT_MAP_CENTER } from "@/lib/constants";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, ZoomControl } from "react-leaflet";
 import L from "leaflet";
-import { faCarSide, faTruckPickup } from "@fortawesome/free-solid-svg-icons";
-
 function ChangeView({ origin, destination }: { origin: [number, number] | null, destination: [number, number] | null }) {
   const map = useMap();
 
@@ -75,44 +73,21 @@ const destinationIcon = L.divIcon({
   iconAnchor: [11, 11],
 });
 
-function getCarIcon(craneType: string) {
-  if (craneType === "medium") {
-    const [w, h, , , path] = faCarSide.icon;
-    return L.divIcon({
-      html: `<svg viewBox="0 0 ${w} ${h}" style="width:40px;height:40px;"><path fill="#1a1a1a" stroke="white" stroke-width="36" paint-order="stroke fill" stroke-linejoin="round" d="${path}"/></svg>`,
-      className: 'bg-transparent border-none',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-    });
-  }
-  if (craneType === "large") {
-    const [w, h, , , path] = faTruckPickup.icon;
-    return L.divIcon({
-      html: `<svg viewBox="0 0 ${w} ${h}" style="width:40px;height:40px;"><path fill="#1a1a1a" stroke="white" stroke-width="36" paint-order="stroke fill" stroke-linejoin="round" d="${path}"/></svg>`,
-      className: 'bg-transparent border-none',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-    });
-  }
-  return L.divIcon({
-    html: '<img src="/images/towicon/tow4.svg" alt="TowIt" style="width:34px;height:34px;" />',
-    className: 'bg-transparent border-none',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-  });
-}
+const TOW_ICON = L.divIcon({
+  html: '<img src="/images/towicon/tow4.svg" alt="TowIt" style="width:34px;height:34px;" />',
+  className: 'bg-transparent border-none',
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+});
 
 type MapProps = {
   origin?: [number, number] | null;
   destination?: [number, number] | null;
   towLocation?: [number, number] | null;
-  craneType?: string;
 };
 
-export default function Map({ origin, destination, towLocation, craneType = "conventional" }: MapProps) {
+export default function Map({ origin, destination, towLocation }: MapProps) {
   const defaultPosition: [number, number] = DEFAULT_MAP_CENTER;
-
-  const carIcon = useMemo(() => getCarIcon(craneType), [craneType]);
 
   return (
     <MapContainer
@@ -146,7 +121,7 @@ export default function Map({ origin, destination, towLocation, craneType = "con
         <Marker
           position={towLocation}
           zIndexOffset={1000}
-          icon={carIcon}
+          icon={TOW_ICON}
         >
           <Popup>Grúa TowIt en camino</Popup>
         </Marker>

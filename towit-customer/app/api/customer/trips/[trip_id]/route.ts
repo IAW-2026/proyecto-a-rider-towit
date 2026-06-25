@@ -7,7 +7,7 @@ import { TRIP_STATUS } from '@/lib/trip-status'
 
 const TOWER_STATUS_MAP: Record<string, string> = {
   pending: TRIP_STATUS.PAYMENT_CONFIRMED,
-  accepted: TRIP_STATUS.IN_PROGRESS,
+  accepted: TRIP_STATUS.ACCEPTED,
   completed: TRIP_STATUS.COMPLETED,
   finalizado: TRIP_STATUS.COMPLETED,
   cancelled: TRIP_STATUS.CANCELLED,
@@ -104,6 +104,14 @@ export async function PATCH(
 
   try {
     const { trip_id } = await params
+    const tripIdNumber = Number(trip_id)
+    if (isNaN(tripIdNumber) || !Number.isInteger(tripIdNumber) || tripIdNumber <= 0) {
+      return Response.json(
+        { error: `Invalid trip_id "${trip_id}". Must be a positive integer. Use the numeric trip ID from POST /api/tower/requests response, not the user ID.` },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
     const { tower_id, status } = body
 
@@ -117,12 +125,12 @@ export async function PATCH(
     const mappedStatus = TOWER_STATUS_MAP[status] || status;
 
     const existingTrip = await db.query.trip.findFirst({
-      where: eq(trip.tripId, Number(trip_id)),
+      where: eq(trip.tripId, tripIdNumber),
     })
 
     if (!existingTrip) {
       return Response.json(
-        { error: 'Trip not found' },
+        { error: `Trip not found for id ${tripIdNumber}` },
         { status: 404 }
       )
     }
@@ -130,7 +138,7 @@ export async function PATCH(
     await db
       .update(trip)
       .set({ towerId: tower_id, status: mappedStatus })
-      .where(eq(trip.tripId, Number(trip_id)))
+      .where(eq(trip.tripId, tripIdNumber))
 
     return Response.json({})
   } catch (error: unknown) {

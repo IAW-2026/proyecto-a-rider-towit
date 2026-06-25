@@ -6,7 +6,7 @@ import { WEIGHT_LIMITS, CRANE_RATES, ANIMATION_POINTS_TO_ORIGIN, ANIMATION_POINT
 import BackButton from "@/components/ui/BackButton";
 import DynamicMap from "@/app/customer/request-ride/map-components/DynamicMap";
 import { createTripAction, cancelTripAction, finishTripAction, confirmPaymentAction, getLatestActiveTripAction, getTripByIdAction, getDriverInfoAction } from "@/app/customer/request-ride/actions";
-import { TRIP_STATUS, TERMINAL_STATUSES } from "@/lib/trip-status";
+import { TRIP_STATUS } from "@/lib/trip-status";
 import { addVehicleAction } from "@/app/customer/vehicles/actions";
 import { initMockTripProgress, getTowerRequestStatus, clearMockTripProgress } from "@/services/towerService";
 import { getPaymentUrl } from "@/services/paymentService";
@@ -102,7 +102,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       if (saved.originText) setOriginText(saved.originText as string);
       if (saved.destinationText) setDestinationText(saved.destinationText as string);
       if (saved.currentTripId) setCurrentTripId(saved.currentTripId as number);
-      if (saved.tripState === "pago_confirmado" || saved.tripState === "en_proceso") {
+      if (saved.tripState === "pago_confirmado" || saved.tripState === "aceptado" || saved.tripState === "en_proceso") {
         setTripState(saved.tripState as typeof tripState);
       }
       if (saved.towLocation) setTowLocation(saved.towLocation as [number, number]);
@@ -134,8 +134,9 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   const [formErrors, setFormErrors] = useState<{ origin?: string; destination?: string; vehicle?: string }>({});
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
-  const [tripState, setTripState] = useState<"idle" | "esperando_pago" | "pago_confirmado" | "en_proceso" | "finalizado" | "cancelado" | "payment_failed">(
+  const [tripState, setTripState] = useState<"idle" | "esperando_pago" | "pago_confirmado" | "aceptado" | "en_proceso" | "finalizado" | "cancelado" | "payment_failed">(
     initialTrip?.status === TRIP_STATUS.PAYMENT_CONFIRMED ? "pago_confirmado"
+    : initialTrip?.status === TRIP_STATUS.ACCEPTED ? "aceptado"
     : initialTrip?.status === TRIP_STATUS.IN_PROGRESS ? "en_proceso"
     : initialTrip?.status === TRIP_STATUS.PENDING_PAYMENT && tripIdFromUrl ? "esperando_pago"
     : "idle"
@@ -155,20 +156,22 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   const viajePhaseRef = useRef(viajePhase);
   viajePhaseRef.current = viajePhase;
   const persistedOnce = useRef(false);
-  const useMocksRef = useRef(true);
+
+  const handleTripCompleted = useCallback(async (tripId: number) => {
+    clearInterval(intervalsRef.current.polling);
+    await finishTripAction(tripId);
+    clearPersistedState();
+    const returnUrl = encodeURIComponent(`${window.location.origin}/customer/home`);
+    window.location.href = `${FEEDBACK_APP_URL}/rate/${tripId}?return_url=${returnUrl}`;
+  }, [finishTripAction]);
 
   const startPolling = useCallback((tripId: number) => {
     intervalsRef.current.polling = setInterval(async () => {
       const towerRes = await getTowerRequestStatus(String(tripId));
 
-      // Check local DB for completion via TowerApp PATCH
       const dbRes = await getTripByIdAction(tripId);
       if (dbRes.trip?.status === TRIP_STATUS.COMPLETED) {
-        clearInterval(intervalsRef.current.polling);
-        await finishTripAction(tripId);
-        clearPersistedState();
-        const returnUrl = encodeURIComponent(`${window.location.origin}/customer/home`);
-        window.location.href = `${FEEDBACK_APP_URL}/rate/${tripId}?return_url=${returnUrl}`;
+        handleTripCompleted(tripId);
         return;
       }
 
@@ -178,18 +181,19 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       if (towerRes?.totalPoints && towerRes?.currentStep) {
         setEta(Math.max(1, Math.floor(7 * (1 - towerRes.currentStep / towerRes.totalPoints))));
       }
-      if (towerRes?.phase === "en_viaje" && viajePhaseRef.current === "en_camino") {
-        setViajePhase("en_viaje");
+      if (towerRes?.phase === "en_viaje") {
+        if (tripStateRef.current === "aceptado") {
+          setTripState("en_proceso");
+        }
+        if (viajePhaseRef.current === "en_camino") {
+          setViajePhase("en_viaje");
+        }
       }
       if (towerRes?.status === TRIP_STATUS.COMPLETED) {
-        clearInterval(intervalsRef.current.polling);
-        await finishTripAction(tripId);
-        clearPersistedState();
-        const returnUrl = encodeURIComponent(`${window.location.origin}/customer/home`);
-        window.location.href = `${FEEDBACK_APP_URL}/rate/${tripId}?return_url=${returnUrl}`;
+        handleTripCompleted(tripId);
       }
     }, 2000);
-  }, []);
+  }, [handleTripCompleted]);
 
   useEffect(() => {
     if ((tripState === "finalizado" || tripState === "cancelado") && !isExpanded) {
@@ -234,7 +238,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     }
 
     const saved = loadPersistedState();
-    if (saved?.tripState === "pago_confirmado" || saved?.tripState === "en_proceso") {
+    if (saved?.tripState === "pago_confirmado" || saved?.tripState === "aceptado" || saved?.tripState === "en_proceso") {
       return;
     }
 
@@ -274,6 +278,10 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       setOrigin([t.originLat, t.originLng]);
       setDestination([t.destinationLat, t.destinationLng]);
       setTripState("esperando_pago");
+    } else if (t.status === TRIP_STATUS.ACCEPTED) {
+      setOrigin([t.originLat, t.originLng]);
+      setDestination([t.destinationLat, t.destinationLng]);
+      setTripState("aceptado");
     } else if (t.status === TRIP_STATUS.IN_PROGRESS) {
       setOrigin([t.originLat, t.originLng]);
       setDestination([t.destinationLat, t.destinationLng]);
@@ -316,19 +324,20 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     const id = setInterval(async () => {
       const towerRes = await getTowerRequestStatus(String(currentTripId));
 
-      // Check local DB for status change via TowerApp PATCH
       const dbRes = await getTripByIdAction(currentTripId);
-      if (dbRes.trip?.status === TRIP_STATUS.IN_PROGRESS && dbRes.trip?.towerId) {
+      if (dbRes.trip?.status === TRIP_STATUS.ACCEPTED && dbRes.trip?.towerId) {
         clearInterval(id);
-        setTripState("en_proceso");
+        setTripState("aceptado");
+        if (towerRes.location) {
+          setTowLocation([parseFloat(towerRes.location.lat), parseFloat(towerRes.location.long)]);
+        }
         startPolling(currentTripId);
         return;
       }
 
-      // Fallback: check TowerApp GET directly
-      if (towerRes?.status === TRIP_STATUS.IN_PROGRESS) {
+      if (towerRes?.status === TRIP_STATUS.ACCEPTED) {
         clearInterval(id);
-        setTripState("en_proceso");
+        setTripState("aceptado");
         if (towerRes.location) {
           setTowLocation([parseFloat(towerRes.location.lat), parseFloat(towerRes.location.long)]);
         }
@@ -346,7 +355,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
 
     const isMockTower = process.env.NEXT_PUBLIC_MOCK_TOWER !== "false";
     if (!isMockTower) {
-      if (tripState === "en_proceso") {
+      if (tripState === "aceptado" || tripState === "en_proceso") {
         startPolling(currentTripId);
       }
       return;
@@ -368,12 +377,12 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
 
       if (tripState === "pago_confirmado") {
         intervalsRef.current.searchTimeout = setTimeout(() => {
-          setTripState("en_proceso");
+          setTripState("aceptado");
           setEta(MOCK_ETA_MINUTES);
           setTowLocation(pointsToOrigin[savedProgress?.step ?? 0]);
           startPolling(currentTripId);
         }, SEARCH_DELAY_MS);
-      } else if (tripState === "en_proceso") {
+      } else if (tripState === "aceptado" || tripState === "en_proceso") {
         setTowLocation(pointsToOrigin[savedProgress?.step ?? 0] ?? origin);
         startPolling(currentTripId);
       }
@@ -424,7 +433,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   const driverInfoFetched = useRef(false);
 
   useEffect(() => {
-    if (tripState !== "en_proceso" || !currentTripId) return;
+    if ((tripState !== "aceptado" && tripState !== "en_proceso") || !currentTripId) return;
     if (driverInfoFetched.current) return;
     driverInfoFetched.current = true;
 
@@ -497,14 +506,14 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     initMockTripProgress(String(tripId), pointsToOrigin, pointsToDest);
 
     if (options?.skipSearchDelay) {
-      setTripState("en_proceso");
+      setTripState("aceptado");
       setEta(MOCK_ETA_MINUTES);
       setTowLocation(origin);
       startPolling(tripId);
     } else {
       setTripState("pago_confirmado");
       intervalsRef.current.searchTimeout = setTimeout(() => {
-        setTripState("en_proceso");
+        setTripState("aceptado");
         setEta(MOCK_ETA_MINUTES);
         setTowLocation(origin);
         startPolling(tripId);
@@ -556,7 +565,6 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     setCurrentTripId(createdTripId);
 
     if (result.useMocks) {
-      useMocksRef.current = true;
       const confirmRes = await confirmPaymentAction(createdTripId);
       if (confirmRes.error === "no_towers_available") {
         setCurrentTripId(null);
@@ -574,7 +582,6 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
         setTripState("pago_confirmado");
       }
     } else {
-      useMocksRef.current = false;
       const returnUrl = encodeURIComponent(`${window.location.origin}/customer/request-ride?trip_id=${createdTripId}`);
       const paymentUrl = getPaymentUrl(createdTripId, returnUrl);
       window.location.href = paymentUrl;
@@ -657,17 +664,17 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
         return <PaymentPendingStep />;
       case "pago_confirmado":
         return <SearchingStep />;
-      case "en_proceso":
-        return viajePhase === "en_camino" ? (
+      case "aceptado":
+        return (
           <FoundStep
             driverName={driverName}
             driverRating={driverRating}
             craneTypeLabel={craneTypeLabels[selectedCraneType] || selectedCraneType}
             eta={eta ?? 0}
           />
-        ) : (
-          <InProgressStep />
         );
+      case "en_proceso":
+        return <InProgressStep />;
       case "finalizado":
         return <FeedbackSubmittedStep />;
       case "cancelado":
@@ -682,7 +689,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   return (
     <div className="absolute inset-0 w-full h-full">
       <div className="absolute inset-0 z-0 bg-muted">
-        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} craneType={selectedCraneType} />
+        <DynamicMap origin={origin} destination={destination} towLocation={towLocation} />
       </div>
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">
         {(tripState === "idle" || tripState === "cancelado" || tripState === "finalizado") && (
@@ -725,7 +732,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
                 <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm">
                   {renderStep()}
                 </div>
-                {(tripState === "esperando_pago" || tripState === "pago_confirmado" || tripState === "en_proceso" || tripState === "payment_failed") && (
+                {(tripState === "esperando_pago" || tripState === "pago_confirmado" || tripState === "aceptado" || tripState === "en_proceso" || tripState === "payment_failed") && (
                   <div className="w-full max-w-sm pb-6 shrink-0">
                     <button
                       onClick={handleCancelTrip}

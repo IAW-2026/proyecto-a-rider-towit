@@ -7,10 +7,9 @@ type MapProps = {
   origin?: [number, number] | null;
   destination?: [number, number] | null;
   towLocation?: [number, number] | null;
-  craneType?: string;
 };
 
-export default function DynamicMap({ origin, destination, towLocation, craneType }: MapProps) {
+export default function DynamicMap({ origin, destination, towLocation }: MapProps) {
   const Map = useMemo(() => dynamic(
     () => import('@/app/customer/request-ride/map-components/Map'),
     {
@@ -19,5 +18,5 @@ export default function DynamicMap({ origin, destination, towLocation, craneType
     }
   ), []);
 
-  return <Map origin={origin} destination={destination} towLocation={towLocation} craneType={craneType} />;
+  return <Map origin={origin} destination={destination} towLocation={towLocation} />;
 }

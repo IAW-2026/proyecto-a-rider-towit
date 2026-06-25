@@ -118,7 +118,7 @@ export async function getTowerRequestStatus(tripId: string) {
   if (USE_MOCK_TOWER()) {
     const progress = mockProgressStore.get(tripId);
     if (!progress) {
-      return { status: TRIP_STATUS.IN_PROGRESS, phase: "en_camino", location: null };
+      return { status: TRIP_STATUS.ACCEPTED, phase: "en_camino", location: null };
     }
 
     const points = progress.phase === "arriving" ? progress.pointsToOrigin : progress.pointsToDest;
@@ -135,8 +135,10 @@ export async function getTowerRequestStatus(tripId: string) {
     const location = points[progress.step];
     progress.step++;
 
+    const status = progress.phase === "arriving" ? TRIP_STATUS.ACCEPTED : TRIP_STATUS.IN_PROGRESS;
+
     return {
-      status: TRIP_STATUS.IN_PROGRESS,
+      status,
       phase: progress.phase === "arriving" ? "en_camino" : "en_viaje",
       location: { lat: String(location[0]), long: String(location[1]) },
       totalPoints: points.length,
@@ -144,41 +146,40 @@ export async function getTowerRequestStatus(tripId: string) {
     };
   }
 
-  const res = await fetch(`${TOWER_REQUESTS_URL}/${tripId}`, {
-    method: "GET",
-    headers: {
-      "x-api-key": API_KEY,
-    },
-  });
+  try {
+    const res = await fetch(`/api/tower-proxy/${tripId}`)
 
-  const response: TowerRequestStatusResponse = await res.json();
+    const response: TowerRequestStatusResponse = await res.json();
 
-  if (!res.ok) {
-    if (res.status === 404) {
+    if (!res.ok) {
+      if (res.status === 502) {
+        return { status: "unknown", location: null };
+      }
       return { status: "not_found", location: null };
     }
-    throw new Error(response.error || `Error al consultar estado: ${res.status}`);
-  }
 
-  const data = response.data;
-  if (!data) {
+    const data = response.data;
+    if (!data) {
+      return { status: "unknown", location: null };
+    }
+
+    const statusMap: Record<string, string> = {
+      pending: TRIP_STATUS.PAYMENT_CONFIRMED,
+      accepted: TRIP_STATUS.ACCEPTED,
+      completed: TRIP_STATUS.COMPLETED,
+      finalizado: TRIP_STATUS.COMPLETED,
+      cancelled: TRIP_STATUS.CANCELLED,
+      canceled: TRIP_STATUS.CANCELLED,
+      cancelado: TRIP_STATUS.CANCELLED,
+    };
+
+    return {
+      status: statusMap[data.status] || data.status,
+      location: data.location,
+    };
+  } catch {
     return { status: "unknown", location: null };
   }
-
-  const statusMap: Record<string, string> = {
-    pending: TRIP_STATUS.PAYMENT_CONFIRMED,
-    accepted: TRIP_STATUS.IN_PROGRESS,
-    completed: TRIP_STATUS.COMPLETED,
-    finalizado: TRIP_STATUS.COMPLETED,
-    cancelled: TRIP_STATUS.CANCELLED,
-    canceled: TRIP_STATUS.CANCELLED,
-    cancelado: TRIP_STATUS.CANCELLED,
-  };
-
-  return {
-    status: statusMap[data.status] || data.status,
-    location: data.location,
-  };
 }
 
 export async function getTowerDriverInfo(towerId: string) {

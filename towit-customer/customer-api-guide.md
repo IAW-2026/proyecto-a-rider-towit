@@ -26,7 +26,7 @@ La **Tower App** debe llamar a este endpoint cuando un conductor acepta un viaje
     *   `x-api-key: [TU_API_KEY]`
 
 *   **Parámetros de Ruta:**
-    *   `trip_id` (number): El ID numérico del viaje a asignar.
+    *   `trip_id` (number, **requerido**): El **ID numérico** del viaje (ej: `42`). No usar el Clerk ID del usuario. Este valor es el mismo que se envía como `trip.id` en el POST `/api/tower/requests`.
 
 *   **Cuerpo de la Solicitud (JSON):**
     ```json
