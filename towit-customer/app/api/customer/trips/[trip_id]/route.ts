@@ -116,7 +116,7 @@ export async function PATCH(
 
     await db
       .update(trip)
-      .set({ towerId: tower_id, status })
+      .set({ towerId: tower_id, status: status })
       .where(eq(trip.tripId, Number(trip_id)))
 
     return Response.json({})
