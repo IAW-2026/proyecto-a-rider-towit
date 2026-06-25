@@ -471,6 +471,11 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
 
     if (result.useMocks) {
       useMocksRef.current = true;
+      const confirmRes = await confirmPaymentAction(createdTripId);
+      if (confirmRes.error) {
+        alert(confirmRes.error);
+        return;
+      }
       startSearchFlow(createdTripId);
     } else {
       useMocksRef.current = false;
