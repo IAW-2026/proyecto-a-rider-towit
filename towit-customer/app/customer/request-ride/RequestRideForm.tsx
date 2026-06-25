@@ -187,41 +187,44 @@ export default function RequestRideForm({ initialVehicles = [], tripIdFromUrl }:
     if (!hydrated || restoredFromDb.current) return;
     restoredFromDb.current = true;
 
+    if (tripIdFromUrl) {
+      getTripByIdAction(tripIdFromUrl).then((result) => restoreTripFromDb(result));
+      return;
+    }
+
     const saved = loadPersistedState();
     if (saved?.currentTripId && saved?.origin && saved?.destination) {
       if (saved.tripState !== "pago_confirmado" && saved.tripState !== "en_proceso") return;
       return;
     }
 
-    const fetchTrip = tripIdFromUrl
-      ? getTripByIdAction(tripIdFromUrl)
-      : getLatestActiveTripAction();
+    getLatestActiveTripAction().then((result) => restoreTripFromDb(result));
+  }, [hydrated, tripIdFromUrl]);
 
-    fetchTrip.then((result) => {
-      if (!result.trip) return;
+  function restoreTripFromDb(result: Awaited<ReturnType<typeof getTripByIdAction>>) {
+    if (!result?.trip) return;
 
-      const t = result.trip;
-      const originCoords: [number, number] = [t.originLat, t.originLng];
-      const destCoords: [number, number] = [t.destinationLat, t.destinationLng];
+    const t = result.trip;
+    const originCoords: [number, number] = [t.originLat, t.originLng];
+    const destCoords: [number, number] = [t.destinationLat, t.destinationLng];
 
-      setCurrentTripId(t.tripId);
-      setOrigin(originCoords);
-      setDestination(destCoords);
+    setCurrentTripId(t.tripId);
+    setOrigin(originCoords);
+    setDestination(destCoords);
 
-      if (t.status === TRIP_STATUS.PAYMENT_CONFIRMED) {
-        setTripState("pago_confirmado");
-        confirmPaymentAction(t.tripId).then((res) => {
-          if (!res.success) {
-            setTripState("payment_failed");
-          }
-        });
-      } else if (t.status === TRIP_STATUS.PENDING_PAYMENT && tripIdFromUrl) {
-        setTripState("esperando_pago");
-      } else if (t.status === TRIP_STATUS.IN_PROGRESS) {
-        setTripState("en_proceso");
-      }
-    });
-  }, [hydrated]);
+    if (t.status === TRIP_STATUS.PAYMENT_CONFIRMED) {
+      setTripState("pago_confirmado");
+      confirmPaymentAction(t.tripId).then((res) => {
+        if (!res.success) {
+          setTripState("payment_failed");
+        }
+      });
+    } else if (t.status === TRIP_STATUS.PENDING_PAYMENT && tripIdFromUrl) {
+      setTripState("esperando_pago");
+    } else if (t.status === TRIP_STATUS.IN_PROGRESS) {
+      setTripState("en_proceso");
+    }
+  }
 
   // Poll waiting for payment confirmation
   useEffect(() => {
