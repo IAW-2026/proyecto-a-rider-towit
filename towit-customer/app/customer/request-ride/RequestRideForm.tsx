@@ -476,16 +476,20 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
   useEffect(() => {
     if ((tripState !== "aceptado" && tripState !== "en_proceso") || !currentTripId) return;
     if (driverInfoFetched.current) return;
-    driverInfoFetched.current = true;
 
-    getTripByIdAction(currentTripId).then((res) => {
-      if (!res.trip?.towerId) return;
-      getDriverInfoAction(res.trip.towerId).then((info) => {
-        if (info.error) return;
-        setDriverName(info.driverName);
-        setDriverRating(info.driverRating);
-      });
-    });
+    const driverInfoInterval = setInterval(async () => {
+      const trip = await getTripByIdAction(currentTripId);
+      if (!trip.trip?.towerId) return;
+      clearInterval(driverInfoInterval);
+      driverInfoFetched.current = true;
+      const info = await getDriverInfoAction(trip.trip.towerId);
+      console.log("Driver info response:", info);
+      if (info.error) return;
+      setDriverName(info.driverName);
+      setDriverRating(info.driverRating);
+    }, 1000);
+
+    return () => clearInterval(driverInfoInterval);
   }, [tripState, currentTripId]);
 
   const estimatedDistance = origin && destination
@@ -729,7 +733,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
 
   return (
     <div className="absolute inset-0 w-full h-full">
-      <div className="absolute inset-0 z-0 bg-muted">
+      <div className="absolute inset-0 lg:left-[450px] xl:left-[500px] z-0 bg-muted">
         <DynamicMap origin={origin} destination={destination} towLocation={towLocation} followTower={tripState === "en_proceso"} />
       </div>
       <div className="absolute top-0 left-0 w-full z-[1000] pointer-events-none">

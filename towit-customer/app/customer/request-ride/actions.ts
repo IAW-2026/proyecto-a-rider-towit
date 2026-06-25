@@ -391,8 +391,11 @@ export async function syncTripStatusAction(tripId: number, status: string, tower
 
 export async function getDriverInfoAction(towerId: string) {
   try {
-    const info = await getTowerDriverInfo(towerId);
-    return { success: true, driverName: info.driver_name, driverRating: info.driver_rating, driverPhone: info.driver_phone, vehicleBrand: info.vehicle_brand, vehicleModel: info.vehicle_model, vehicleYear: info.vehicle_year };
+    const [info, avgRating] = await Promise.all([
+      getTowerDriverInfo(towerId),
+      getAvgRating(towerId),
+    ]);
+    return { success: true, driverName: info.driver_name, driverRating: avgRating.avg_rating, driverPhone: info.driver_phone, vehicleBrand: info.vehicle_brand, vehicleModel: info.vehicle_model, vehicleYear: info.vehicle_year };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Error al obtener info del conductor."
     console.error("Error fetching driver info:", error);

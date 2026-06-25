@@ -85,10 +85,6 @@ export default async function CustomerHome() {
         <p className="text-sm text-muted-foreground">
           Tiempo promedio de respuesta: <span className="font-semibold text-foreground">8 minutos</span>
         </p>
-        <div className="h-4 w-px bg-border hidden sm:block" />
-        <p className="text-sm text-muted-foreground">
-          Conductores activos: <span className="font-semibold text-foreground">24</span>
-        </p>
       </div>
 
     </main>
