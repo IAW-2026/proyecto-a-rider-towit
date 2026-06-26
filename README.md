@@ -1,9 +1,33 @@
-# rider
+# TowIt — Rider App
 
-Aplicación **Rider** del [Proyecto IAW 2026](https://iaw-2026.github.io/proyecto/) — comisión `<!-- completar -->`.
+Aplicación de solicitud de remolques (grúas) para el rol de **Rider** — Proyecto IAW 2026 — tipo **A (Plataforma de Transporte)**.
 
-Esta app corresponde al rol del pasajero en el proyecto de tipo **A (Transporte)**.
+## Deploy
 
----
+[https://towit-customerview.vercel.app/](https://towit-customerview.vercel.app/)
 
-Enunciado completo: <https://iaw-2026.github.io/proyecto/>
+## Tipos de usuario y acceso
+
+- Admin:
+  - Mail: admin_rider+clerk_test@iaw.com
+  - Contraseña: iawuser#
+  - Código de acceso: 424242
+- Rider: 
+  - Mail: rider+clerk_test@iaw.com
+  - Contraseña: iawuser#
+  - Código de acceso: 424242
+
+### Cliente (usuario final)
+- Crear cuenta desde la pantalla de inicio o iniciar sesión.
+- Accede a: home, solicitar viaje, historial de viajes, gestión de vehículos.
+
+### Administrador
+- Ir a `/admin` e iniciar sesión.
+- Requiere que el usuario tenga el rol `admin` en Clerk (`publicMetadata.role = "admin"`).
+- Accede a: dashboard con estadísticas, gestión de clientes, viajes y vehículos.
+
+## Stack
+
+Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · Clerk (auth) · Neon (PostgreSQL) · Drizzle ORM · Leaflet (mapas)
+
+

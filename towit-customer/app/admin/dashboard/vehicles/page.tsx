@@ -1,0 +1,120 @@
+import { db } from "@/db";
+import { vehicle, customer } from "@/db/schema";
+import { eq, desc, ilike, or, sql, count } from "drizzle-orm";
+import Pagination from "@/components/ui/Pagination";
+import AdminSearchForm from "@/components/ui/AdminSearchForm";
+import Link from "next/link";
+
+const PAGE_SIZE = 15;
+
+export default async function AdminVehiclesPage(props: { searchParams?: Promise<{ q?: string; page?: string }> }) {
+  const sp = await props.searchParams;
+  const query = sp?.q?.trim() || "";
+  const currentPage = Math.max(1, Number(sp?.page) || 1);
+
+  const conditions = [];
+  if (query) {
+    const q = `%${query}%`;
+    conditions.push(
+      or(
+        ilike(vehicle.brand, q),
+        ilike(vehicle.model, q),
+        ilike(customer.fullName, q),
+        ilike(sql`CAST(${vehicle.year} AS TEXT)`, q),
+        ilike(sql`CAST(${vehicle.vehicleId} AS TEXT)`, q),
+      )
+    );
+  }
+
+  const whereFilter = conditions.length > 0 ? or(...conditions) : undefined;
+
+  const [totalResult] = await db
+    .select({ value: count() })
+    .from(vehicle)
+    .leftJoin(customer, eq(vehicle.customerId, customer.customerId))
+    .where(whereFilter);
+
+  const totalItems = Number(totalResult.value);
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
+  const allVehicles = await db
+    .select({
+      vehicleId: vehicle.vehicleId,
+      brand: vehicle.brand,
+      model: vehicle.model,
+      year: vehicle.year,
+      weight: vehicle.weight,
+      customerName: customer.fullName,
+    })
+    .from(vehicle)
+    .leftJoin(customer, eq(vehicle.customerId, customer.customerId))
+    .where(whereFilter)
+    .orderBy(desc(vehicle.vehicleId))
+    .limit(PAGE_SIZE)
+    .offset((currentPage - 1) * PAGE_SIZE);
+
+  const qp: Record<string, string> = {};
+  if (query) qp.q = query;
+
+  return (
+    <main className="max-w-7xl mx-auto px-6 py-8">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-foreground">Vehículos</h1>
+        <Link href="/admin/dashboard" className="text-sm text-brand-yellow-dark hover:text-brand-yellow-hover font-semibold transition">
+          ← Volver al Dashboard
+        </Link>
+      </div>
+
+      <AdminSearchForm
+        basePath="/admin/dashboard/vehicles"
+        initialQuery={query}
+        placeholder="Buscar por marca, modelo, año, cliente..."
+      />
+
+      <div className="bg-card rounded-xl shadow-xl overflow-hidden border border-border">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Marca</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Modelo</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Año</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Peso (ton)</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Cliente</th>
+              </tr>
+            </thead>
+            <tbody className="bg-card divide-y divide-border">
+              {allVehicles.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                    {query ? "No se encontraron vehículos con ese criterio." : "No hay vehículos registrados aún."}
+                  </td>
+                </tr>
+              ) : (
+                allVehicles.map((v) => (
+                  <tr key={v.vehicleId} className="hover:bg-muted transition">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-foreground">{v.vehicleId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{v.brand}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{v.model}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{v.year}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{v.weight ? `${v.weight}` : "—"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{v.customerName || "Desconocido"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          basePath="/admin/dashboard/vehicles"
+          queryParams={qp}
+        />
+      </div>
+    </main>
+  );
+}
