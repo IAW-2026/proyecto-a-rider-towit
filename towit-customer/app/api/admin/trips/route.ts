@@ -50,8 +50,12 @@ export async function GET(request: NextRequest) {
   const data = await db
     .select({
       tripId: trip.tripId,
-      customerId: trip.customerId,
-      customerName: customer.fullName,
+      customer: {
+        customerId: customer.customerId,
+        clerkId: customer.clerkId,
+        fullName: customer.fullName,
+        isActive: customer.isActive,
+      },
       vehicleId: trip.vehicleId,
       towerId: trip.towerId,
       originChar: trip.originChar,
