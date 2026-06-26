@@ -372,6 +372,18 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
         return;
       }
 
+      // TowerApp already assigned a tower and DB is IN_PROGRESS — transition to aceptado
+      if (dbRes.trip?.status === TRIP_STATUS.IN_PROGRESS && dbRes.trip?.towerId) {
+        clearInterval(id);
+        setTripState("aceptado");
+        if (towerRes.location) {
+          const loc = towerRes.location as { lat: string; long?: string; lng?: string };
+          setTowLocation([parseFloat(loc.lat), parseFloat(loc.long ?? loc.lng ?? "0")]);
+        }
+        startPolling(currentTripId);
+        return;
+      }
+
       if (towerRes?.status === TRIP_STATUS.ACCEPTED) {
         clearInterval(id);
         setTripState("aceptado");

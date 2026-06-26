@@ -54,7 +54,10 @@ export async function getAvgRating(userId: string) {
   }
 
   try {
-    const res = await fetch(`${FEEDBACK_API_URL}/api/feedback/avg_rating/${userId}`, {
+    const url = `${FEEDBACK_API_URL}/api/feedback/avg_rating/${userId}`;
+    console.log(`[getAvgRating] fetching ${url}`);
+    console.log(userId );
+    const res = await fetch(url, {
       headers: { "x-api-key": process.env.INTERNAL_API_SECRET || "" },
     });
     if (!res.ok) throw new Error(`Feedback avg rating API error: ${res.status}`);
