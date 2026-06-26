@@ -406,11 +406,15 @@ export async function getDriverInfoAction(tripId: number) {
     if (!towerId) return { error: "No se encontró un towerId para este viaje." };
 
     const [info, avgRating] = await Promise.all([
-      getTowerDriverInfo(towerId),
-      getAvgRating(towerId),
+      getTowerDriverInfo(towerId).catch(() => null),
+      getAvgRating(towerId).catch(() => ({ avg_rating: 5 })),
     ]);
+
     console.log(`[getAvgRating] towerId=${towerId} response=`, avgRating);
-    return { success: true, driverName: info.driver_name, driverRating: avgRating.avg_rating, driverPhone: info.driver_phone, vehicleBrand: info.vehicle_brand, vehicleModel: info.vehicle_model, vehicleYear: info.vehicle_year };
+
+    const driverRating = avgRating?.avg_rating ?? info?.driver_rating ?? 0;
+
+    return { success: true, driverName: info?.driver_name ?? "", driverRating, driverPhone: info?.driver_phone ?? "", vehicleBrand: info?.vehicle_brand ?? "", vehicleModel: info?.vehicle_model ?? "", vehicleYear: info?.vehicle_year ?? 0 };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Error al obtener info del conductor."
     console.error("Error fetching driver info:", error);
