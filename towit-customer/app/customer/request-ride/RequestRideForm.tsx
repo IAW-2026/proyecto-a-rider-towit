@@ -170,10 +170,12 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
 
   const startPolling = useCallback((tripId: number) => {
     if (intervalsRef.current.polling) clearInterval(intervalsRef.current.polling);
-    intervalsRef.current.polling = setInterval(async () => {
-      const towerRes = await getTowerRequestStatus(String(tripId));
 
-      const dbRes = await getTripByIdAction(tripId);
+    const poll = async () => {
+      const [towerRes, dbRes] = await Promise.all([
+        getTowerRequestStatus(String(tripId)),
+        getTripByIdAction(tripId),
+      ]);
       if (dbRes.trip?.status === TRIP_STATUS.COMPLETED) {
         handleTripCompleted(tripId);
         return;
@@ -213,7 +215,10 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       if (towerRes?.status === TRIP_STATUS.COMPLETED) {
         handleTripCompleted(tripId);
       }
-    }, 1500);
+    };
+
+    poll();
+    intervalsRef.current.polling = setInterval(poll, 1500);
   }, [handleTripCompleted]);
 
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -360,23 +365,14 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     const id = setInterval(async () => {
       const towerRes = await getTowerRequestStatus(String(currentTripId));
 
-      const setInitialTow = (loc?: { lat: string; long?: string; lng?: string } | null) => {
-        if (loc?.lat) {
-          const lat = parseFloat(loc.lat);
-          const lng = parseFloat(loc.long ?? loc.lng ?? "0");
-          if (!isNaN(lat) && !isNaN(lng)) {
-            setTowLocation([lat, lng]);
-            return;
-          }
-        }
-        if (originRef.current) setTowLocation(originRef.current);
-      };
-
       const dbRes = await getTripByIdAction(currentTripId);
       if (dbRes.trip?.status === TRIP_STATUS.ACCEPTED && dbRes.trip?.towerId) {
         clearInterval(id);
         setTripState("aceptado");
-        setInitialTow(towerRes?.location);
+        if (towerRes.location) {
+          const loc = towerRes.location as { lat: string; long?: string; lng?: string };
+          setTowLocation([parseFloat(loc.lat), parseFloat(loc.long ?? loc.lng ?? "0")]);
+        }
         startPolling(currentTripId);
         return;
       }
@@ -385,7 +381,10 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       if (dbRes.trip?.status === TRIP_STATUS.IN_PROGRESS && dbRes.trip?.towerId) {
         clearInterval(id);
         setTripState("aceptado");
-        setInitialTow(towerRes?.location);
+        if (towerRes.location) {
+          const loc = towerRes.location as { lat: string; long?: string; lng?: string };
+          setTowLocation([parseFloat(loc.lat), parseFloat(loc.long ?? loc.lng ?? "0")]);
+        }
         startPolling(currentTripId);
         return;
       }
@@ -393,7 +392,10 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       if (towerRes?.status === TRIP_STATUS.ACCEPTED) {
         clearInterval(id);
         setTripState("aceptado");
-        setInitialTow(towerRes?.location);
+        if (towerRes.location) {
+          const loc = towerRes.location as { lat: string; long?: string; lng?: string };
+          setTowLocation([parseFloat(loc.lat), parseFloat(loc.long ?? loc.lng ?? "0")]);
+        }
         if (towerRes.towerId) {
           syncTripStatusAction(currentTripId, TRIP_STATUS.ACCEPTED, towerRes.towerId);
         }
