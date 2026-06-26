@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
       customerId: trip.customerId,
       customerName: customer.fullName,
       vehicleId: trip.vehicleId,
+      towerId: trip.towerId,
       originChar: trip.originChar,
       destinationChar: trip.DestinationChar,
       estimatedPrice: trip.estimatedPrice,
