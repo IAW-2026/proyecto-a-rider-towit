@@ -172,48 +172,53 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
     if (intervalsRef.current.polling) clearInterval(intervalsRef.current.polling);
 
     const poll = async () => {
-      const [towerRes, dbRes] = await Promise.all([
-        getTowerRequestStatus(String(tripId)),
-        getTripByIdAction(tripId),
-      ]);
-      if (dbRes.trip?.status === TRIP_STATUS.COMPLETED) {
-        handleTripCompleted(tripId);
-        return;
-      }
+      try {
+        const [towerRes, dbRes] = await Promise.all([
+          getTowerRequestStatus(String(tripId)),
+          getTripByIdAction(tripId),
+        ]);
 
-      if (dbRes.trip?.status === TRIP_STATUS.IN_PROGRESS && tripStateRef.current === "aceptado") {
-        setTripState("en_proceso");
-        setViajePhase("en_viaje");
-      }
-
-      if (towerRes?.location) {
-        const loc = towerRes.location as { lat: string; long?: string; lng?: string };
-        const towerLat = parseFloat(loc.lat);
-        const towerLng = parseFloat(loc.long ?? loc.lng ?? "0");
-        if (!isNaN(towerLat) && !isNaN(towerLng)) {
-          setTowLocation([towerLat, towerLng]);
-
-          const target = viajePhaseRef.current === "en_viaje" ? destinationRef.current : originRef.current;
-          if (target) {
-            const distKm = calculateDistance(towerLat, towerLng, target[0], target[1]);
-            setEta(Math.max(1, Math.round(distKm / AVG_SPEED_KM_MIN)));
-          }
+        if (dbRes.trip?.status === TRIP_STATUS.COMPLETED) {
+          handleTripCompleted(tripId);
+          return;
         }
-      }
-      if (towerRes?.totalPoints && towerRes?.currentStep) {
-        setEta(Math.max(1, Math.floor(7 * (1 - towerRes.currentStep / towerRes.totalPoints))));
-      }
-      if (towerRes?.phase === "en_viaje") {
-        if (tripStateRef.current === "aceptado") {
+
+        if (dbRes.trip?.status === TRIP_STATUS.IN_PROGRESS && tripStateRef.current === "aceptado") {
           setTripState("en_proceso");
-          syncTripStatusAction(tripId, TRIP_STATUS.IN_PROGRESS, null);
-        }
-        if (viajePhaseRef.current === "en_camino") {
           setViajePhase("en_viaje");
         }
-      }
-      if (towerRes?.status === TRIP_STATUS.COMPLETED) {
-        handleTripCompleted(tripId);
+
+        if (towerRes?.location) {
+          const loc = towerRes.location as { lat: string; long?: string; lng?: string };
+          const towerLat = parseFloat(loc.lat);
+          const towerLng = parseFloat(loc.long ?? loc.lng ?? "0");
+          if (!isNaN(towerLat) && !isNaN(towerLng)) {
+            setTowLocation([towerLat, towerLng]);
+
+            const target = viajePhaseRef.current === "en_viaje" ? destinationRef.current : originRef.current;
+            if (target) {
+              const distKm = calculateDistance(towerLat, towerLng, target[0], target[1]);
+              setEta(Math.max(1, Math.round(distKm / AVG_SPEED_KM_MIN)));
+            }
+          }
+        }
+        if (towerRes?.totalPoints && towerRes?.currentStep) {
+          setEta(Math.max(1, Math.floor(7 * (1 - towerRes.currentStep / towerRes.totalPoints))));
+        }
+        if (towerRes?.phase === "en_viaje") {
+          if (tripStateRef.current === "aceptado") {
+            setTripState("en_proceso");
+            syncTripStatusAction(tripId, TRIP_STATUS.IN_PROGRESS, null);
+          }
+          if (viajePhaseRef.current === "en_camino") {
+            setViajePhase("en_viaje");
+          }
+        }
+        if (towerRes?.status === TRIP_STATUS.COMPLETED) {
+          handleTripCompleted(tripId);
+        }
+      } catch {
+        // ignore polling errors
       }
     };
 
