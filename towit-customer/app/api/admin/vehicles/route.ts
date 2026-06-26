@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
   const conditions: SQL<unknown>[] = [];
   if (search) {
     const searchCondition = or(
+      sql`${vehicle.vehicleId}::text ILIKE ${`%${search}%`}`,
       ilike(vehicle.brand, `%${search}%`),
       ilike(vehicle.model, `%${search}%`),
       ilike(customer.fullName, `%${search}%`),
