@@ -494,7 +494,7 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       if (!trip.trip?.towerId) return;
       clearInterval(driverInfoInterval);
       driverInfoFetched.current = true;
-      const info = await getDriverInfoAction(trip.trip.towerId);
+      const info = await getDriverInfoAction(currentTripId);
       console.log("Driver info response:", info);
       if (info.error) return;
       setDriverName(info.driverName);

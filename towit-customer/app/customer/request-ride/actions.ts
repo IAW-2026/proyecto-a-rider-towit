@@ -393,8 +393,18 @@ export async function syncTripStatusAction(tripId: number, status: string, tower
   }
 }
 
-export async function getDriverInfoAction(towerId: string) {
+export async function getDriverInfoAction(tripId: number) {
   try {
+    const user = await currentUser();
+    if (!user) return { error: "Acceso denegado." };
+
+    const tripRecord = await db.query.trip.findFirst({
+      where: eq(trip.tripId, tripId),
+    });
+
+    const towerId = tripRecord?.towerId;
+    if (!towerId) return { error: "No se encontró un towerId para este viaje." };
+
     const [info, avgRating] = await Promise.all([
       getTowerDriverInfo(towerId),
       getAvgRating(towerId),
