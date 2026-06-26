@@ -170,10 +170,12 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
 
   const startPolling = useCallback((tripId: number) => {
     if (intervalsRef.current.polling) clearInterval(intervalsRef.current.polling);
-    intervalsRef.current.polling = setInterval(async () => {
-      const towerRes = await getTowerRequestStatus(String(tripId));
 
-      const dbRes = await getTripByIdAction(tripId);
+    const poll = async () => {
+      const [towerRes, dbRes] = await Promise.all([
+        getTowerRequestStatus(String(tripId)),
+        getTripByIdAction(tripId),
+      ]);
       if (dbRes.trip?.status === TRIP_STATUS.COMPLETED) {
         handleTripCompleted(tripId);
         return;
@@ -213,7 +215,10 @@ export default function RequestRideForm({ initialVehicles = [], initialTrip, tri
       if (towerRes?.status === TRIP_STATUS.COMPLETED) {
         handleTripCompleted(tripId);
       }
-    }, 2000);
+    };
+
+    poll();
+    intervalsRef.current.polling = setInterval(poll, 1500);
   }, [handleTripCompleted]);
 
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
